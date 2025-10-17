@@ -1,0 +1,72 @@
+{
+  "metadata": {
+    "predictions_file": "models/xlmr_crf/predictions.jsonl",
+    "timestamp": "2025-10-15T08:55:19.471503",
+    "num_examples": 433,
+    "include_events": true
+  },
+  "entity_level_metrics": {
+    "entity_precision": 0.8889582033686837,
+    "entity_recall": 0.9474734042553191,
+    "entity_f1": 0.9172835532668168,
+    "entity_accuracy": 0.9916152072018452,
+    "per_type_metrics": {
+      "COUNTING-MAJORITY": {
+        "precision": 0.9122807017543859,
+        "recall": 1.0,
+        "f1_score": 0.9541284403669724,
+        "support": 52
+      },
+      "COUNTING-UNANIMITY": {
+        "precision": 0.9364406779661016,
+        "recall": 0.9954954954954955,
+        "f1_score": 0.9650655021834061,
+        "support": 222
+      },
+      "SUBJECT": {
+        "precision": 0.7682619647355163,
+        "recall": 0.8176943699731903,
+        "f1_score": 0.7922077922077921,
+        "support": 373
+      },
+      "VOTER-ABSENT": {
+        "precision": 0.9523809523809523,
+        "recall": 0.9090909090909091,
+        "f1_score": 0.9302325581395349,
+        "support": 22
+      },
+      "VOTER-ABSTENTION": {
+        "precision": 0.8789808917197452,
+        "recall": 1.0,
+        "f1_score": 0.9355932203389831,
+        "support": 138
+      },
+      "VOTER-AGAINST": {
+        "precision": 0.9743589743589743,
+        "recall": 0.95,
+        "f1_score": 0.9620253164556962,
+        "support": 40
+      },
+      "VOTER-FAVOR": {
+        "precision": 0.9197080291970803,
+        "recall": 0.9882352941176471,
+        "f1_score": 0.9527410207939508,
+        "support": 255
+      },
+      "VOTING": {
+        "precision": 0.9454976303317536,
+        "recall": 0.9925373134328358,
+        "f1_score": 0.9684466019417476,
+        "support": 402
+      }
+    },
+    "evaluation_method": "seqeval_entity_level"
+  },
+  "event_level_metrics": {
+    "event_detection_f1": 0.9715061058344642,
+    "subject_f1": 0.9021406727828746,
+    "counting_f1": 0.9962406015037594,
+    "participant_vote_f1": 0.9809081664234867,
+    "complete_event_f1": 0.8652694610778443
+  }
+}

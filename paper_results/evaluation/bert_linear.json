@@ -1,0 +1,72 @@
+{
+  "metadata": {
+    "predictions_file": "models/bert_linear/predictions.jsonl",
+    "timestamp": "2025-10-15T08:55:06.889372",
+    "num_examples": 433,
+    "include_events": true
+  },
+  "entity_level_metrics": {
+    "entity_precision": 0.8250863060989643,
+    "entity_recall": 0.9534574468085106,
+    "entity_f1": 0.8846391116594694,
+    "entity_accuracy": 0.9894501897180269,
+    "per_type_metrics": {
+      "COUNTING-MAJORITY": {
+        "precision": 0.7323943661971831,
+        "recall": 1.0,
+        "f1_score": 0.8455284552845529,
+        "support": 52
+      },
+      "COUNTING-UNANIMITY": {
+        "precision": 0.925,
+        "recall": 1.0,
+        "f1_score": 0.961038961038961,
+        "support": 222
+      },
+      "SUBJECT": {
+        "precision": 0.6895787139689579,
+        "recall": 0.8337801608579088,
+        "f1_score": 0.7548543689320388,
+        "support": 373
+      },
+      "VOTER-ABSENT": {
+        "precision": 0.39622641509433965,
+        "recall": 0.9545454545454546,
+        "f1_score": 0.5599999999999999,
+        "support": 22
+      },
+      "VOTER-ABSTENTION": {
+        "precision": 0.8625,
+        "recall": 1.0,
+        "f1_score": 0.9261744966442953,
+        "support": 138
+      },
+      "VOTER-AGAINST": {
+        "precision": 0.8260869565217391,
+        "recall": 0.95,
+        "f1_score": 0.8837209302325583,
+        "support": 40
+      },
+      "VOTER-FAVOR": {
+        "precision": 0.896797153024911,
+        "recall": 0.9882352941176471,
+        "f1_score": 0.9402985074626866,
+        "support": 255
+      },
+      "VOTING": {
+        "precision": 0.9174311926605505,
+        "recall": 0.9950248756218906,
+        "f1_score": 0.954653937947494,
+        "support": 402
+      }
+    },
+    "evaluation_method": "seqeval_entity_level"
+  },
+  "event_level_metrics": {
+    "event_detection_f1": 0.9728997289972899,
+    "subject_f1": 0.8970814132104455,
+    "counting_f1": 0.9848484848484848,
+    "participant_vote_f1": 0.9678959469239489,
+    "complete_event_f1": 0.8174726989079563
+  }
+}

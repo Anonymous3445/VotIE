@@ -1,0 +1,72 @@
+{
+  "metadata": {
+    "predictions_file": "models/xlmr_linear/predictions.jsonl",
+    "timestamp": "2025-10-15T08:55:22.016978",
+    "num_examples": 433,
+    "include_events": true
+  },
+  "entity_level_metrics": {
+    "entity_precision": 0.7627302275189599,
+    "entity_recall": 0.9361702127659575,
+    "entity_f1": 0.8405970149253731,
+    "entity_accuracy": 0.9847779183096496,
+    "per_type_metrics": {
+      "COUNTING-MAJORITY": {
+        "precision": 0.45098039215686275,
+        "recall": 0.8846153846153846,
+        "f1_score": 0.5974025974025974,
+        "support": 52
+      },
+      "COUNTING-UNANIMITY": {
+        "precision": 0.91701244813278,
+        "recall": 0.9954954954954955,
+        "f1_score": 0.9546436285097192,
+        "support": 222
+      },
+      "SUBJECT": {
+        "precision": 0.5877862595419847,
+        "recall": 0.8257372654155496,
+        "f1_score": 0.6867335562987736,
+        "support": 373
+      },
+      "VOTER-ABSENT": {
+        "precision": 0.1724137931034483,
+        "recall": 0.22727272727272727,
+        "f1_score": 0.19607843137254902,
+        "support": 22
+      },
+      "VOTER-ABSTENTION": {
+        "precision": 0.8518518518518519,
+        "recall": 1.0,
+        "f1_score": 0.92,
+        "support": 138
+      },
+      "VOTER-AGAINST": {
+        "precision": 0.8085106382978723,
+        "recall": 0.95,
+        "f1_score": 0.8735632183908046,
+        "support": 40
+      },
+      "VOTER-FAVOR": {
+        "precision": 0.842809364548495,
+        "recall": 0.9882352941176471,
+        "f1_score": 0.9097472924187726,
+        "support": 255
+      },
+      "VOTING": {
+        "precision": 0.9049773755656109,
+        "recall": 0.9950248756218906,
+        "f1_score": 0.9478672985781991,
+        "support": 402
+      }
+    },
+    "evaluation_method": "seqeval_entity_level"
+  },
+  "event_level_metrics": {
+    "event_detection_f1": 0.9728997289972899,
+    "subject_f1": 0.7973199329983249,
+    "counting_f1": 0.9712092130518234,
+    "participant_vote_f1": 0.9332796941285431,
+    "complete_event_f1": 0.6998284734133791
+  }
+}

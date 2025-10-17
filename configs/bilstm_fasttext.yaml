@@ -1,0 +1,37 @@
+# BiLSTM + FastText Baseline Configuration
+
+model:
+  name: "bilstm_fasttext"
+  embedding_dim: 300       # FastText embedding dimension
+  hidden_dim: 128          # LSTM hidden state dimension
+  num_layers: 1            # Number of LSTM layers
+  dropout: 0.5             # Dropout rate
+  use_crf: true            # Use CRF layer on top of BiLSTM
+  use_char_cnn: true       # Use character-level CNN
+
+data:
+  data_dir: "data/votie_bio"
+  train_file: "train.jsonl"
+  dev_file: "dev.jsonl"
+  test_file: "test.jsonl"
+  # For cross-municipality experiments:
+  # data_dir: "data/publication_datasets/ner_datasets/cross_municipality/sao_paulo"
+  # For multilingual experiments:
+  # data_dir: "data/publication_datasets/ner_datasets/es/splits"
+
+training:
+  batch_size: 32
+  max_epochs: 20
+  learning_rate: 0.0005
+  weight_decay: 1e-4       # L2 regularization strength  
+  patience: 2              # Early stopping patience
+  device: 2        
+  apply_bio_validation: true  # Apply BIO tag validation
+  seed: 42  # Random seed for reproducibility
+
+embeddings:
+  # Path to FastText embeddings (cc.pt.300.bin for Portuguese)
+  # Will be loaded from baselines/traditional/bilstm_fasttext/ directory
+  fasttext_path: "cc.pt.300.bin"
+  # Alternatively, can specify full path:
+  # fasttext_path: "/path/to/embeddings/cc.pt.300.bin"

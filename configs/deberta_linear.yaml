@@ -1,0 +1,44 @@
+# DeBERTa v3 + Linear Configuration
+
+model:
+  name: "deberta_linear"
+  model_name: "microsoft/mdeberta-v3-base"  # DeBERTa v3 base model
+  architecture: "linear"
+  dropout: 0.1
+  num_labels: null  # will be set automatically
+
+data:
+  # Dataset paths - modify these for different experiments (cross-municipality, multilingual, etc.)
+  data_dir: "data/votie_bio"
+  train_file: "train.jsonl"
+  dev_file: "dev.jsonl"
+  test_file: "test.jsonl"
+  # For cross-municipality experiments, use paths like:
+  # data_dir: "data/publication_datasets/ner_datasets/cross_municipality/sao_paulo"
+  # For multilingual experiments, use paths like:
+  # data_dir: "data/publication_datasets/ner_datasets/es/splits"
+
+training:
+  batch_size: 16
+  epochs: 10
+  learning_rate: 5e-5
+  warmup_proportion: 0.1
+  weight_decay: 0.01
+  patience: 3
+  device: 0  # CUDA device ID (e.g., 0, 1, 2) or -1 for CPU
+  apply_bio_validation: true  # Apply BIO tag validation during evaluation
+  seed: 42  # Random seed for reproducibility
+
+optimization:
+  optimizer: "adamw"
+  scheduler: "linear_with_warmup"
+  grad_clip: 1.0
+
+augmentation:
+  max_length: 512
+  padding: "max_length"
+  truncation: true
+
+windowing:
+  enable_windowing: true
+  overlap_tokens: 50

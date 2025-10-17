@@ -1,0 +1,72 @@
+{
+  "metadata": {
+    "predictions_file": "models/deberta_crf/predictions.jsonl",
+    "timestamp": "2025-10-15T08:55:14.404616",
+    "num_examples": 433,
+    "include_events": true
+  },
+  "entity_level_metrics": {
+    "entity_precision": 0.9107711918419376,
+    "entity_recall": 0.9501329787234043,
+    "entity_f1": 0.9300357956394403,
+    "entity_accuracy": 0.9912506509932296,
+    "per_type_metrics": {
+      "COUNTING-MAJORITY": {
+        "precision": 0.9285714285714286,
+        "recall": 1.0,
+        "f1_score": 0.962962962962963,
+        "support": 52
+      },
+      "COUNTING-UNANIMITY": {
+        "precision": 0.9446808510638298,
+        "recall": 1.0,
+        "f1_score": 0.9715536105032823,
+        "support": 222
+      },
+      "SUBJECT": {
+        "precision": 0.8422459893048129,
+        "recall": 0.8445040214477212,
+        "f1_score": 0.8433734939759037,
+        "support": 373
+      },
+      "VOTER-ABSENT": {
+        "precision": 0.9545454545454546,
+        "recall": 0.9545454545454546,
+        "f1_score": 0.9545454545454546,
+        "support": 22
+      },
+      "VOTER-ABSTENTION": {
+        "precision": 0.8846153846153846,
+        "recall": 1.0,
+        "f1_score": 0.9387755102040816,
+        "support": 138
+      },
+      "VOTER-AGAINST": {
+        "precision": 0.9743589743589743,
+        "recall": 0.95,
+        "f1_score": 0.9620253164556962,
+        "support": 40
+      },
+      "VOTER-FAVOR": {
+        "precision": 0.9219330855018587,
+        "recall": 0.9725490196078431,
+        "f1_score": 0.9465648854961832,
+        "support": 255
+      },
+      "VOTING": {
+        "precision": 0.9449760765550239,
+        "recall": 0.9825870646766169,
+        "f1_score": 0.9634146341463415,
+        "support": 402
+      }
+    },
+    "evaluation_method": "seqeval_entity_level"
+  },
+  "event_level_metrics": {
+    "event_detection_f1": 0.9714285714285715,
+    "subject_f1": 0.9219219219219219,
+    "counting_f1": 0.9962406015037594,
+    "participant_vote_f1": 0.9778131494008931,
+    "complete_event_f1": 0.8833087149187592
+  }
+}

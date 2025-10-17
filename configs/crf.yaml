@@ -1,0 +1,22 @@
+# Traditional CRF Baseline Configuration
+
+model:
+  name: "crf"
+  algorithm: "lbfgs"  # lbfgs, l2sgd, ap, pa, arow
+  c1: 0.1            # L1 regularization coefficient
+  c2: 0.1            # L2 regularization coefficient
+  max_iterations: 100
+  all_possible_transitions: true
+
+data:
+  data_dir: "data/votie_bio"
+  train_file: "train.jsonl"
+  dev_file: "dev.jsonl"
+  test_file: "test.jsonl"
+
+training:
+  # CRF trains in one pass, no epochs/batches
+  # Model selection is done via dev set evaluation
+  verbose: true
+  save_model: true
+  seed: 42  # Random seed for reproducibility

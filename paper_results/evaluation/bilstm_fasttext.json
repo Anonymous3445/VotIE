@@ -1,0 +1,72 @@
+{
+  "metadata": {
+    "predictions_file": "models/bilstm_fasttext/predictions.jsonl",
+    "timestamp": "2025-10-15T08:55:09.390223",
+    "num_examples": 433,
+    "include_events": true
+  },
+  "entity_level_metrics": {
+    "entity_precision": 0.8066528066528067,
+    "entity_recall": 0.773936170212766,
+    "entity_f1": 0.7899558873430608,
+    "entity_accuracy": 0.983163455100067,
+    "per_type_metrics": {
+      "COUNTING-MAJORITY": {
+        "precision": 0.75,
+        "recall": 0.6923076923076923,
+        "f1_score": 0.7199999999999999,
+        "support": 52
+      },
+      "COUNTING-UNANIMITY": {
+        "precision": 0.9444444444444444,
+        "recall": 0.9954954954954955,
+        "f1_score": 0.9692982456140351,
+        "support": 222
+      },
+      "SUBJECT": {
+        "precision": 0.6011730205278593,
+        "recall": 0.5495978552278821,
+        "f1_score": 0.5742296918767508,
+        "support": 373
+      },
+      "VOTER-ABSENT": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 22
+      },
+      "VOTER-ABSTENTION": {
+        "precision": 0.6529411764705882,
+        "recall": 0.8043478260869565,
+        "f1_score": 0.7207792207792209,
+        "support": 138
+      },
+      "VOTER-AGAINST": {
+        "precision": 0.5,
+        "recall": 0.025,
+        "f1_score": 0.047619047619047616,
+        "support": 40
+      },
+      "VOTER-FAVOR": {
+        "precision": 0.8588709677419355,
+        "recall": 0.8352941176470589,
+        "f1_score": 0.8469184890656063,
+        "support": 255
+      },
+      "VOTING": {
+        "precision": 0.9425,
+        "recall": 0.9378109452736318,
+        "f1_score": 0.940149625935162,
+        "support": 402
+      }
+    },
+    "evaluation_method": "seqeval_entity_level"
+  },
+  "event_level_metrics": {
+    "event_detection_f1": 0.9615384615384616,
+    "subject_f1": 0.7005444646098004,
+    "counting_f1": 0.9615384615384616,
+    "participant_vote_f1": 0.8599589825216571,
+    "complete_event_f1": 0.5842696629213483
+  }
+}
