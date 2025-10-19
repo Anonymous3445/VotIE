@@ -5,9 +5,10 @@
 [![Python 3.10](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org/)
 
-Official repository for the paper **"VotIE: Voting Information Extraction from Municipal Meeting Minutes"**.
+Official repository for the submission of the paper **"VotIE: Voting Information Extraction from Municipal Meeting Minutes"**, for ECIR 2026.
 
 This repository provides a comprehensive framework for extracting structured voting information from Portuguese municipal meeting minutes using span extraction using sequence labeling, along with voting events construction heuristics.
+> **🎯 Try VotIE Now**: Test the model interactively at [huggingface.co/spaces/Anonymous3445/VotIE-demo](https://huggingface.co/spaces/Anonymous3445/VotIE-demo)
 
 ---
 
@@ -66,7 +67,7 @@ The framework supports 8 entity types:
 
 ## Project Status
 
-The VotIE framework is **fully implemented and validated** for research use. The codebase is actively maintained to ensure reproducibility of published results.
+The VotIE framework is **fully implemented and validated** for research use. The codebase is actively maintained to ensure reproducibility of published results. Complete dataset not yet available. 
 
 ---
 
@@ -122,7 +123,35 @@ pip install -r requirements.txt
 
 ## Quick Start
 
-**Option 1: Use Pre-trained Model (Fastest)**
+**Option 1: Try the Interactive Demo (Recommended)**
+
+🎯 **[Live Demo on Hugging Face Spaces](https://huggingface.co/spaces/Anonymous3445/VotIE-demo)**
+
+Try VotIE directly in your browser without any installation! The interactive demo allows you to:
+- Test the model on sample Portuguese municipal texts
+- Upload your own meeting minutes
+- Visualize entity extraction results in real-time
+- Explore voting event reconstruction
+
+**Option 2: Evaluate on Sample Data (Best for Reviewers)**
+
+Run the pre-trained model on the 30 sample examples included in this repository:
+
+```bash
+# Evaluate all 30 examples
+python scripts/evaluate_sample_data.py
+
+# Quick test with just 5 examples (faster)
+python scripts/evaluate_sample_data.py --limit 5
+```
+
+This will:
+- Load the HuggingFace model automatically
+- Run predictions on sample data from `data/data_examples.json`
+- Generate comprehensive evaluation metrics
+- Save results to `results/` directory
+
+**Option 3: Use Pre-trained Model Locally**
 
 For a quick test of the model on your own text, see `scripts/quick_start.py`:
 
@@ -148,15 +177,15 @@ for pred in predictions:
     print(f"{pred['word']:<30} {pred['label']}")
 ```
 
-**Note:** The HuggingFace model is designed for inference on raw text and uses its own tokenization. For evaluation on the pre-tokenized test dataset, use the training pipeline (Option 2 or 3 below).
+**Note:** The HuggingFace model is designed for inference on raw text and uses its own tokenization. For evaluation on the pre-tokenized test dataset, use the training pipeline (Options 4 or 5 below).
 
-**Option 2: Train from Scratch - Full Pipeline**
+**Option 4: Train from Scratch - Full Pipeline** ⚠️ (requires full dataset - not yet available)
 ```bash
 # Train, predict, and evaluate in one command
 python scripts/run_pipeline.py --config configs/deberta_crf.yaml --name my_experiment
 ```
 
-**Option 3: Train from Scratch - Step by Step**
+**Option 5: Train from Scratch - Step by Step** ⚠️ (requires full dataset - not yet available)
 ```bash
 # 1. Train model
 python scripts/train.py --config configs/deberta_crf.yaml --experiment-name my_experiment
@@ -175,48 +204,9 @@ python scripts/evaluate.py \
 
 ---
 
-## Usage
-
-### Quick Testing with Pre-trained Model
-
-#### Interactive Demo (`quick_start.py`)
-
-Test the model on your own Portuguese text:
-
-```bash
-python scripts/quick_start.py
-```
-
-This script demonstrates:
-- Loading the model from HuggingFace Hub
-- Processing a sample Portuguese municipal text
-- Extracting voting entities with BIO labels
-- Displaying results with character offsets
-
-**Customization:** Edit the `text` variable in the script to test your own content.
-
-**Example output:**
-```
-Text: 'A Câmara deliberou aprovar a proposta por unanimidade.'
-
-Word                           Label
---------------------------------------------------
-A                              B-VOTER-FAVOR
-Câmara                         I-VOTER-FAVOR
-deliberou                      B-VOTING
-aprovar                        O
-a                              O
-proposta                       B-SUBJECT
-por                            O
-unanimidade                    B-COUNTING-UNANIMITY
-.                              O
-```
-
-**Note:** The HuggingFace model is optimized for inference on raw text. For evaluation on the pre-tokenized VotIE test set, use the full training pipeline below.
-
----
-
 ### Training Models
+
+> **⚠️ Note**: Training requires the full VotIE dataset (not yet available in this repository). For now, use the [pre-trained model](https://huggingface.co/Anonymous3445/DeBERTa-CRF-VotIE) or test with the [🎯 Interactive Demo](https://huggingface.co/spaces/Anonymous3445/VotIE-demo).
 
 The unified training script `scripts/train.py` supports all model architectures. Model type is automatically determined from the configuration file.
 
@@ -342,6 +332,8 @@ python scripts/evaluate.py \
 
 ### Full Pipeline
 
+> **⚠️ Note**: The following pipelines require the full VotIE dataset (not yet available). Use the [🎯 Interactive Demo](https://huggingface.co/spaces/Anonymous3445/VotIE-demo) to test the model on sample data.
+
 For convenience, use the pipeline script to run train → predict → evaluate in one command:
 
 ```bash
@@ -356,7 +348,7 @@ This will:
 
 ### Running All Experiments
 
-To reproduce all paper experiments:
+To reproduce all paper experiments (requires full dataset):
 
 ```bash
 # Run all model configurations
@@ -373,6 +365,13 @@ This will train all baselines (CRF, BiLSTM, BERT, DeBERTa, XLM-R) and generate c
 
 The VotIE corpus consists of voting segments extracted from Portuguese municipal meeting minutes.
 
+> **⚠️ Important Note for Reviewers**:
+> - **Full Dataset**: The complete dataset statistics are shown below, but the full dataset files are **not yet available** in this repository
+> - **Sample Data**: This repository includes **30 annotated examples** from the test set (see [`data/data_examples.json`](data/data_examples.json) and [`data/data_statistics.json`](data/data_statistics.json))
+> - **Interactive Testing**: To test the model on these examples and explore the full capabilities, please visit our **[🎯 Interactive Demo](https://huggingface.co/spaces/Anonymous3445/VotIE-demo)**
+
+**Full Dataset Statistics** (for reference - full data not yet available in repo):
+
 | **Attribute** | **Value** |
 |---------------|-----------|
 | **Language** | Portuguese |
@@ -384,7 +383,18 @@ The VotIE corpus consists of voting segments extracted from Portuguese municipal
 | **Dev Examples** | 431 (15%) |
 | **Test Examples** | 433 (15%) |
 
-### Entity Distribution
+**Sample Data Available in Repository**:
+
+| **Attribute** | **Value** |
+|---------------|-----------|
+| **Examples Included** | 30 test set samples |
+| **Municipalities Covered** | All 6 (M01–M06) |
+| **Entity Types** | All 8 types represented |
+| **File Locations** | [`data/data_examples.json`](data/data_examples.json), [`data/data_statistics.json`](data/data_statistics.json) |
+
+### Entity Distribution (Full Dataset)
+
+The following statistics are from the **full VotIE corpus** (not yet available in repository):
 
 | **Entity Type** | **Train** | **Dev** | **Test** | **Total** |
 |-----------------|-----------|---------|----------|-----------|
@@ -397,9 +407,13 @@ The VotIE corpus consists of voting segments extracted from Portuguese municipal
 | VOTER-AGAINST | 116 | 21 | 40 | 177 |
 | VOTER-ABSENT | 62 | 14 | 22 | 98 |
 
+For entity distribution in the **sample data** (30 examples), see [`data/data_statistics.json`](data/data_statistics.json).
+
 ### Data Format
 
-**BIO-Tagged JSONL (`data/votie_bio/`):**
+The VotIE dataset uses two complementary formats for annotation:
+
+**BIO-Tagged Format** (for entity-level extraction):
 ```json
 {
   "id": "M01_cm_003_2023-02-01_seg020",
@@ -410,7 +424,7 @@ The VotIE corpus consists of voting segments extracted from Portuguese municipal
 }
 ```
 
-**Event-Level JSON (`data/votie_events/`):**
+**Event-Level Format** (for voting event construction):
 ```json
 {
   "id": "M01_cm_003_2023-02-01_seg020",
@@ -426,6 +440,13 @@ The VotIE corpus consists of voting segments extracted from Portuguese municipal
   }
 }
 ```
+
+**Sample Data**: 30 annotated examples in both formats are available in [`data/data_examples.json`](data/data_examples.json).
+
+**Full Dataset Directories** (referenced in code, not yet available):
+- `data/votie_bio/` - BIO-tagged JSONL files (train.jsonl, dev.jsonl, test.jsonl)
+- `data/votie_events/` - Event-level JSON files (train.json, dev.json, test.json)
+
 ---
 
 ## Models
@@ -452,6 +473,7 @@ All models follow a token classification architecture for BIO tagging:
 The best-performing model from the paper is available on Hugging Face:
 
 - **DeBERTa-V3-Base + CRF** (Best Model): [`Anonymous3445/DeBERTa-CRF-VotIE`](https://huggingface.co/Anonymous3445/DeBERTa-CRF-VotIE)
+- **🎯 Interactive Demo**: [VotIE-demo on Hugging Face Spaces](https://huggingface.co/spaces/Anonymous3445/VotIE-demo) – Try the model directly in your browser
 
 **Usage:**
 ```python
@@ -605,12 +627,14 @@ votie/
 │   └── xlmr_crf.yaml
 │
 ├── data/                        # Dataset files
-│   ├── votie_bio/               # BIO-tagged NER data
+│   ├── data_examples.json       # 30 sample examples (AVAILABLE)
+│   ├── data_statistics.json     # Sample data statistics (AVAILABLE)
+│   ├── votie_bio/               # BIO-tagged NER data (NOT YET AVAILABLE)
 │   │   ├── train.jsonl
 │   │   ├── dev.jsonl
 │   │   ├── test.jsonl
 │   │   └── statistics.json
-│   └── votie_events/            # Event-level annotations
+│   └── votie_events/            # Event-level annotations (NOT YET AVAILABLE)
 │       ├── train.json
 │       ├── dev.json
 │       ├── test.json
@@ -627,6 +651,7 @@ votie/
 │       └── ...
 │
 ├── scripts/                     # Executable scripts
+│   ├── evaluate_sample_data.py  # Evaluate HF model on sample data (RECOMMENDED FOR REVIEWERS)
 │   ├── quick_start.py           # Quick demo using HuggingFace model
 │   ├── train.py                 # Unified training script
 │   ├── predict.py               # Prediction with trained models
@@ -669,8 +694,10 @@ votie/
 ```
 
 **Note on Directory Structure:**
-- **Tracked in Git**: Source code, configs, data, and `paper_results/` (for reproducibility)
+- **Tracked in Git**: Source code, configs, sample data (`data_examples.json`, `data_statistics.json`), and `paper_results/` (for reproducibility)
 - **NOT tracked**: `models/`, `predictions/`, `evaluation/` (generated locally, too large for Git)
+- **NOT yet available**: Full dataset files in `data/votie_bio/` and `data/votie_events/` directories
+- **Sample data available**: 30 annotated examples in `data/data_examples.json` - test these in the [🎯 Interactive Demo](https://huggingface.co/spaces/Anonymous3445/VotIE-demo)
 
 ---
 
@@ -696,7 +723,12 @@ All experiments use fixed random seeds for reproducibility:
 
 ### Reproducing Published Results
 
-**Option 1: Using the pipeline script for each model**
+> **⚠️ Note**: The training pipelines below require the full VotIE dataset, which is not yet available in this repository. For now, you can:
+> - Test the **pre-trained model** from [HuggingFace](https://huggingface.co/Anonymous3445/DeBERTa-CRF-VotIE)
+> - Explore the **30 sample examples** in [`data/data_examples.json`](data/data_examples.json)
+> - Try the **[🎯 Interactive Demo](https://huggingface.co/spaces/Anonymous3445/VotIE-demo)** to see the model in action
+
+**Option 1: Using the pipeline script for each model** (requires full dataset)
 ```bash
 # Run complete pipeline for each configuration
 python scripts/run_pipeline.py --config configs/crf.yaml --experiment-name paper_reproduction
@@ -706,13 +738,13 @@ python scripts/run_pipeline.py --config configs/deberta_crf.yaml --experiment-na
 python scripts/run_pipeline.py --config configs/xlmr_crf.yaml --experiment-name paper_reproduction
 ```
 
-**Option 2: Using the batch script**
+**Option 2: Using the batch script** (requires full dataset)
 ```bash
 # Run all experiments at once
 bash scripts/run_all_experiments.sh
 ```
 
-**Option 3: Manual step-by-step**
+**Option 3: Manual step-by-step** (requires full dataset)
 ```bash
 # 1. Train all baselines
 for config in configs/*.yaml; do

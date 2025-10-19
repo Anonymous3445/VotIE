@@ -1,0 +1,573 @@
+{
+  "summary": {
+    "total_examples": 30,
+    "total_municipalities": 6,
+    "total_entity_types": 8,
+    "unanimity_examples": 16
+  },
+  "municipality_distribution": {
+    "M05": 6,
+    "M01": 11,
+    "M02": 2,
+    "M03": 4,
+    "M04": 2,
+    "M06": 5
+  },
+  "entity_types_covered": [
+    "COUNTING-MAJORITY",
+    "COUNTING-UNANIMITY",
+    "SUBJECT",
+    "VOTER-ABSENT",
+    "VOTER-ABSTENTION",
+    "VOTER-AGAINST",
+    "VOTER-FAVOR",
+    "VOTING"
+  ],
+  "voter_statistics": {
+    "min": 0,
+    "max": 11,
+    "average": 2.07,
+    "distribution": {
+      "0": 1,
+      "3": 8,
+      "1": 13,
+      "11": 1,
+      "2": 7
+    }
+  },
+  "token_statistics": {
+    "min": 14,
+    "max": 181,
+    "average": 80.3
+  },
+  "entity_distribution": {
+    "SUBJECT": 30,
+    "VOTING": 30,
+    "COUNTING-UNANIMITY": 16,
+    "VOTER-FAVOR": 33,
+    "COUNTING-MAJORITY": 10,
+    "VOTER-ABSTENTION": 14,
+    "VOTER-ABSENT": 11,
+    "VOTER-AGAINST": 4
+  },
+  "examples_detail": [
+    {
+      "rank": 1,
+      "id": "M05_cm_019_2021-11-18_seg031",
+      "municipality": "M05",
+      "text_length": 1060,
+      "token_count": 181,
+      "entity_count": 3,
+      "voter_count": 0,
+      "entity_types": [
+        "COUNTING-UNANIMITY",
+        "SUBJECT",
+        "VOTING"
+      ],
+      "has_unanimity": true,
+      "text_preview": " \nDESPORTO – DELEGAÇÃO DISTRITAL DE BRAGA DA ASSOCIAÇÃO PORTUGUESA DE DEFICIENTES - ATRIBUIÇÃO DE SUBSÍDIO – Presente a seguinte proposta: “A Delegação Distrital de Braga da Associação Portuguesa de D..."
+    },
+    {
+      "rank": 2,
+      "id": "M01_cm_024_2023-11-08_seg002",
+      "municipality": "M01",
+      "text_length": 393,
+      "token_count": 63,
+      "entity_count": 6,
+      "voter_count": 3,
+      "entity_types": [
+        "COUNTING-MAJORITY",
+        "SUBJECT",
+        "VOTER-ABSTENTION",
+        "VOTER-FAVOR",
+        "VOTING"
+      ],
+      "has_unanimity": false,
+      "text_preview": " \n2. ALTERAÇÕES ORÇAMENTAIS PERMUTATIVAS PARA RATIFICAÇÃO\nPelo Senhor Presidente foram presentes a esta reunião as alterações orçamentais permutativas que se anexam à presente ata. \nPonderado e analis..."
+    },
+    {
+      "rank": 3,
+      "id": "M01_cm_006_2024-02-28_seg003",
+      "municipality": "M01",
+      "text_length": 373,
+      "token_count": 62,
+      "entity_count": 6,
+      "voter_count": 3,
+      "entity_types": [
+        "COUNTING-MAJORITY",
+        "SUBJECT",
+        "VOTER-ABSTENTION",
+        "VOTER-FAVOR",
+        "VOTING"
+      ],
+      "has_unanimity": false,
+      "text_preview": " \n2. ALTERAÇÕES ORÇAMENTAIS PERMUTATIVAS PARA RATIFICAÇÃO\nPelo Sr. Vice-Presidente foi presente a reunião a informação da contabilidade que se anexa à presente ata. \nPonderado e analisado o assunto o ..."
+    },
+    {
+      "rank": 4,
+      "id": "M02_cm_010_2024-05-15_seg012",
+      "municipality": "M02",
+      "text_length": 473,
+      "token_count": 93,
+      "entity_count": 4,
+      "voter_count": 1,
+      "entity_types": [
+        "COUNTING-UNANIMITY",
+        "SUBJECT",
+        "VOTER-FAVOR",
+        "VOTING"
+      ],
+      "has_unanimity": true,
+      "text_preview": "\n-PEDIDO DO AUDITÓRIO DO CENTRO CULTURAL DE CAMPO MAIOR:\n-E-mail do ATL do CEAN solicitando a cedência gratuita do auditório do Centro Cultural de Campo Maior, para o próximo dia 16 de maio, tendo em ..."
+    },
+    {
+      "rank": 5,
+      "id": "M02_cm_018_2024-10-02_seg017",
+      "municipality": "M02",
+      "text_length": 711,
+      "token_count": 122,
+      "entity_count": 4,
+      "voter_count": 1,
+      "entity_types": [
+        "COUNTING-UNANIMITY",
+        "SUBJECT",
+        "VOTER-FAVOR",
+        "VOTING"
+      ],
+      "has_unanimity": true,
+      "text_preview": "\n-PROTOCOLO DE COOPERAÇÃO - DESENVOLVIMENTO DE UMA PARCERIA PARA O DESENVOLVIMENTO DO PROJETO HIDROGÉNIO RENOVÁVEL - SOLUÇÃO FLEXÍVEL E DISTRIBUÍDO DE ENERGIA EM COMUNIDADE DE ENERGIA RENOVÁVEL - SHAR..."
+    },
+    {
+      "rank": 6,
+      "id": "M03_cm_019_2023-11-10_seg003",
+      "municipality": "M03",
+      "text_length": 382,
+      "token_count": 69,
+      "entity_count": 5,
+      "voter_count": 3,
+      "entity_types": [
+        "SUBJECT",
+        "VOTER-ABSENT",
+        "VOTER-FAVOR",
+        "VOTING"
+      ],
+      "has_unanimity": false,
+      "text_preview": "\n\nAta n.º 16 – Reunião Ordinária Pública de 22.setembro.2023\n\nA Câmara deliberou aprovar a Ata n.º 16 – Reunião Ordinária Pública de 22.setembro.2023.\n\nNão participou na discussão e votação da ata os ..."
+    },
+    {
+      "rank": 7,
+      "id": "M03_cm_019_2023-11-10_seg004",
+      "municipality": "M03",
+      "text_length": 361,
+      "token_count": 66,
+      "entity_count": 5,
+      "voter_count": 3,
+      "entity_types": [
+        "SUBJECT",
+        "VOTER-ABSENT",
+        "VOTER-FAVOR",
+        "VOTING"
+      ],
+      "has_unanimity": false,
+      "text_preview": "\n\nAta n.º 17 – Reunião Ordinária Pública de 13.outubro.2023\n\nA Câmara deliberou aprovar a Ata n.º 17 – Reunião Ordinária Pública de 13.outubro.2023.\n\nNão participou na discussão e votação da ata os Se..."
+    },
+    {
+      "rank": 8,
+      "id": "M04_cm_015_2023-13-11_seg008",
+      "municipality": "M04",
+      "text_length": 819,
+      "token_count": 146,
+      "entity_count": 4,
+      "voter_count": 1,
+      "entity_types": [
+        "COUNTING-UNANIMITY",
+        "SUBJECT",
+        "VOTER-FAVOR",
+        "VOTING"
+      ],
+      "has_unanimity": true,
+      "text_preview": " Empreitada de: “Obra de Reabilitação do Cine Teatro Gardunha – Fundão” – retoma dos trabalhos Pelo Senhor Presidente foi apresentada à Câmara uma informação da Divisão de Empreitadas, datada de 17 de..."
+    },
+    {
+      "rank": 9,
+      "id": "M04_cm_006_2024-08-04_seg010",
+      "municipality": "M04",
+      "text_length": 806,
+      "token_count": 153,
+      "entity_count": 4,
+      "voter_count": 1,
+      "entity_types": [
+        "COUNTING-UNANIMITY",
+        "SUBJECT",
+        "VOTER-FAVOR",
+        "VOTING"
+      ],
+      "has_unanimity": true,
+      "text_preview": "\nÁrea de Reabilitação Urbana (ARU) – Fundo de Regeneração de Fundão (FRF) – ano 2023 Foi apresentada à Câmara uma informação da Divisão de Ordenamento, Planeamento e Qualidade de Vida, datada de 21 de..."
+    },
+    {
+      "rank": 10,
+      "id": "M05_cm_018_2024-10-28_seg015",
+      "municipality": "M05",
+      "text_length": 848,
+      "token_count": 148,
+      "entity_count": 14,
+      "voter_count": 11,
+      "entity_types": [
+        "COUNTING-MAJORITY",
+        "SUBJECT",
+        "VOTER-ABSTENTION",
+        "VOTER-FAVOR",
+        "VOTING"
+      ],
+      "has_unanimity": false,
+      "text_preview": " \n14. TURISMO – PEDIDO DE RECONHECIMENTO DE INTERESSE PÚBLICO PARA A INSTALAÇÃO DE UM EMPREENDIMENTO DE AGROTURISMO – FREGUESIA DE NESPEREIRA – Presente, para aprovação pela Câmara Municipal e ulterio..."
+    },
+    {
+      "rank": 11,
+      "id": "M05_cm_009_2022-05-05_seg010",
+      "municipality": "M05",
+      "text_length": 271,
+      "token_count": 47,
+      "entity_count": 5,
+      "voter_count": 2,
+      "entity_types": [
+        "COUNTING-UNANIMITY",
+        "SUBJECT",
+        "VOTER-ABSENT",
+        "VOTING"
+      ],
+      "has_unanimity": true,
+      "text_preview": " \nDELIBERAÇÕES\nCÂMARA – APROVAÇÃO DA ATA DA REUNIÃO ORDINÁRIA DA CÂMARA MUNICIPAL, REALIZADA EM 21 DE ABRIL DE 2022. DELIBERADO APROVAR POR UNANIMIDADE. Os Vereadores Paulo Silva e Vânia Dias da Silva..."
+    },
+    {
+      "rank": 12,
+      "id": "M06_cm_046_2023-11-06_seg017",
+      "municipality": "M06",
+      "text_length": 291,
+      "token_count": 57,
+      "entity_count": 6,
+      "voter_count": 3,
+      "entity_types": [
+        "COUNTING-MAJORITY",
+        "SUBJECT",
+        "VOTER-ABSTENTION",
+        "VOTER-AGAINST",
+        "VOTING"
+      ],
+      "has_unanimity": false,
+      "text_preview": "\n17. Reconhecimento de isenção do imposto municipal sobre imóveis (IMI) e de imposto municipal sobre as transmissões onerosas de imóveis (IMT).\nAprovada, por maioria, com 3 abstenções dos Senhores Ver..."
+    },
+    {
+      "rank": 13,
+      "id": "M06_cm_050_2024-01-15_seg013",
+      "municipality": "M06",
+      "text_length": 290,
+      "token_count": 56,
+      "entity_count": 6,
+      "voter_count": 3,
+      "entity_types": [
+        "COUNTING-MAJORITY",
+        "SUBJECT",
+        "VOTER-ABSTENTION",
+        "VOTER-AGAINST",
+        "VOTING"
+      ],
+      "has_unanimity": false,
+      "text_preview": "\n13. Reconhecimento de isenção do imposto municipal sobre imóveis (IMI) e de imposto municipal sobre as transmissões onerosas de imóveis (IMT).\nAprovada, por maioria com 3 abstenções dos Senhores Vere..."
+    },
+    {
+      "rank": 14,
+      "id": "M01_cm_004_2022-02-16_seg027",
+      "municipality": "M01",
+      "text_length": 331,
+      "token_count": 59,
+      "entity_count": 6,
+      "voter_count": 3,
+      "entity_types": [
+        "COUNTING-MAJORITY",
+        "SUBJECT",
+        "VOTER-ABSTENTION",
+        "VOTER-FAVOR",
+        "VOTING"
+      ],
+      "has_unanimity": false,
+      "text_preview": " \n22. ALTERAÇÃO ORÇAMENTAL\nPelo Senhor Presidente foi presente a esta reunião a informação da contabilidade que se anexa à presente ata. \nPonderado e analisado o assunto o Executivo Municipal delibero..."
+    },
+    {
+      "rank": 15,
+      "id": "M01_cm_003_2023-02-01_seg008",
+      "municipality": "M01",
+      "text_length": 329,
+      "token_count": 58,
+      "entity_count": 6,
+      "voter_count": 3,
+      "entity_types": [
+        "COUNTING-MAJORITY",
+        "SUBJECT",
+        "VOTER-ABSTENTION",
+        "VOTER-FAVOR",
+        "VOTING"
+      ],
+      "has_unanimity": false,
+      "text_preview": " \n3. ALTERAÇÃO ORÇAMENTAL\nPelo Senhor Presidente foi presente a esta reunião a informação da contabilidade que se anexa à presente ata. \nPonderado e analisado o assunto o Executivo Municipal deliberou..."
+    },
+    {
+      "rank": 16,
+      "id": "M06_cm_036_2023-05-08_seg024",
+      "municipality": "M06",
+      "text_length": 369,
+      "token_count": 74,
+      "entity_count": 5,
+      "voter_count": 2,
+      "entity_types": [
+        "COUNTING-MAJORITY",
+        "SUBJECT",
+        "VOTER-ABSTENTION",
+        "VOTER-AGAINST",
+        "VOTING"
+      ],
+      "has_unanimity": false,
+      "text_preview": "\n22. Serviços de vigilância e segurança humana, ligação a central de receção e monitorização de alarmes (LCMA) e ronda móvel (RM) -- CPI/5/2022/DMC - Lote 7 - Decisão de caducidade da adjudicação e de..."
+    },
+    {
+      "rank": 17,
+      "id": "M06_cm_011_2022-03-21_seg002",
+      "municipality": "M06",
+      "text_length": 234,
+      "token_count": 41,
+      "entity_count": 5,
+      "voter_count": 2,
+      "entity_types": [
+        "COUNTING-MAJORITY",
+        "SUBJECT",
+        "VOTER-ABSTENTION",
+        "VOTER-AGAINST",
+        "VOTING"
+      ],
+      "has_unanimity": false,
+      "text_preview": "\n2. Programa Municipal de Reconhecimento Confiança Porto -- reconhecimento de um estabelecimento de alojamento turístico.\nAprovada, por maioria, com 1 abstenção da Senhora Vereadora da CDU e com 1 vot..."
+    },
+    {
+      "rank": 18,
+      "id": "M06_cm_067_2024-10-28_seg002",
+      "municipality": "M06",
+      "text_length": 653,
+      "token_count": 123,
+      "entity_count": 5,
+      "voter_count": 2,
+      "entity_types": [
+        "COUNTING-MAJORITY",
+        "SUBJECT",
+        "VOTER-ABSTENTION",
+        "VOTING"
+      ],
+      "has_unanimity": false,
+      "text_preview": "\n2. Relatório de Avaliação Intercalar (ano 2024) do Plano de Prevenção de Riscos de Gestão, incluindo os Riscos de Corrupção e Infrações Conexas do Município do Porto.\nO Senhor Vereador Sérgio Aires d..."
+    },
+    {
+      "rank": 19,
+      "id": "M05_cm_010_2022-05-19_seg003",
+      "municipality": "M05",
+      "text_length": 271,
+      "token_count": 46,
+      "entity_count": 5,
+      "voter_count": 2,
+      "entity_types": [
+        "COUNTING-UNANIMITY",
+        "SUBJECT",
+        "VOTER-ABSENT",
+        "VOTING"
+      ],
+      "has_unanimity": true,
+      "text_preview": "\nDELIBERAÇÕES\nCÂMARA – APROVAÇÃO DA ATA DA REUNIÃO ORDINÁRIA DA CÂMARA MUNICIPAL, REALIZADA EM 5 DE MAIO DE 2022. DELIBERADO APROVAR POR UNANIMIDADE. Os Vereadores Adelina Paula Pinto e Ricardo Araújo..."
+    },
+    {
+      "rank": 20,
+      "id": "M03_cm_004-A_2021-12-03_seg002",
+      "municipality": "M03",
+      "text_length": 360,
+      "token_count": 64,
+      "entity_count": 4,
+      "voter_count": 2,
+      "entity_types": [
+        "SUBJECT",
+        "VOTER-ABSENT",
+        "VOTER-FAVOR",
+        "VOTING"
+      ],
+      "has_unanimity": false,
+      "text_preview": "\n\nAPROVAÇÃO DE ATAS\n\nAta n.º 2-A/2021 – Reunião Ordinária Privada - 05.novembro.2021\n\nA Câmara deliberou aprovar a ata n.º 2-A/2021 – Reunião Ordinária Privada - 05.novembro.2021.\n\nNão participou na d..."
+    },
+    {
+      "rank": 21,
+      "id": "M03_cm_002_2023-02-03_seg002",
+      "municipality": "M03",
+      "text_length": 326,
+      "token_count": 61,
+      "entity_count": 4,
+      "voter_count": 2,
+      "entity_types": [
+        "SUBJECT",
+        "VOTER-ABSENT",
+        "VOTER-FAVOR",
+        "VOTING"
+      ],
+      "has_unanimity": false,
+      "text_preview": ".\nAta n.º 20 – Reunião Ordinária Pública de 25.novembro.2022 A Câmara deliberou aprovar a Ata n.º 20 Reunião Ordinária Pública de 25.novembro.2022.\nNão participou na discussão e votação da ata o Senho..."
+    },
+    {
+      "rank": 22,
+      "id": "M01_cm_004_2022-02-16_seg012",
+      "municipality": "M01",
+      "text_length": 727,
+      "token_count": 123,
+      "entity_count": 4,
+      "voter_count": 1,
+      "entity_types": [
+        "COUNTING-UNANIMITY",
+        "SUBJECT",
+        "VOTER-FAVOR",
+        "VOTING"
+      ],
+      "has_unanimity": true,
+      "text_preview": " \n7. PROTOCOLO DE COOPERAÇÃO ENTRE O MUNICÍPIO DE ALANDROAL E O INSTITUTO NACIONAL PARA A REABILITAÇÃO, I.P.\nPelo Senhor Presidente foi presente a esta reunião o Protocolo de cooperação entre o Municí..."
+    },
+    {
+      "rank": 23,
+      "id": "M01_cm_008_2022-04-13_seg022",
+      "municipality": "M01",
+      "text_length": 386,
+      "token_count": 76,
+      "entity_count": 4,
+      "voter_count": 1,
+      "entity_types": [
+        "COUNTING-UNANIMITY",
+        "SUBJECT",
+        "VOTER-FAVOR",
+        "VOTING"
+      ],
+      "has_unanimity": true,
+      "text_preview": " \n19. PROCESSO DE OBRAS N.º ***** - LEGALIZAÇÃO\nPelo Senhor Presidente foi presente a esta reunião a informação n.º ****** da Secção de Urbanismo e Fiscalização -- Serviço de Obras Particulares que se..."
+    },
+    {
+      "rank": 24,
+      "id": "M01_cm_011_2024-04-24_seg010",
+      "municipality": "M01",
+      "text_length": 331,
+      "token_count": 58,
+      "entity_count": 4,
+      "voter_count": 1,
+      "entity_types": [
+        "COUNTING-UNANIMITY",
+        "SUBJECT",
+        "VOTER-FAVOR",
+        "VOTING"
+      ],
+      "has_unanimity": true,
+      "text_preview": " \n9. ATRIBUIÇÃO DE APOIO À FIXAÇÃO DE RESIDÊNCIA EM HABITAÇÃO PRÓPRIA\nPelo Senhor Presidente foi presente a esta reunião a informação n.º **** da Secção de Serviço Social. \nPonderado e analisado o ass..."
+    },
+    {
+      "rank": 25,
+      "id": "M01_cm_002_2021-10-22_seg007",
+      "municipality": "M01",
+      "text_length": 311,
+      "token_count": 54,
+      "entity_count": 4,
+      "voter_count": 1,
+      "entity_types": [
+        "COUNTING-UNANIMITY",
+        "SUBJECT",
+        "VOTER-FAVOR",
+        "VOTING"
+      ],
+      "has_unanimity": true,
+      "text_preview": " \nPelo Senhor Presidente foi presente a reunião a informação n.º 11207 do Serviço de Rede Viária e Trânsito que se anexa à presente ata. \nPonderado e analisado o assunto o Executivo Municipal delibero..."
+    },
+    {
+      "rank": 26,
+      "id": "M01_cm_001_2024-01-03_seg019",
+      "municipality": "M01",
+      "text_length": 352,
+      "token_count": 71,
+      "entity_count": 4,
+      "voter_count": 1,
+      "entity_types": [
+        "COUNTING-UNANIMITY",
+        "SUBJECT",
+        "VOTER-FAVOR",
+        "VOTING"
+      ],
+      "has_unanimity": true,
+      "text_preview": " \n15. PROCESSO DE OBRAS N.º *****-EDIFIC\nPelo Senhor Presidente foi presente a esta reunião a informação n.º ****** da Secção de Urbanismo e Fiscalização -- Serviço de Obras Particulares. \nPonderado e..."
+    },
+    {
+      "rank": 27,
+      "id": "M05_cm_009_2024-05-06_seg007",
+      "municipality": "M05",
+      "text_length": 255,
+      "token_count": 46,
+      "entity_count": 4,
+      "voter_count": 1,
+      "entity_types": [
+        "COUNTING-UNANIMITY",
+        "SUBJECT",
+        "VOTER-ABSENT",
+        "VOTING"
+      ],
+      "has_unanimity": true,
+      "text_preview": " \nDELIBERAÇÕES\n7. CÂMARA – APROVAÇÃO DA ATA DA REUNIÃO ORDINÁRIA DA CÂMARA MUNICIPAL, REALIZADA EM 22 DE ABRIL DE 2024. DELIBERADO APROVAR POR UNANIMIDADE. O Vereador Bruno Fernandes não participou na..."
+    },
+    {
+      "rank": 28,
+      "id": "M05_cm_018_2023-10-26_seg036",
+      "municipality": "M05",
+      "text_length": 73,
+      "token_count": 14,
+      "entity_count": 4,
+      "voter_count": 1,
+      "entity_types": [
+        "COUNTING-UNANIMITY",
+        "SUBJECT",
+        "VOTER-FAVOR",
+        "VOTING"
+      ],
+      "has_unanimity": true,
+      "text_preview": " \nA CÂMARA MUNICIPAL DELIBEROU, POR UNANIMIDADE, APROVAR A ATA EM MINUTA."
+    },
+    {
+      "rank": 29,
+      "id": "M01_cm_006_2022-03-16_seg006",
+      "municipality": "M01",
+      "text_length": 212,
+      "token_count": 40,
+      "entity_count": 4,
+      "voter_count": 1,
+      "entity_types": [
+        "COUNTING-UNANIMITY",
+        "SUBJECT",
+        "VOTER-FAVOR",
+        "VOTING"
+      ],
+      "has_unanimity": true,
+      "text_preview": " \n4. APROVAÇÃO DE ATA\nPelo Senhor Presidente foi presente a reunião a ata n.º 5, de 02.03.2022. \nPonderado e analisado o assunto o Executivo Municipal deliberou por unanimidade aprovar a ata n.º 5, de..."
+    },
+    {
+      "rank": 30,
+      "id": "M01_cm_020_2022-09-28_seg009",
+      "municipality": "M01",
+      "text_length": 726,
+      "token_count": 138,
+      "entity_count": 4,
+      "voter_count": 1,
+      "entity_types": [
+        "COUNTING-UNANIMITY",
+        "SUBJECT",
+        "VOTER-FAVOR",
+        "VOTING"
+      ],
+      "has_unanimity": true,
+      "text_preview": " \nPelo Sr. Presidente foram presentes a reunião as informações n.º ***** e ***** do Serviço de Rede Viária e Trânsito que se anexam à presente ata. \nO Sr. Vereador Paulo Gonçalves explicou que se trat..."
+    }
+  ]
+}
