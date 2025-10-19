@@ -35,31 +35,46 @@ logger = logging.getLogger(__name__)
 
 
 def load_predictions(predictions_path: str) -> List[Dict[str, Any]]:
-    """Load predictions from JSONL file."""
+    """Load predictions from JSON or JSONL file."""
     predictions_path = Path(predictions_path)
-    
+
     if not predictions_path.exists():
         raise FileNotFoundError(f"Predictions file not found: {predictions_path}")
-    
+
     predictions = []
-    with open(predictions_path, 'r', encoding='utf-8') as f:
-        for line_num, line in enumerate(f, 1):
-            try:
-                pred = json.loads(line.strip())
-                
-                # Validate required fields
-                required_fields = ['id', 'tokens', 'pred_labels']
-                for field in required_fields:
-                    if field not in pred:
-                        raise ValueError(f"Missing required field '{field}' in prediction")
-                
-                predictions.append(pred)
-                
-            except json.JSONDecodeError as e:
-                raise ValueError(f"Invalid JSON on line {line_num}: {e}")
-            except Exception as e:
-                raise ValueError(f"Error processing line {line_num}: {e}")
-    
+
+    # Try to load as JSON first (array format)
+    try:
+        with open(predictions_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        # If it's a list, treat as JSON array format
+        if isinstance(data, list):
+            predictions = data
+        else:
+            raise ValueError("JSON file must contain an array of predictions")
+
+    except json.JSONDecodeError:
+        # If JSON fails, try JSONL format (one JSON object per line)
+        with open(predictions_path, 'r', encoding='utf-8') as f:
+            for line_num, line in enumerate(f, 1):
+                line = line.strip()
+                if not line:
+                    continue  # Skip empty lines
+
+                try:
+                    pred = json.loads(line)
+                    predictions.append(pred)
+                except json.JSONDecodeError as e:
+                    raise ValueError(f"Invalid JSON on line {line_num}: {e}")
+
+    # Validate all predictions have required fields
+    required_fields = ['id', 'tokens', 'pred_labels']
+    for i, pred in enumerate(predictions, 1):
+        for field in required_fields:
+            if field not in pred:
+                raise ValueError(f"Prediction {i} missing required field '{field}'")
+
     logger.info(f"✓ Loaded {len(predictions)} predictions from {predictions_path}")
     return predictions
 
@@ -128,10 +143,7 @@ def compute_event_level_metrics(predictions: List[Dict[str, Any]], pred_labels: 
     # Compute event-level metrics
     evaluator = EventLevelEvaluator()
     metrics = evaluator.compute_metrics(pred_events, gold_events)
-    
-    logger.info(f"Event detection accuracy: {metrics.get('event_detection_accuracy', 0.0):.4f}")
-    logger.info(f"Complete event accuracy: {metrics.get('complete_event_accuracy', 0.0):.4f}")
-    
+
     return metrics
 
 

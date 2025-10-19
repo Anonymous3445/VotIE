@@ -77,20 +77,19 @@ def align_predictions_to_tokens(predictions: List[Dict], tokens: List[str], text
     """
     Align word-level predictions from HF model to the original tokenization.
 
-    The HF model returns predictions at word boundaries, but we need them
-    aligned to the pre-tokenized tokens in the dataset.
+    The HF model may not split punctuation the same way as the dataset,
+    so we use position-based matching to align predictions to dataset tokens.
     """
-    # Create a simple alignment based on the text
-    # This is a heuristic approach - the HF model's tokenization may differ slightly
+    import re
 
     # Build a list of BIO labels matching the original tokens
     aligned_labels = ['O'] * len(tokens)
 
-    # Create a mapping of text positions to token indices
+    # Find character positions of each dataset token in the text
     token_positions = []
     current_pos = 0
     for i, token in enumerate(tokens):
-        # Find token in text (case-insensitive search from current position)
+        # Find token in text (exact match, case-insensitive)
         token_start = text.lower().find(token.lower(), current_pos)
         if token_start >= 0:
             token_positions.append({
@@ -101,29 +100,36 @@ def align_predictions_to_tokens(predictions: List[Dict], tokens: List[str], text
             })
             current_pos = token_start + len(token)
 
-    # Map predictions to tokens based on position overlap
-    for pred in predictions:
-        if pred['label'] == 'O':
-            continue
+    # Map predictions to tokens using strict start-position matching
+    # Strategy: Only match tokens whose START positions are within 2 characters
+    # This prevents punctuation from inheriting labels from preceding words
+    for token_info in token_positions:
+        token_start = token_info['start']
+        token_end = token_info['end']
+        best_label = 'O'
+        best_distance = float('inf')
 
-        pred_start = pred.get('start', -1)
-        pred_end = pred.get('end', -1)
+        for pred in predictions:
+            pred_start = pred.get('start', -1)
+            pred_end = pred.get('end', -1)
 
-        if pred_start == -1:
-            # No position info, try to match by word
-            for i, token_info in enumerate(token_positions):
-                if pred['word'].lower() in token_info['token'].lower():
-                    aligned_labels[token_info['idx']] = pred['label']
-                    break
-        else:
-            # Use position overlap
-            for token_info in token_positions:
-                # Check if there's overlap
-                overlap_start = max(pred_start, token_info['start'])
-                overlap_end = min(pred_end, token_info['end'])
+            if pred_start == -1 or pred_end == -1:
+                continue  # Skip if no position info
 
-                if overlap_start < overlap_end:
-                    aligned_labels[token_info['idx']] = pred['label']
+            # Only consider predictions whose start is close to this token's start
+            # This prevents: "UNANIMIDADE." from labeling the "." token
+            start_distance = abs(pred_start - token_start)
+
+            # Strict threshold: start positions must be within 2 characters
+            if start_distance > 2:
+                continue
+
+            # Among close matches, prefer the closest start position
+            if start_distance < best_distance:
+                best_distance = start_distance
+                best_label = pred['label']
+
+        aligned_labels[token_info['idx']] = best_label
 
     return aligned_labels
 
@@ -172,15 +178,14 @@ def run_predictions(examples: List[Dict], tokenizer, model) -> List[Dict[str, An
 
 
 def save_predictions(predictions: List[Dict], output_path: str):
-    """Save predictions in JSONL format."""
+    """Save predictions in JSON format."""
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     logger.info(f"Saving predictions to: {output_path}")
 
     with open(output_path, 'w', encoding='utf-8') as f:
-        for pred in predictions:
-            f.write(json.dumps(pred, ensure_ascii=False) + '\n')
+        json.dump(predictions, f, ensure_ascii=False, indent=2)
 
     logger.info(f"✓ Predictions saved to {output_path}")
 
@@ -238,7 +243,7 @@ def main(output_dir: str = "results", limit: int = None):
         predictions = run_predictions(examples, tokenizer, model)
 
         # Step 4: Save predictions
-        predictions_path = Path(output_dir) / "sample_predictions.jsonl"
+        predictions_path = Path(output_dir) / "sample_predictions.json"
         save_predictions(predictions, predictions_path)
 
         # Step 5: Print some samples

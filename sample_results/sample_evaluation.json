@@ -1,0 +1,71 @@
+{
+  "metadata": {
+    "predictions_file": "results/sample_predictions.json",
+    "timestamp": "2025-10-19T17:59:35.364791",
+    "num_examples": 30,
+    "include_events": true
+  },
+  "entity_level_metrics": {
+    "entity_precision": 0.7263157894736842,
+    "entity_recall": 0.9324324324324325,
+    "entity_f1": 0.8165680473372782,
+    "entity_accuracy": 0.9688667496886675,
+    "per_type_metrics": {
+      "COUNTING-MAJORITY": {
+        "precision": 0.625,
+        "recall": 1.0,
+        "f1_score": 0.7692307692307693,
+        "support": 10
+      },
+      "COUNTING-UNANIMITY": {
+        "precision": 0.7777777777777778,
+        "recall": 0.875,
+        "f1_score": 0.823529411764706,
+        "support": 16
+      },
+      "SUBJECT": {
+        "precision": 0.5945945945945946,
+        "recall": 0.7333333333333333,
+        "f1_score": 0.6567164179104478,
+        "support": 30
+      },
+      "VOTER-ABSENT": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 11
+      },
+      "VOTER-ABSTENTION": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 14
+      },
+      "VOTER-AGAINST": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 4
+      },
+      "VOTER-FAVOR": {
+        "precision": 0.7333333333333333,
+        "recall": 1.0,
+        "f1_score": 0.846153846153846,
+        "support": 33
+      },
+      "VOTING": {
+        "precision": 0.6666666666666666,
+        "recall": 1.0,
+        "f1_score": 0.8,
+        "support": 30
+      }
+    }
+  },
+  "event_level_metrics": {
+    "event_detection_f1": 1.0,
+    "subject_f1": 0.823529411764706,
+    "counting_f1": 0.7317073170731708,
+    "participant_vote_f1": 0.9429951690821257,
+    "complete_event_f1": 0.6956521739130436
+  }
+}
