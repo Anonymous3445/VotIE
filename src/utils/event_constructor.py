@@ -327,24 +327,36 @@ class EventConstructor:
     ) -> Optional[str]:
         """
         Deterministically infer voting outcome from expressions, counting, and participants.
-        
+
         As per paper: O ∈ {Approved, Rejected} is inferred from V, C, and P using rule-based heuristics.
-        
+
         Heuristic rules (Portuguese municipal context):
-        1. Look for approval keywords in voting expressions
-        2. Consider counting type (unanimity often implies approval)
-        3. Consider participant positions (more favor than against suggests approval)
-        
+        1. If Câmara/Executivo Municipal votes in favor, outcome is Approved
+        2. Look for approval keywords in voting expressions
+        3. Consider counting type (unanimity often implies approval)
+        4. Consider participant positions (more favor than against suggests approval)
+
         Args:
             voting_expressions: List of voting expression texts
             counting: List of counting dicts with 'text' and 'type'
             participants: List of participant dicts with 'text' and 'position'
-            
+
         Returns:
             'Approved', 'Rejected', or None if outcome cannot be determined
         """
         if not voting_expressions and not counting and not participants:
             return None
+
+        # Rule 1: If Câmara or Executivo Municipal votes in favor, outcome is Approved
+        import re
+        for participant in participants:
+            if participant.get('position') == 'Favor':
+                text_lower = participant.get('text', '').lower()
+                # Match patterns like "a câmara", "câmara municipal", "o executivo municipal", etc.
+                # Pattern allows optional word between "câmara" and other words, or "executivo" and "municipal"
+                if re.search(r'\bcâmara\b', text_lower) or \
+                   re.search(r'\bexecutivo\s+(\w+\s+)?municipal\b', text_lower):
+                    return 'Approved'
         
         # Approval keywords (Portuguese)
         approval_keywords = [
