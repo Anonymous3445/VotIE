@@ -361,6 +361,8 @@ This will train all baselines (CRF, BiLSTM, BERT, DeBERTa, XLM-R) and generate c
 
 ## Dataset
 
+![VotIE Dataset Overview](VotIE_dataset_diagram.png)
+
 ### VotIE Corpus
 
 The VotIE corpus consists of voting segments extracted from Portuguese municipal meeting minutes.
