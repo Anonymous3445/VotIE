@@ -20,6 +20,9 @@ import torch
 from torch.utils.data import Dataset
 from transformers import AutoTokenizer
 
+# Import span-to-BIO converter
+from .span_to_bio import convert_span_to_bio
+
 logger = logging.getLogger(__name__)
 
 def clean_problematic_characters(text: str) -> str:
@@ -221,22 +224,27 @@ def validate_example_data(example_data: Dict[str, Any]) -> bool:
     return True
 
 def load_jsonl_file(
-    file_path: Path
+    file_path: Path,
+    auto_convert_spans: bool = True
 ) -> List[Dict[str, Any]]:
     """
     Load JSONL file with vote identification data.
 
+    Automatically detects and converts span-annotated format to BIO format.
+
     Args:
         file_path: Path to JSONL file
+        auto_convert_spans: If True, automatically convert span format to BIO
 
     Returns:
-        List of example dictionaries
+        List of example dictionaries with 'tokens' and 'labels' fields
     """
     examples = []
 
     total_lines = 0
     invalid_json = 0
     invalid_examples = 0
+    converted_from_spans = 0
 
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
@@ -244,6 +252,17 @@ def load_jsonl_file(
                 total_lines += 1
                 try:
                     data = json.loads(line.strip())
+
+                    # Check if data is in span format (has 'text' and 'spans' instead of 'tokens' and 'labels')
+                    if auto_convert_spans and 'text' in data and 'spans' in data and 'tokens' not in data:
+                        # Convert from span format to BIO format
+                        try:
+                            data = convert_span_to_bio(data, validate=False)
+                            converted_from_spans += 1
+                        except Exception as e:
+                            logger.error(f"Failed to convert span format at line {line_no}: {e}")
+                            invalid_examples += 1
+                            continue
 
                     # Validate data before adding
                     if validate_example_data(data):
@@ -262,6 +281,8 @@ def load_jsonl_file(
 
     # Log file statistics
     logger.info(f"Loaded {len(examples)} valid examples from {file_path}")
+    if converted_from_spans > 0:
+        logger.info(f"  Converted {converted_from_spans} examples from span format to BIO format")
 
     return examples
 

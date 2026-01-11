@@ -364,11 +364,17 @@ class VotIETrainer:
         # Device validation
         if not isinstance(device, int):
             raise TypeError(f"device must be int, got {type(device)}")
-            
+
+        # Validate device availability - allow fallback to MPS/CPU if CUDA not available
         if device >= 0 and not torch.cuda.is_available():
-            raise RuntimeError(f"CUDA device {device} requested but CUDA is not available")
-            
-        if device >= torch.cuda.device_count():
+            # Check if MPS is available as fallback
+            if hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+                logger.warning(f"CUDA device {device} requested but not available. Will use MPS instead.")
+                # Don't raise error - let _setup_device handle the fallback
+            elif device != -2:  # Only warn if not auto-detect
+                logger.warning(f"CUDA device {device} requested but not available. Will use CPU instead.")
+
+        if device >= 0 and torch.cuda.is_available() and device >= torch.cuda.device_count():
             raise ValueError(f"Device {device} not available. Available devices: 0-{torch.cuda.device_count()-1}")
         
         logger.info("✅ All initialization parameters validated successfully")
@@ -376,38 +382,64 @@ class VotIETrainer:
     def _setup_device(self, device: int) -> torch.device:
         """
         Setup and validate training device with comprehensive error handling.
-        
+
+        Supports CUDA (NVIDIA GPUs), MPS (Apple Silicon), and CPU.
+        Priority: CUDA > MPS > CPU
+
         Args:
-            device: Device ID (-1 for CPU, >=0 for CUDA)
-            
+            device: Device ID (-1 for CPU, -2 for auto-detect, >=0 for CUDA)
+
         Returns:
             torch.device: Configured device
-            
+
         Raises:
             RuntimeError: If device setup fails
         """
         try:
+            # Auto-detect best available device
+            if device == -2:
+                if torch.cuda.is_available():
+                    device = 0  # Use first CUDA device
+                elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+                    device = -3  # MPS marker
+                else:
+                    device = -1  # CPU
+                logger.info(f"🔍 Auto-detected device: {device}")
+
+            # CUDA device (NVIDIA GPUs)
             if device >= 0 and torch.cuda.is_available():
                 target_device = torch.device(f"cuda:{device}")
                 # Validate device is accessible
                 torch.cuda.set_device(device)
-                
+
                 # Log device information
                 device_name = torch.cuda.get_device_name(device)
                 memory_info = torch.cuda.get_device_properties(device)
                 logger.info(f"🖥️  Using CUDA device {device}: {device_name}")
                 logger.info(f"   Memory: {memory_info.total_memory / 1e9:.1f} GB")
-                
+
                 return target_device
+
+            # MPS device (Apple Silicon)
+            elif (device == -3 or
+                  (device >= 0 and not torch.cuda.is_available() and
+                   hasattr(torch.backends, 'mps') and torch.backends.mps.is_available())):
+                target_device = torch.device("mps")
+                logger.info("🍎 Using Apple MPS (Metal Performance Shaders)")
+                logger.info("   Device: Apple Silicon GPU")
+                return target_device
+
+            # CPU fallback
             else:
                 logger.info("🖥️  Using CPU device")
                 return torch.device("cpu")
-                
+
         except Exception as e:
-            raise RuntimeError(f"Failed to setup device {device}: {e}") from e
+            logger.warning(f"Failed to setup device {device}: {e}, falling back to CPU")
+            return torch.device("cpu")
 
     def _log_gpu_memory_status(self, context: str) -> None:
-        """Log current GPU memory usage."""
+        """Log current GPU memory usage for CUDA or MPS."""
         if self.device.type == "cuda":
             try:
                 allocated = torch.cuda.memory_allocated(self.device) / 1e9
@@ -415,6 +447,12 @@ class VotIETrainer:
                 logger.info(f"🔧 {context} GPU memory - Allocated: {allocated:.2f}GB, Cached: {cached:.2f}GB")
             except Exception as e:
                 logger.warning(f"Failed to log GPU memory status: {e}")
+        elif self.device.type == "mps":
+            try:
+                # MPS doesn't have detailed memory stats like CUDA
+                logger.info(f"🔧 {context} - MPS device active")
+            except Exception as e:
+                logger.warning(f"Failed to log MPS status: {e}")
 
     def _log_model_info(self) -> None:
         """Log comprehensive model information."""

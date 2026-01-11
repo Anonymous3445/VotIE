@@ -59,21 +59,32 @@ class EntityLevelEvaluator:
         """
         Compute entity-level evaluation metrics using seqeval.
 
+        Uses macro-averaging: computes metrics for each entity type independently,
+        then averages them, giving equal weight to all entity types regardless of frequency.
+        This is appropriate for imbalanced datasets where all classes are equally important.
+
         Args:
             pred_labels: Predicted BIO label sequences
             true_labels: Ground truth BIO label sequences
 
         Returns:
             Dictionary with comprehensive evaluation metrics including:
-            - Overall precision, recall, F1, and accuracy
+            - Macro-averaged precision, recall, F1 (equal weight per class)
             - Per-entity-type metrics (precision, recall, F1, support)
         """
         try:
-            # Primary metrics
-            precision = precision_score(true_labels, pred_labels, scheme=IOB2)
-            recall = recall_score(true_labels, pred_labels, scheme=IOB2)
-            f1 = f1_score(true_labels, pred_labels, scheme=IOB2)
+            # Macro-averaged metrics (averages per-class metrics - equal weight per class)
+            macro_precision = precision_score(true_labels, pred_labels, scheme=IOB2, average='macro')
+            macro_recall = recall_score(true_labels, pred_labels, scheme=IOB2, average='macro')
+            macro_f1 = f1_score(true_labels, pred_labels, scheme=IOB2, average='macro')
             accuracy = accuracy_score(true_labels, pred_labels)
+
+            results = {
+                "entity_precision": float(macro_precision),
+                "entity_recall": float(macro_recall),
+                "entity_f1": float(macro_f1),
+                "entity_accuracy": float(accuracy),
+            }
 
             # Per-type metrics using classification_report
             report = classification_report(
@@ -95,13 +106,8 @@ class EntityLevelEvaluator:
                             'support': int(metrics['support'])
                         }
 
-            return {
-                "entity_precision": float(precision),
-                "entity_recall": float(recall),
-                "entity_f1": float(f1),
-                "entity_accuracy": float(accuracy),
-                "per_type_metrics": per_type_metrics,
-            }
+            results["per_type_metrics"] = per_type_metrics
+            return results
 
         except Exception as e:
             logger.error(f"Error computing entity-level metrics: {e}")

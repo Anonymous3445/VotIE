@@ -9,7 +9,7 @@ model:
 
 data:
   # Dataset paths - modify these for different experiments (cross-municipality, multilingual, etc.)
-  data_dir: "data/votie_bio"
+  data_dir: "data/citilink_spans"
   train_file: "train.jsonl"
   dev_file: "dev.jsonl"
   test_file: "test.jsonl"
@@ -19,7 +19,7 @@ data:
   # data_dir: "data/publication_datasets/ner_datasets/es/splits"
 
 training:
-  batch_size: 16
+  batch_size: 8
   epochs: 10
   learning_rate: 5e-5
   warmup_proportion: 0.1

@@ -1,9 +1,7 @@
 #Core ML & Transformer stack
 
-torch>=1.10.0
 transformers>=4.20.0
 pytorch-crf>=0.7.2
-
 
 #Data processing
 
@@ -20,15 +18,30 @@ sklearn-crfsuite>=0.3.6
 
 pyyaml>=6.0
 tqdm>=4.62.0
-python-dotenv>=1.0.0
-SentencePiece>=0.1.96
+sentencepiece>=0.1.96
 
 #Portuguese NLP
 
 spacy>=3.4.0    # required for some preprocessing scripts (convert/cleanup)
 fasttext         # optional: required by bilstm_fasttext baseline
 
-#Gemini / LLM extraction (optional, only for src/gemini)
 
-google-generativeai
-SentencePiece
+# LLM Baselines Dependencies
+
+# Core dependencies
+pydantic>=2.0.0
+python-dotenv>=1.0.0
+
+# Gemini (new SDK - December 2024)
+google-genai>=0.1.0
+
+# LLaMA with Outlines
+outlines>=0.0.40
+accelerate>=0.27.0
+
+# Note: Before installing, upgrade pip and setuptools:
+# pip install --upgrade pip setuptools wheel
+
+
+# Optional: GPU support
+# Install separately with: pip install torch --index-url https://download.pytorch.org/whl/cu118

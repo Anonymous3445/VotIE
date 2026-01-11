@@ -9,7 +9,7 @@ model:
   all_possible_transitions: true
 
 data:
-  data_dir: "data/votie_bio"
+  data_dir: "data/citilink_spans"
   train_file: "train.jsonl"
   dev_file: "dev.jsonl"
   test_file: "test.jsonl"

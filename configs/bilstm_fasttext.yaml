@@ -10,10 +10,11 @@ model:
   use_char_cnn: true       # Use character-level CNN
 
 data:
-  data_dir: "data/votie_bio"
+  data_dir: "data/citilink_bio"
   train_file: "train.jsonl"
   dev_file: "dev.jsonl"
   test_file: "test.jsonl"
+  # Note: BiLSTM requires pre-tokenized data with 'tokens' and 'labels' fields
   # For cross-municipality experiments:
   # data_dir: "data/publication_datasets/ner_datasets/cross_municipality/sao_paulo"
   # For multilingual experiments:

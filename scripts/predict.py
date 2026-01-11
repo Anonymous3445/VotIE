@@ -9,7 +9,7 @@ Usage:
     from scripts.predict import predict
     predict(
         model_path='results/bert_crf/best_model',
-        test_data_path='data/votie_bio/test.jsonl',
+        test_data_path='data/citilink_spans/test.jsonl',
         output_path='predictions/test_predictions.jsonl'
     )
 """
@@ -445,16 +445,26 @@ def predict_example(model, tokenizer, id_to_label: Dict[int, str], example: Dict
     return result
 
 
-def predict(model_path: str, test_data_path: str, output_path: str, device: str = 'cuda'):
+def predict(model_path: str, test_data_path: str, output_path: str, device: str = 'auto'):
     """
     Generate predictions for a test dataset and save to file.
-    
+
     Args:
         model_path: Path to trained model directory
         test_data_path: Path to input JSONL file
         output_path: Path to output predictions file
-        device: Device to use for inference ('cpu' or 'cuda')
+        device: Device to use for inference ('auto', 'cuda', 'mps', or 'cpu')
     """
+    # Auto-detect device if requested
+    if device == 'auto':
+        import torch
+        if torch.cuda.is_available():
+            device = 'cuda'
+        elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+            device = 'mps'
+        else:
+            device = 'cpu'
+        logger.info(f"Auto-detected device: {device}")
     logger.info("="*80)
     logger.info("VotIE Prediction")
     logger.info("="*80)
@@ -497,13 +507,13 @@ if __name__ == '__main__':
     if len(sys.argv) < 4:
         print("Usage: python scripts/predict.py MODEL_PATH TEST_DATA_PATH OUTPUT_PATH [DEVICE]")
         print("\nExample:")
-        print("  python scripts/predict.py results/bert_crf/best_model data/votie_bio/test.jsonl predictions/test_predictions.jsonl")
-        print("  python scripts/predict.py results/bert_crf/best_model data/votie_bio/test.jsonl predictions/test_predictions.jsonl cuda")
+        print("  python scripts/predict.py results/bert_crf/best_model data/citilink_spans/test.jsonl predictions/test_predictions.jsonl")
+        print("  python scripts/predict.py results/bert_crf/best_model data/citilink_spans/test.jsonl predictions/test_predictions.jsonl cuda")
         sys.exit(1)
     
     model_path = sys.argv[1]
     test_data_path = sys.argv[2]
     output_path = sys.argv[3]
-    device = sys.argv[4] if len(sys.argv) > 4 else 'cpu'
-    
+    device = sys.argv[4] if len(sys.argv) > 4 else 'auto'  # Auto-detect by default
+
     predict(model_path, test_data_path, output_path, device)

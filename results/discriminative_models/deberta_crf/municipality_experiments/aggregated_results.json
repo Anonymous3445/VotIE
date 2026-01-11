@@ -1,0 +1,48 @@
+{
+  "metadata": {
+    "timestamp": "2026-01-05T06:02:27.058723",
+    "num_municipalities": 5,
+    "municipalities": [
+      "M02",
+      "M03",
+      "M04",
+      "M05",
+      "M06"
+    ]
+  },
+  "entity_level_aggregated": {
+    "entity_f1_mean": 0.5844736987989212,
+    "entity_f1_std": 0.19902248333421468,
+    "entity_precision_mean": 0.6630365575948722,
+    "entity_precision_std": 0.0809963220899661,
+    "entity_recall_mean": 0.554366099138419,
+    "entity_recall_std": 0.2359404723099364,
+    "per_municipality": {
+      "M02": {
+        "entity_f1": 0.7140536149471974,
+        "entity_precision": 0.6684410646387833,
+        "entity_recall": 0.7663469921534438
+      },
+      "M03": {
+        "entity_f1": 0.6353580438579468,
+        "entity_precision": 0.6616814874696847,
+        "entity_recall": 0.6110488988428519
+      },
+      "M04": {
+        "entity_f1": 0.6340378197997775,
+        "entity_precision": 0.6842737094837935,
+        "entity_recall": 0.5906735751295337
+      },
+      "M05": {
+        "entity_f1": 0.7041364066940321,
+        "entity_precision": 0.7631759069130732,
+        "entity_recall": 0.6535756154747948
+      },
+      "M06": {
+        "entity_f1": 0.23478260869565218,
+        "entity_precision": 0.5376106194690266,
+        "entity_recall": 0.15018541409147096
+      }
+    }
+  }
+}
