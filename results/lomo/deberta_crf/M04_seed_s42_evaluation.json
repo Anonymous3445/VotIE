@@ -1,0 +1,143 @@
+{
+  "metadata": {
+    "predictions_file": "predictions/lomo/deberta_crf_lomo_M04_deucalion.jsonl",
+    "timestamp": "2026-05-23T06:22:28.222267",
+    "num_examples": 235
+  },
+  "entity_level_metrics": {
+    "entity_precision": 0.4926398799935999,
+    "entity_recall": 0.6463882469461868,
+    "entity_f1": 0.5452773869253097,
+    "entity_accuracy": 0.9892356849560353,
+    "per_type_metrics": {
+      "COUNT-BLANK": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "COUNTING-MAJORITY": {
+        "precision": 0.9642857142857143,
+        "recall": 1.0,
+        "f1_score": 0.9818181818181818,
+        "support": 27
+      },
+      "COUNTING-UNANIMITY": {
+        "precision": 0.5570652173913043,
+        "recall": 1.0,
+        "f1_score": 0.7155322862129145,
+        "support": 205
+      },
+      "SUBJECT": {
+        "precision": 0.04477611940298507,
+        "recall": 0.0641025641025641,
+        "f1_score": 0.05272407732864675,
+        "support": 234
+      },
+      "VOTER-ABSENT": {
+        "precision": 0.2222222222222222,
+        "recall": 0.6666666666666666,
+        "f1_score": 0.3333333333333333,
+        "support": 3
+      },
+      "VOTER-ABSTENTION": {
+        "precision": 0.7058823529411765,
+        "recall": 0.9,
+        "f1_score": 0.7912087912087913,
+        "support": 40
+      },
+      "VOTER-AGAINST": {
+        "precision": 0.5,
+        "recall": 0.8888888888888888,
+        "f1_score": 0.64,
+        "support": 9
+      },
+      "VOTER-FAVOR": {
+        "precision": 0.9364406779661016,
+        "recall": 0.9484978540772532,
+        "f1_score": 0.9424307036247335,
+        "support": 233
+      },
+      "VOTING": {
+        "precision": 0.9957264957264957,
+        "recall": 0.9957264957264957,
+        "f1_score": 0.9957264957264957,
+        "support": 234
+      },
+      "VOTING-METHOD": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      }
+    }
+  },
+  "relaxed_boundary_metrics": {
+    "precision": 0.5724720816757807,
+    "recall": 0.657013387301255,
+    "f1": 0.6066747673295154,
+    "per_type_metrics": {
+      "VOTER-FAVOR": {
+        "precision": 0.9694323144104804,
+        "recall": 0.9527896995708155,
+        "f1_score": 0.9610389610389611,
+        "support": 233
+      },
+      "VOTING": {
+        "precision": 0.9957264957264957,
+        "recall": 0.9957264957264957,
+        "f1_score": 0.9957264957264957,
+        "support": 234
+      },
+      "COUNTING-UNANIMITY": {
+        "precision": 0.6666666666666666,
+        "recall": 0.9951219512195122,
+        "f1_score": 0.7984344422700587,
+        "support": 205
+      },
+      "SUBJECT": {
+        "precision": 0.7142857142857143,
+        "recall": 0.7264957264957265,
+        "f1_score": 0.7203389830508475,
+        "support": 234
+      },
+      "COUNTING-MAJORITY": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 27
+      },
+      "VOTER-AGAINST": {
+        "precision": 0.2727272727272727,
+        "recall": 0.3333333333333333,
+        "f1_score": 0.3,
+        "support": 9
+      },
+      "VOTER-ABSTENTION": {
+        "precision": 0.7058823529411765,
+        "recall": 0.9,
+        "f1_score": 0.7912087912087913,
+        "support": 40
+      },
+      "VOTING-METHOD": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "VOTER-ABSENT": {
+        "precision": 0.4,
+        "recall": 0.6666666666666666,
+        "f1_score": 0.5,
+        "support": 3
+      },
+      "COUNT-BLANK": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      }
+    },
+    "delta_f1": 0.061397380404205726
+  }
+}

@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 """
-Run complete LOMO (Leave-One-Municipality-Out) cross-validation for Gemini.
+Run complete LOMO (Leave-One-Municipality-Out) cross-validation for Gemini
+via langextract (Gemini 2.5 Pro by default).
 
-This script runs experiments for all 6 municipalities (M01-M06):
-- For each municipality: train on other 5, test on held-out municipality
-- Evaluates generalization performance
-- Generates comparative results table
+Uses the same extractor/configuration as
+``scripts/llm_extraction/extract_gemini_spans.py`` so results are
+directly comparable to the standard langextract Gemini run.
+
+For each municipality (M01-M06):
+- Tests on ALL examples from the held-out municipality (train + dev + test splits)
+- Uses fixed few-shot examples shared with the AMALIA extractor
 
 Usage:
-    python scripts/llm_extraction/run_all_cross_municipality.py [--municipalities M01 M02 ...]
+    python scripts/llm_extraction/run_cross_municipality.py [--municipalities M01 M02 ...]
 """
 
 import argparse
@@ -18,34 +22,62 @@ import sys
 from pathlib import Path
 from datetime import datetime
 from typing import List, Dict
-import time
+
+from dotenv import load_dotenv
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+load_dotenv(Path(__file__).parent.parent.parent / ".env")
+
+import langextract as lx
 
 from src.llm_extraction.shared.data_utils import load_jsonl
-from src.llm_extraction.few_shot_selector import load_and_format_few_shot_examples
 from src.llm_extraction.gemini.extractor import GeminiSpanExtractor
 from src.llm_extraction.gemini.config import GeminiConfig
-from src.llm_extraction.span_alignment import align_extraction_result
 from src.llm_extraction.shared.evaluation import evaluate_span_extraction
 from src.llm_extraction.schemas import SpanEntity, SpanExtractionResult
+from src.llm_extraction.fixed_examples import get_fixed_examples
 
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+
+# Map LOMO codes -> real municipality ID prefixes used in citilink-votie/{train,dev,test}.jsonl.
+# Ordering follows scripts/dataset_generation/create_lomo_splits_v6.py.
+MUNICIPALITY_MAP = {
+    'M01': 'Alandroal',
+    'M02': 'Campomaior',
+    'M03': 'Covilha',
+    'M04': 'Fundao',
+    'M05': 'Guimaraes',
+    'M06': 'Porto',
+}
+
+
+# Configure logging before absl (used by langextract) can hijack it
+_handler = logging.StreamHandler()
+_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+logger.addHandler(_handler)
+
+for _name in [
+    'src.llm_extraction.gemini.extractor',
+    'src.llm_extraction.span_alignment',
+    'src.llm_extraction.shared.data_utils',
+]:
+    _log = logging.getLogger(_name)
+    _log.setLevel(logging.INFO)
+    _log.addHandler(_handler)
 
 
-def filter_by_municipality(data: List[dict], municipality: str) -> List[dict]:
-    """Filter data for specific municipality."""
-    filtered = []
-    for example in data:
-        example_id = example.get('id', '')
-        if example_id.startswith(municipality + '_'):
-            filtered.append(example)
-    return filtered
+def filter_by_municipality(data: List[dict], municipality_code: str) -> List[dict]:
+    """Filter data for specific municipality (accepts M01..M06 codes or real names)."""
+    prefix = MUNICIPALITY_MAP.get(municipality_code, municipality_code)
+    return [ex for ex in data if ex.get('id', '').startswith(prefix + '_')]
+
+
+def build_lomo_examples(num_examples: int = 5) -> List[lx.data.ExampleData]:
+    """Return the shared fixed few-shot examples used across all extractors."""
+    return get_fixed_examples(num_examples)
 
 
 def run_single_experiment(
@@ -54,45 +86,46 @@ def run_single_experiment(
     train_file: str,
     dev_file: str,
     test_file: str,
-    output_dir: Path
+    output_dir: Path,
+    extractor: GeminiSpanExtractor,
+    model_id: str,
+    strategy: str,
 ) -> Dict:
     """
-    Run single LOMO experiment: train on N-1 municipalities, test on 1.
+    Run single LOMO experiment: test on the held-out municipality.
 
     Strategy:
-    - Few-shot: 1 example per training municipality (5 total)
-    - Test: ALL examples from held-out municipality (train + dev + test splits)
-
-    Args:
-        test_municipality: Municipality to test on (e.g., 'M01')
-        train_municipalities: Municipalities to select few-shot examples from
-        train_file: Path to train.jsonl (for few-shot examples)
-        dev_file: Path to dev.jsonl (for evaluation)
-        test_file: Path to test.jsonl (for evaluation)
-        output_dir: Directory to save results
-
-    Returns:
-        Dictionary with evaluation results
+    - Few-shot examples are the fixed langextract examples (shared with AMALIA).
+    - Test set: ALL examples from held-out municipality (train + dev + test splits).
     """
-    logger.info("="*80)
-    logger.info(f"LOMO Experiment: Test on {test_municipality}")
-    logger.info("="*80)
-    logger.info(f"Train municipalities: {', '.join(train_municipalities)}")
-    logger.info(f"Few-shot strategy: 1 example per training municipality ({len(train_municipalities)} total)")
+    logger.info("=" * 80)
+    logger.info(f"LOMO Experiment: Test on {test_municipality} ({MUNICIPALITY_MAP.get(test_municipality, test_municipality)})")
+    logger.info("=" * 80)
+    logger.info(
+        "Train municipalities: "
+        + ', '.join(f"{c}={MUNICIPALITY_MAP.get(c, c)}" for c in train_municipalities)
+    )
 
-    # Load ALL data from held-out municipality (train + dev + test)
+    # Use the same fixed few-shot examples as the standard benchmark runs
+    if strategy == "few_shot":
+        lx_examples = build_lomo_examples(num_examples=5)
+        logger.info(f"Loaded {len(lx_examples)} fixed few-shot examples")
+    else:
+        # langextract requires >=1 example as scaffold
+        lx_examples = build_lomo_examples(num_examples=1)
+        logger.info("Zero-shot mode: using 1 scaffold example")
+
+    extractor.lx_examples = lx_examples
+    logger.info(f"Loaded {len(lx_examples)} few-shot examples into extractor")
+
     logger.info(f"Loading ALL examples from {test_municipality} (train + dev + test splits)...")
-
     all_train_data = load_jsonl(train_file)
     all_dev_data = load_jsonl(dev_file)
     all_test_data = load_jsonl(test_file)
 
-    # Filter each split for held-out municipality
     train_examples = filter_by_municipality(all_train_data, test_municipality)
     dev_examples = filter_by_municipality(all_dev_data, test_municipality)
     test_examples = filter_by_municipality(all_test_data, test_municipality)
-
-    # Combine all splits for full LOMO evaluation
     test_data = train_examples + dev_examples + test_examples
 
     logger.info(f"  Train split: {len(train_examples)} examples")
@@ -104,131 +137,94 @@ def run_single_experiment(
         logger.error(f"No examples found for {test_municipality}")
         return None
 
-    # Select few-shot examples from training municipalities (using train set only)
-    # LOMO mode: exactly 1 example per training municipality
-    logger.info(f"Selecting few-shot examples from training municipalities (1 per municipality)...")
-    few_shot_examples = load_and_format_few_shot_examples(
-        train_file,
-        save_to_file=False,
-        lomo_mode=True,
-        train_municipalities=train_municipalities
-    )
-
-    logger.info(f"Selected {len(few_shot_examples)} examples:")
-    for ex in few_shot_examples:
-        municipality = ex['id'].split('_')[0]
-        logger.info(f"  - {ex['id'][:35]}... (from {municipality})")
-
-    # Initialize Gemini extractor
-    logger.info("\nInitializing Gemini extractor...")
-    config = GeminiConfig(
-        model_id="gemini-2.5-flash",  # Gemini 2.5 Flash
-        retry_delay=120  # Wait 2 minutes between retries (increased from 60s)
-    )
-    extractor = GeminiSpanExtractor(config=config, strategy="few_shot")
-    extractor.load_few_shot_examples(few_shot_examples)
-
-    # Check for existing predictions (resume functionality)
     predictions_file = output_dir / f'gemini_few_{test_municipality}.jsonl'
-    existing_predictions = {}
+    existing_predictions: Dict[str, dict] = {}
 
     if predictions_file.exists():
         logger.info(f"\nFound existing predictions at {predictions_file}")
         logger.info("Loading existing predictions to resume from checkpoint...")
+        successful = 0
+        errored = 0
         try:
             with open(predictions_file, 'r', encoding='utf-8') as f:
                 for line in f:
                     pred = json.loads(line.strip())
-                    existing_predictions[pred['id']] = pred
-            logger.info(f"Loaded {len(existing_predictions)} existing predictions")
+                    if pred.get('error') is None:
+                        existing_predictions[pred['id']] = pred
+                        successful += 1
+                    else:
+                        errored += 1
+            logger.info(
+                f"Loaded {successful} successful predictions; "
+                f"{errored} errored entries will be retried"
+            )
         except Exception as e:
             logger.warning(f"Error loading existing predictions: {e}")
             logger.warning("Starting fresh...")
             existing_predictions = {}
 
-    # Run predictions
+        # Rewrite file dropping errored entries so retries write cleanly
+        if existing_predictions:
+            with open(predictions_file, 'w', encoding='utf-8') as f:
+                for pred in existing_predictions.values():
+                    f.write(json.dumps(pred, ensure_ascii=False) + '\n')
+        elif predictions_file.exists():
+            # All entries errored — start file fresh
+            predictions_file.unlink()
+
     logger.info(f"\nRunning predictions on {len(test_data)} examples...")
-    predictions = list(existing_predictions.values())  # Start with existing predictions
-    errors = sum(1 for p in predictions if p.get('error'))
+    predictions = list(existing_predictions.values())
+    errors = 0
     skipped = 0
 
     for i, example in enumerate(test_data, 1):
-        # Skip if already processed
         if example['id'] in existing_predictions:
             skipped += 1
             continue
 
-        if (i - skipped) % 10 == 0:
-            logger.info(f"  Processing {i}/{len(test_data)}... (errors: {errors}, skipped: {skipped})")
+        logger.info(f"Processing {i}/{len(test_data)}: {example['id']}")
 
-        try:
-            # Extract entities
-            result = extractor.extract(example['text'], example['id'])
+        result = extractor.extract(
+            text=example['text'],
+            document_id=example['id'],
+        )
 
-            # Align spans to character positions
-            aligned_result, stats = align_extraction_result(
-                result,
-                strict=True,
-                use_voting_context=True
-            )
+        pred_dict = {
+            'id': result.id,
+            'text': result.text,
+            'entities': [
+                {
+                    'text': e.text,
+                    'type': e.type,
+                    'start': e.start,
+                    'end': e.end,
+                }
+                for e in result.entities
+            ],
+            'model': result.model,
+            'strategy': result.strategy,
+            'processing_time': result.processing_time,
+            'api_time': getattr(result, 'api_time', None),
+            'error': result.error,
+            'test_municipality': test_municipality,
+            'train_municipalities': train_municipalities,
+        }
 
-            # Convert to dict for saving
-            pred_dict = {
-                'id': aligned_result.id,
-                'text': aligned_result.text,
-                'entities': [
-                    {
-                        'text': e.text,
-                        'type': e.type,
-                        'start': e.start,
-                        'end': e.end
-                    }
-                    for e in aligned_result.entities
-                ],
-                'model': aligned_result.model,
-                'strategy': 'few_shot_lomo',
-                'processing_time': aligned_result.processing_time,
-                'test_municipality': test_municipality,
-                'train_municipalities': train_municipalities
-            }
-
-            if aligned_result.error:
-                pred_dict['error'] = aligned_result.error
-                errors += 1
-
-            predictions.append(pred_dict)
-
-            # Save incrementally (append to file after each prediction)
-            with open(predictions_file, 'a', encoding='utf-8') as f:
-                f.write(json.dumps(pred_dict, ensure_ascii=False) + '\n')
-
-            # Rate limiting (to avoid API quota issues)
-            # 2 seconds = 30 RPM (safe for most quotas)
-            time.sleep(2.0)
-
-        except Exception as e:
-            logger.error(f"Error processing {example['id']}: {e}")
+        if result.error:
             errors += 1
-            error_dict = {
-                'id': example['id'],
-                'text': example['text'],
-                'entities': [],
-                'model': config.model_id,
-                'strategy': 'few_shot_lomo',
-                'error': str(e),
-                'test_municipality': test_municipality,
-                'train_municipalities': train_municipalities
-            }
-            predictions.append(error_dict)
 
-            # Save error incrementally too
-            with open(predictions_file, 'a', encoding='utf-8') as f:
-                f.write(json.dumps(error_dict, ensure_ascii=False) + '\n')
+        predictions.append(pred_dict)
 
-    logger.info(f"Completed predictions. Total: {len(test_data)}, New: {len(test_data) - skipped}, Skipped: {skipped}, Errors: {errors}")
+        # Save incrementally (append to file after each prediction)
+        with open(predictions_file, 'a', encoding='utf-8') as f:
+            f.write(json.dumps(pred_dict, ensure_ascii=False) + '\n')
+
+    logger.info(
+        f"Completed predictions. Total: {len(test_data)}, "
+        f"New: {len(test_data) - skipped}, Skipped: {skipped}, Errors: {errors}"
+    )
     logger.info(f"All predictions saved to {predictions_file}")
 
-    # Evaluate
     logger.info("\nEvaluating predictions...")
     pred_results = []
     for pred in predictions:
@@ -237,7 +233,7 @@ def run_single_experiment(
                 text=e['text'],
                 type=e['type'],
                 start=e['start'],
-                end=e['end']
+                end=e['end'],
             )
             for e in pred.get('entities', [])
         ]
@@ -248,33 +244,30 @@ def run_single_experiment(
             model=pred['model'],
             strategy=pred['strategy'],
             processing_time=pred.get('processing_time', 0.0),
-            error=pred.get('error')
+            error=pred.get('error'),
         ))
 
     evaluation_results = evaluate_span_extraction(
         predictions=pred_results,
         ground_truth=test_data,
         compute_fidelity=True,
-        relaxed_threshold=0.0
+        relaxed_threshold=0.0,
     )
 
-    # Add metadata
     evaluation_results['metadata'] = {
         'test_municipality': test_municipality,
         'train_municipalities': train_municipalities,
-        'num_few_shot_examples': len(train_municipalities),  # 1 per municipality
+        'model_id': model_id,
+        'strategy': strategy,
         'num_test_examples': len(test_data),
         'num_errors': errors,
-        'timestamp': datetime.now().isoformat()
+        'timestamp': datetime.now().isoformat(),
     }
 
-    # Save evaluation
     eval_file = output_dir / f'gemini_few_{test_municipality}_evaluation.json'
     logger.info(f"Saving evaluation to {eval_file}")
 
-    # Convert numpy types to Python types for JSON serialization
     def convert_numpy_types(obj):
-        """Recursively convert numpy types to Python types."""
         import numpy as np
         if isinstance(obj, dict):
             return {k: convert_numpy_types(v) for k, v in obj.items()}
@@ -290,46 +283,44 @@ def run_single_experiment(
             return obj
 
     evaluation_results_serializable = convert_numpy_types(evaluation_results)
-
     with open(eval_file, 'w', encoding='utf-8') as f:
         json.dump(evaluation_results_serializable, f, indent=2, ensure_ascii=False)
 
-    # Print summary
     entity_metrics = evaluation_results['entity_level']
-    logger.info(f"\n{'='*80}")
+    logger.info(f"\n{'=' * 80}")
     logger.info(f"RESULTS: {test_municipality}")
-    logger.info(f"{'='*80}")
+    logger.info(f"{'=' * 80}")
     logger.info(f"Precision: {entity_metrics['precision']:.4f}")
     logger.info(f"Recall:    {entity_metrics['recall']:.4f}")
     logger.info(f"F1:        {entity_metrics['f1']:.4f}")
-    logger.info(f"{'='*80}\n")
+    logger.info(f"{'=' * 80}\n")
 
     return evaluation_results
 
 
-def generate_summary_table(results: Dict[str, Dict], output_dir: Path):
-    """
-    Generate comparative table of LOMO results across all municipalities.
-
-    Args:
-        results: Dictionary mapping municipality -> evaluation results
-        output_dir: Directory to save summary
-    """
-    logger.info("\n" + "="*80)
+def generate_summary_table(
+    results: Dict[str, Dict],
+    output_dir: Path,
+    model_id: str,
+    strategy: str,
+    num_examples: int,
+):
+    """Generate comparative table of LOMO results across all municipalities."""
+    logger.info("\n" + "=" * 80)
     logger.info("GENERATING SUMMARY TABLE")
-    logger.info("="*80)
+    logger.info("=" * 80)
 
-    # Sort municipalities
     municipalities = sorted(results.keys())
 
-    # Create markdown table
     lines = []
-    lines.append("# Gemini Few-Shot LOMO Cross-Validation Results\n\n")
+    lines.append("# Langextract Gemini LOMO Cross-Validation Results\n\n")
     lines.append("## Leave-One-Municipality-Out Generalization\n\n")
-    lines.append("Each row shows results when testing on the held-out municipality ")
-    lines.append("and training on the other 5 municipalities.\n\n")
+    lines.append(
+        "Each row shows results when testing on the held-out municipality. "
+        "Few-shot examples are dynamically selected from the other 5 municipalities "
+        "(1 per training municipality), guaranteeing zero leakage from the held-out muni.\n\n"
+    )
 
-    # Main results table
     lines.append("### Entity-Level Span Extraction Results\n\n")
     lines.append("| Test Municipality | Examples | Precision | Recall | F1 | TP | FN | FP |\n")
     lines.append("|-------------------|----------|-----------|--------|-----|----|----|----|\n")
@@ -337,10 +328,8 @@ def generate_summary_table(results: Dict[str, Dict], output_dir: Path):
     for muni in municipalities:
         if results[muni] is None:
             continue
-
         entity_metrics = results[muni]['entity_level']
         metadata = results[muni]['metadata']
-
         lines.append(
             f"| {muni} | {metadata['num_test_examples']} | "
             f"{entity_metrics['precision']:.3f} | "
@@ -351,23 +340,23 @@ def generate_summary_table(results: Dict[str, Dict], output_dir: Path):
             f"{entity_metrics['false_positives']} |\n"
         )
 
-    # Calculate average (only if there are successful results)
     successful_results = [r for r in results.values() if r]
+    avg_p = avg_r = avg_f1 = 0.0
     if successful_results:
         avg_p = sum(r['entity_level']['precision'] for r in successful_results) / len(successful_results)
         avg_r = sum(r['entity_level']['recall'] for r in successful_results) / len(successful_results)
         avg_f1 = sum(r['entity_level']['f1'] for r in successful_results) / len(successful_results)
-        lines.append(f"| **Average** | - | **{avg_p:.3f}** | **{avg_r:.3f}** | **{avg_f1:.3f}** | - | - | - |\n")
+        lines.append(
+            f"| **Average** | - | **{avg_p:.3f}** | **{avg_r:.3f}** | **{avg_f1:.3f}** | - | - | - |\n"
+        )
     else:
         logger.warning("No successful results to calculate averages")
-        lines.append(f"| **Average** | - | N/A | N/A | N/A | - | - | - |\n")
+        lines.append("| **Average** | - | N/A | N/A | N/A | - | - | - |\n")
 
-    # Per-entity type breakdown
     lines.append("\n### Per-Entity-Type F1 Scores\n\n")
     lines.append("| Entity Type | " + " | ".join(municipalities) + " | Avg |\n")
     lines.append("|-------------|" + "|".join(["-------"] * len(municipalities)) + "|-----|\n")
 
-    # Get all entity types from first result
     entity_types = []
     for muni in municipalities:
         if results[muni] and 'per_type' in results[muni]['entity_level']:
@@ -382,16 +371,13 @@ def generate_summary_table(results: Dict[str, Dict], output_dir: Path):
                 scores.append(f1)
             else:
                 scores.append(0.0)
-
         avg_score = sum(scores) / len(scores) if scores else 0.0
         score_strs = [f"{s:.3f}" for s in scores]
         lines.append(f"| {etype} | " + " | ".join(score_strs) + f" | **{avg_score:.3f}** |\n")
 
-    # Fidelity metrics
     lines.append("\n### Alignment Fidelity\n\n")
     lines.append("| Municipality | Total Extracted | Aligned | Alignment Rate |\n")
     lines.append("|--------------|-----------------|---------|----------------|\n")
-
     for muni in municipalities:
         if results[muni] and 'fidelity' in results[muni]:
             fidelity = results[muni]['fidelity']
@@ -400,117 +386,157 @@ def generate_summary_table(results: Dict[str, Dict], output_dir: Path):
             rate = fidelity['alignment_rate']
             lines.append(f"| {muni} | {total} | {aligned} | {rate:.3f} |\n")
 
-    # Experimental details
     lines.append("\n### Experimental Setup\n\n")
-    lines.append("- **Model**: Gemini 2.0 Flash Experimental\n")
-    lines.append("- **Strategy**: Few-shot (5 examples)\n")
-    lines.append("- **Example Selection**: Diverse selection from training municipalities\n")
+    lines.append(f"- **Model**: {model_id}\n")
+    lines.append("- **Pipeline**: langextract (`GeminiSpanExtractor`)\n")
+    lines.append(f"- **Strategy**: {strategy} (1 example per training municipality, 5 total)\n")
+    lines.append("- **Example Selection**: Dynamic per-LOMO-fold from training municipalities only (no held-out leakage)\n")
     lines.append("- **Evaluation**: Character-level span matching (exact match)\n")
-    lines.append("- **Data Source**: `data/citilink_spans/train.jsonl`\n\n")
+    lines.append("- **Data Source**: `data/citilink-votie/{train,dev,test}.jsonl`\n\n")
 
-    # Save summary
-    summary_file = output_dir / 'lomo_summary.md'
+    summary_file = output_dir / 'gemini_lomo_summary.md'
     logger.info(f"Saving summary to {summary_file}")
     with open(summary_file, 'w', encoding='utf-8') as f:
         f.write(''.join(lines))
 
-    # Also save as JSON for programmatic access
     summary_json = {
+        'model_id': model_id,
+        'strategy': strategy,
+        'num_examples': num_examples,
         'average_metrics': {
             'precision': avg_p,
             'recall': avg_r,
-            'f1': avg_f1
+            'f1': avg_f1,
         },
         'per_municipality': {
             muni: {
                 'precision': results[muni]['entity_level']['precision'],
                 'recall': results[muni]['entity_level']['recall'],
                 'f1': results[muni]['entity_level']['f1'],
-                'examples': results[muni]['metadata']['num_test_examples']
+                'examples': results[muni]['metadata']['num_test_examples'],
             }
             for muni in municipalities if results[muni]
-        }
+        },
     }
 
-    summary_json_file = output_dir / 'lomo_summary.json'
+    summary_json_file = output_dir / 'gemini_lomo_summary.json'
     with open(summary_json_file, 'w', encoding='utf-8') as f:
         json.dump(summary_json, f, indent=2, ensure_ascii=False)
 
     logger.info(f"Saved JSON summary to {summary_json_file}")
 
-    # Print table to console
-    logger.info("\n" + "="*80)
+    logger.info("\n" + "=" * 80)
     logger.info("LOMO CROSS-VALIDATION SUMMARY")
-    logger.info("="*80)
-    for line in lines[4:]:  # Skip header
+    logger.info("=" * 80)
+    for line in lines[4:]:
         if line.strip():
             logger.info(line.strip())
-    logger.info("="*80 + "\n")
+    logger.info("=" * 80 + "\n")
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Run complete LOMO cross-validation for Gemini'
+        description='Run complete LOMO cross-validation for Gemini via langextract'
     )
     parser.add_argument(
         '--municipalities',
         nargs='+',
         default=['M01', 'M02', 'M03', 'M04', 'M05', 'M06'],
-        help='Municipalities to test (default: all M01-M06)'
+        help='Municipalities to test (default: all M01-M06)',
+    )
+    parser.add_argument(
+        '--strategy',
+        type=str,
+        choices=['zero_shot', 'few_shot'],
+        default='few_shot',
+        help='Extraction strategy',
+    )
+    parser.add_argument(
+        '--model',
+        type=str,
+        default='gemini-2.5-pro',
+        help='Gemini model ID',
+    )
+    parser.add_argument(
+        '--num-examples',
+        type=int,
+        default=5,
+        help='(reserved; LOMO always picks 1 example per training municipality = 5 total)',
+    )
+    parser.add_argument(
+        '--max-char-buffer',
+        type=int,
+        default=20000,
+        help='Max characters per chunk for langextract segmentation',
+    )
+    parser.add_argument(
+        '--temperature',
+        type=float,
+        default=0.0,
+        help='Sampling temperature',
     )
     parser.add_argument(
         '--train-file',
-        default='data/citilink_spans/train.jsonl',
-        help='Training data file (for few-shot examples)'
+        default='data/citilink-votie/train.jsonl',
+        help='Training data file (for evaluation)',
     )
     parser.add_argument(
         '--dev-file',
-        default='data/citilink_spans/dev.jsonl',
-        help='Dev data file (for evaluation)'
+        default='data/citilink-votie/dev.jsonl',
+        help='Dev data file (for evaluation)',
     )
     parser.add_argument(
         '--test-file',
-        default='data/citilink_spans/test.jsonl',
-        help='Test data file (for evaluation)'
+        default='data/citilink-votie/test.jsonl',
+        help='Test data file (for evaluation)',
     )
     parser.add_argument(
         '--output-dir',
-        default='results/llm_extraction/cross_municipality',
-        help='Output directory'
+        default='results/llm_extraction/gemini/lomo',
+        help='Output directory',
     )
     parser.add_argument(
         '--skip-existing',
         action='store_true',
-        help='Skip municipalities with existing evaluation files'
+        help='Skip municipalities with existing evaluation files',
     )
 
     args = parser.parse_args()
 
-    logger.info("="*80)
-    logger.info("GEMINI LOMO CROSS-VALIDATION")
-    logger.info("="*80)
+    logger.info("=" * 80)
+    logger.info("LANGEXTRACT GEMINI LOMO CROSS-VALIDATION")
+    logger.info("=" * 80)
+    logger.info(f"Model: {args.model}")
+    logger.info(f"Strategy: {args.strategy} ({args.num_examples} fixed examples)")
     logger.info(f"Municipalities: {', '.join(args.municipalities)}")
-    logger.info(f"Train file (few-shot): {args.train_file}")
-    logger.info(f"Dev file (evaluation): {args.dev_file}")
-    logger.info(f"Test file (evaluation): {args.test_file}")
-    logger.info(f"Evaluation strategy: ALL splits (train+dev+test) from held-out municipality")
+    logger.info(f"Train file: {args.train_file}")
+    logger.info(f"Dev file: {args.dev_file}")
+    logger.info(f"Test file: {args.test_file}")
+    logger.info("Evaluation strategy: ALL splits (train+dev+test) from held-out municipality")
     logger.info(f"Output directory: {args.output_dir}")
-    logger.info(f"Few-shot strategy: 1 example per training municipality")
     logger.info(f"Skip existing: {args.skip_existing}")
-    logger.info("="*80 + "\n")
+    logger.info("=" * 80 + "\n")
 
-    # Create output directory
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # All possible municipalities
+    # Build the extractor ONCE — fixed few-shot examples are municipality-agnostic
+    config = GeminiConfig(
+        model_id=args.model,
+        temperature=args.temperature,
+        max_char_buffer=args.max_char_buffer,
+    )
+    extractor = GeminiSpanExtractor(
+        config=config,
+        strategy=args.strategy,
+        num_examples=args.num_examples,
+    )
+
     all_municipalities = ['M01', 'M02', 'M03', 'M04', 'M05', 'M06']
 
-    # Run experiments
     results = {}
 
     for test_muni in args.municipalities:
-        # Check if already exists
         eval_file = output_dir / f'gemini_few_{test_muni}_evaluation.json'
         if args.skip_existing and eval_file.exists():
             logger.info(f"Skipping {test_muni} (evaluation file already exists)")
@@ -522,12 +548,9 @@ def main():
                 logger.warning(f"Corrupted JSON file for {test_muni}: {e}")
                 logger.warning(f"Deleting corrupted file and re-running: {eval_file}")
                 eval_file.unlink()
-                # Continue to run the experiment
 
-        # Get training municipalities (all except test)
         train_munis = [m for m in all_municipalities if m != test_muni]
 
-        # Run experiment
         try:
             result = run_single_experiment(
                 test_municipality=test_muni,
@@ -535,23 +558,24 @@ def main():
                 train_file=args.train_file,
                 dev_file=args.dev_file,
                 test_file=args.test_file,
-                output_dir=output_dir
+                output_dir=output_dir,
+                extractor=extractor,
+                model_id=args.model,
+                strategy=args.strategy,
             )
             results[test_muni] = result
-
         except Exception as e:
             logger.error(f"Failed to run experiment for {test_muni}: {e}")
             results[test_muni] = None
 
-    # Generate summary table
-    generate_summary_table(results, output_dir)
+    generate_summary_table(results, output_dir, args.model, args.strategy, args.num_examples)
 
-    logger.info("\n" + "="*80)
+    logger.info("\n" + "=" * 80)
     logger.info("ALL EXPERIMENTS COMPLETE")
-    logger.info("="*80)
+    logger.info("=" * 80)
     logger.info(f"Results saved to: {output_dir}")
-    logger.info(f"Summary: {output_dir / 'lomo_summary.md'}")
-    logger.info("="*80)
+    logger.info(f"Summary: {output_dir / 'gemini_lomo_summary.md'}")
+    logger.info("=" * 80)
 
 
 if __name__ == '__main__':

@@ -1,0 +1,1323 @@
+{
+  "XLM-R-CRF": {
+    "total_errors": 260,
+    "error_breakdown": {
+      "MIS": 41,
+      "SPU": 64,
+      "INC_BOUNDARY": 154,
+      "INC_TYPE": 1
+    },
+    "errors_by_type": {
+      "SUBJECT": {
+        "MIS": 25,
+        "SPU": 46,
+        "INC_BOUNDARY": 123
+      },
+      "VOTING": {
+        "SPU": 7,
+        "MIS": 5
+      },
+      "VOTER-FAVOR": {
+        "MIS": 6,
+        "SPU": 4,
+        "INC_BOUNDARY": 17
+      },
+      "VOTER-AGAINST": {
+        "INC_BOUNDARY": 1
+      },
+      "VOTER-ABSTENTION": {
+        "INC_BOUNDARY": 11,
+        "SPU": 2
+      },
+      "VOTER-ABSENT": {
+        "INC_TYPE": 1,
+        "MIS": 2,
+        "INC_BOUNDARY": 1,
+        "SPU": 2
+      },
+      "COUNT-BLANK": {
+        "INC_BOUNDARY": 1,
+        "SPU": 2
+      },
+      "COUNTING-UNANIMITY": {
+        "MIS": 2,
+        "SPU": 1
+      },
+      "COUNTING-MAJORITY": {
+        "MIS": 1
+      }
+    },
+    "example_errors": {
+      "MIS": [
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_2",
+          "category": "MIS",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "AUTO DE VISTORIA ELABORADO PELA COMISSÃO DE VISTORIAS E NOTIFICAR OS PROPRIETÁRIOS DOS PRÉDIOS PARA QUE, NO PRAZO DE 30 DIAS PROCEDAM ÁS NECESSÁRIAS OBRAS DE REPARAÇÃO",
+            "type": "SUBJECT",
+            "start": 3749,
+            "end": 3916
+          },
+          "pred": null,
+          "context": "ÂMARA DELIBEROU, POR UNANIMIDADE, CONCORDAR COM O **AUTO DE VISTORIA ELABORADO PELA COMISSÃO DE VISTORIAS E NOTIFICAR OS PROPRIETÁRIOS DOS PRÉDIOS PARA QUE, NO PRAZO DE 30 DIAS PROCEDAM ÁS NECESSÁRIAS OBRAS DE REPARAÇÃO** E SE PERSISTIR OS PROBLEMAS E O LITÍGIO ENTRE OS "
+        },
+        {
+          "doc_id": "Campomaior_cm_010_2024-05-15_2",
+          "category": "MIS",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "CORREÇÃO DE CERTIDÃO, REFERENTE AO AUTO DE VISTORIA",
+            "type": "SUBJECT",
+            "start": 1,
+            "end": 52
+          },
+          "pred": null,
+          "context": "-**CORREÇÃO DE CERTIDÃO, REFERENTE AO AUTO DE VISTORIA** Nº 97/4181-Q, DATADO DE 20 de Agosto:\n-Apreciação"
+        },
+        {
+          "doc_id": "Campomaior_cm_010_2024-05-15_20",
+          "category": "MIS",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "ABERTURA DA PISCINA MUNICIPAL/ÉPOCA BALNEAR/2024",
+            "type": "SUBJECT",
+            "start": 1,
+            "end": 49
+          },
+          "pred": null,
+          "context": "-**ABERTURA DA PISCINA MUNICIPAL/ÉPOCA BALNEAR/2024**:\n-Apreciação da proposta (registo 8107) da senhor"
+        },
+        {
+          "doc_id": "Campomaior_cm_010_2024-05-15_22",
+          "category": "MIS",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "MINUTA DO PROTOCOLO ENTRE O MUNICÍPIO DE CAMPO MAIOR E A SANTA CASA DA MISERICÓRDIA DE CAMPO MAIOR, PARA APOIO FINANCEIRO, COM VISTA À SUBSTITUIÇÃO DE VÃOS E PORTAS, LUMINÁRIA E AQUISIÇÃO DE PAINÉIS FOTOVOLTAICOS PARA O EDIFÍCIO DA PROVEDORIA",
+            "type": "SUBJECT",
+            "start": 1,
+            "end": 243
+          },
+          "pred": null,
+          "context": "-**MINUTA DO PROTOCOLO ENTRE O MUNICÍPIO DE CAMPO MAIOR E A SANTA CASA DA MISERICÓRDIA DE CAMPO MAIOR, PARA APOIO FINANCEIRO, COM VISTA À SUBSTITUIÇÃO DE VÃOS E PORTAS, LUMINÁRIA E AQUISIÇÃO DE PAINÉIS FOTOVOLTAICOS PARA O EDIFÍCIO DA PROVEDORIA**:\n-Apreciação da proposta (registo 8469) do senhor"
+        },
+        {
+          "doc_id": "Campomaior_cm_018_2024-10-02_5",
+          "category": "MIS",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "ACORDO INTERADMINISTRATIVO E DE DELEGAÇÃO DE COMPETÊNCIAS COM A JUNTA DE FREGUESIA DE NOSSA SENHORA DA EXPECTAÇÃO - 2º QUADRIMESTRE - EXERCÍCIO 2024",
+            "type": "SUBJECT",
+            "start": 1,
+            "end": 149
+          },
+          "pred": null,
+          "context": "-**ACORDO INTERADMINISTRATIVO E DE DELEGAÇÃO DE COMPETÊNCIAS COM A JUNTA DE FREGUESIA DE NOSSA SENHORA DA EXPECTAÇÃO - 2º QUADRIMESTRE - EXERCÍCIO 2024**:\n-Apreciação da informação (registo 15873) dos Se"
+        }
+      ],
+      "SPU": [
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_2",
+          "category": "SPU",
+          "entity_type": "SUBJECT",
+          "gold": null,
+          "pred": {
+            "text": "VISTORIA AO PRÉDIO",
+            "type": "SUBJECT",
+            "start": 1,
+            "end": 19
+          },
+          "context": "-**VISTORIA AO PRÉDIO** SITO NA Travessa Nacional 209, 67, Abrantes:\n-Apr"
+        },
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_3",
+          "category": "SPU",
+          "entity_type": "SUBJECT",
+          "gold": null,
+          "pred": {
+            "text": "VISTORIA AO PRÉDIO",
+            "type": "SUBJECT",
+            "start": 1,
+            "end": 19
+          },
+          "context": "-**VISTORIA AO PRÉDIO** SITO NA R. Henriques, 14, Porto Santo:\n-Apreciaçã"
+        },
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_4",
+          "category": "SPU",
+          "entity_type": "VOTING",
+          "gold": null,
+          "pred": {
+            "text": "de",
+            "type": "VOTING",
+            "start": 1024,
+            "end": 1026
+          },
+          "context": "t.º 73.º e 98.º do Código dos Contratos Públicos, **de**cido adjudicar a proposta apresentada e aprovar a "
+        },
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_8",
+          "category": "SPU",
+          "entity_type": "SUBJECT",
+          "gold": null,
+          "pred": {
+            "text": "RENDAS EM A",
+            "type": "SUBJECT",
+            "start": 955,
+            "end": 966
+          },
+          "context": "ADE, AUTORIZAR O PLANO DE PAGAMENTO, REFERENTE DE **RENDAS EM A**TRASO DO Rua de Barbosa, S/N, Albufeira."
+        },
+        {
+          "doc_id": "Campomaior_cm_010_2024-05-15_2",
+          "category": "SPU",
+          "entity_type": "SUBJECT",
+          "gold": null,
+          "pred": {
+            "text": "ALTERAÇÃO Á PROPRIEDADE HORIZONTAL",
+            "type": "SUBJECT",
+            "start": 1695,
+            "end": 1729
+          },
+          "context": "-A CÂMARA DELIBEROU, POR UNANIMIDADE, AUTORIZAR A **ALTERAÇÃO Á PROPRIEDADE HORIZONTAL**, CORRESPONDENTE AO AUTO DE VISTORIA NÚMERO FASZ/2"
+        }
+      ],
+      "INC_BOUNDARY": [
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_3",
+          "category": "INC_BOUNDARY",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "AUTO DE VISTORIA ELABORADO PELA COMISSÃO DE VISTORIAS E NOTIFICAR OS PROPRIETÁRIOS DOS PRÉDIOS\nPARA QUE, NO PRAZO DE 30 DIAS PROCEDAM ÁS NECESSÁRIAS OBRAS DE REPARAÇÃO",
+            "type": "SUBJECT",
+            "start": 3632,
+            "end": 3799
+          },
+          "pred": {
+            "text": "AUTO DE VISTORIA ELABORADO PELA COMISSÃO DE VISTORIAS E NOTIFICAR",
+            "type": "SUBJECT",
+            "start": 3632,
+            "end": 3697
+          },
+          "context": "ÂMARA DELIBEROU, POR UNANIMIDADE, CONCORDAR COM O **AUTO DE VISTORIA ELABORADO PELA COMISSÃO DE VISTORIAS E NOTIFICAR OS PROPRIETÁRIOS DOS PRÉDIOS\nPARA QUE, NO PRAZO DE 30 DIAS PROCEDAM ÁS NECESSÁRIAS OBRAS DE REPARAÇÃO** E SE PERSISTIR OS PROBLEMAS E O LITÍGIO ENTRE OS "
+        },
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_4",
+          "category": "INC_BOUNDARY",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "AQUISIÇÃO DE 1 VIATURA CRV2000, CORRESPONDENTE AO LOTE 1.7, AO ABRIGO DO \"ACORDO QUADRO PARA AQUISIÇÃO E ALUGUER DE VIATURAS, EQUIPAMENTOS E EQUIPAS DE APOIO AOS RSU CNCM-AQ/42/2021\"",
+            "type": "SUBJECT",
+            "start": 2006,
+            "end": 2188
+          },
+          "pred": {
+            "text": "AQUISIÇÃO DE 1 VIATURA CRV2000, CORRESPONDENTE AO LOTE 1.7, AO ABRIGO DO \"ACORDO QUADRO PARA AQUISIÇÃO E ALUGUER DE VIATURAS, EQUIPAMENTOS E EQUIPAS DE APOIO AOS RSU CNCM-AQ/42/2021\", PROMOVIDO",
+            "type": "SUBJECT",
+            "start": 2006,
+            "end": 2199
+          },
+          "context": "ICAR O DESPACHO DO SENHOR PRESIDENTE, REFERENTE À **AQUISIÇÃO DE 1 VIATURA CRV2000, CORRESPONDENTE AO LOTE 1.7, AO ABRIGO DO \"ACORDO QUADRO PARA AQUISIÇÃO E ALUGUER DE VIATURAS, EQUIPAMENTOS E EQUIPAS DE APOIO AOS RSU CNCM-AQ/42/2021\"**, PROMOVIDO PELA CNCM COM O ID BASE Nº 5224846."
+        },
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_5",
+          "category": "INC_BOUNDARY",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "EXECUÇÃO E CONTABILIZAÇÃO\nDA 5ª MODIFICAÇÃO AOS DOCUMENTOS PREVISIONAIS AOS DOCUMENTOS PREVISIONAIS 2024 - 5ª ALTERAÇÃO AO ORÇAMENTO 2024 - 5ª ALTERAÇÃO ÀS GRANDES OPÇÕES DO PLANO 2024",
+            "type": "SUBJECT",
+            "start": 1176,
+            "end": 1360
+          },
+          "pred": {
+            "text": "EXECUÇÃO E CONTABILIZAÇÃO\nDA 5ª MODIFICAÇÃO AOS DOCUMENTOS PREVISIONAIS AOS DOCUMENTOS PREVISIONAIS 2024 - 5ª ALTERAÇÃO AO ORÇAMENTO 2024 - 5ª ALTERAÇÃO ÀS GRANDES OPÇÕES DO PLANO 2024.",
+            "type": "SUBJECT",
+            "start": 1176,
+            "end": 1361
+          },
+          "context": "ICAR O DESPACHO DO SENHOR PRESIDENTE, REFERENTE À **EXECUÇÃO E CONTABILIZAÇÃO\nDA 5ª MODIFICAÇÃO AOS DOCUMENTOS PREVISIONAIS AOS DOCUMENTOS PREVISIONAIS 2024 - 5ª ALTERAÇÃO AO ORÇAMENTO 2024 - 5ª ALTERAÇÃO ÀS GRANDES OPÇÕES DO PLANO 2024**.\n-O senhor vereador Paulo Ivo usou da palavra e q"
+        },
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_6",
+          "category": "INC_BOUNDARY",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "APOIO NO VALOR DE 500,00€ (QUINHENTOS EUROS) AO CEAN-CENTRO EDUCATIVO ALICE NABEIRO, TENDO EM VISTA AJUDAR A CUSTEAR A VIAGEM DE FINALISTA 2024",
+            "type": "SUBJECT",
+            "start": 1050,
+            "end": 1193
+          },
+          "pred": {
+            "text": "APOIO NO VALOR DE 500,00€ (QUINHENTOS EUROS) AO CEAN-CENTRO EDUCATIVO ALICE NABEIRO",
+            "type": "SUBJECT",
+            "start": 1050,
+            "end": 1133
+          },
+          "context": "-A CÂMARA DELIBEROU, POR UNANIMIDADE, ATRIBUIR UM **APOIO NO VALOR DE 500,00€ (QUINHENTOS EUROS) AO CEAN-CENTRO EDUCATIVO ALICE NABEIRO, TENDO EM VISTA AJUDAR A CUSTEAR A VIAGEM DE FINALISTA 2024**."
+        },
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_7",
+          "category": "INC_BOUNDARY",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "APOIO NO VALOR DE 3.000,00€ (TRÊS MIL EUROS) À ASSOCIAÇÃO CULTURAL AXPRESS-ARTE, TENDO EM VISTA A REALIZAÇÃO DO FESTIVAL INTERNACIONAL DE DANÇA",
+            "type": "SUBJECT",
+            "start": 1402,
+            "end": 1545
+          },
+          "pred": {
+            "text": "APOIO NO VALOR DE 3.000,00€ (TRÊS MIL EUROS) À ASSOCIAÇÃO CULTURAL AXPRESS-ARTE",
+            "type": "SUBJECT",
+            "start": 1402,
+            "end": 1481
+          },
+          "context": "-A CÂMARA DELIBEROU, POR UNANIMIDADE, ATRIBUIR UM **APOIO NO VALOR DE 3.000,00€ (TRÊS MIL EUROS) À ASSOCIAÇÃO CULTURAL AXPRESS-ARTE, TENDO EM VISTA A REALIZAÇÃO DO FESTIVAL INTERNACIONAL DE DANÇA**."
+        }
+      ],
+      "INC_TYPE": [
+        {
+          "doc_id": "Alandroal_cm_015_2024-06-19_7",
+          "category": "INC_TYPE",
+          "entity_type": "VOTER-ABSENT",
+          "gold": {
+            "text": "Fernanda Romão",
+            "type": "VOTER-ABSENT",
+            "start": 256,
+            "end": 270
+          },
+          "pred": {
+            "text": "Fernanda Romão",
+            "type": "VOTER-ABSTENTION",
+            "start": 256,
+            "end": 270
+          },
+          "context": "pelo Nós, Cidadãos e com a abstenção da vereadora **Fernanda Romão**, por não ter estado presente na reunião, aprovar "
+        }
+      ]
+    }
+  },
+  "DeBERTa-CRF": {
+    "total_errors": 232,
+    "error_breakdown": {
+      "INC_BOUNDARY": 137,
+      "SPU": 55,
+      "MIS": 39,
+      "INC_TYPE": 1
+    },
+    "errors_by_type": {
+      "SUBJECT": {
+        "INC_BOUNDARY": 102,
+        "SPU": 36,
+        "MIS": 25
+      },
+      "VOTER-FAVOR": {
+        "MIS": 5,
+        "INC_BOUNDARY": 17
+      },
+      "VOTER-AGAINST": {
+        "INC_BOUNDARY": 1
+      },
+      "VOTER-ABSENT": {
+        "SPU": 11,
+        "INC_TYPE": 1,
+        "INC_BOUNDARY": 3
+      },
+      "VOTER-ABSTENTION": {
+        "INC_BOUNDARY": 11,
+        "SPU": 2
+      },
+      "VOTING": {
+        "MIS": 5,
+        "SPU": 3
+      },
+      "COUNTING-UNANIMITY": {
+        "MIS": 2,
+        "SPU": 1,
+        "INC_BOUNDARY": 1
+      },
+      "VOTING-METHOD": {
+        "MIS": 1
+      },
+      "COUNT-BLANK": {
+        "MIS": 1
+      },
+      "COUNTING-MAJORITY": {
+        "INC_BOUNDARY": 2,
+        "SPU": 2
+      }
+    },
+    "example_errors": {
+      "INC_BOUNDARY": [
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_2",
+          "category": "INC_BOUNDARY",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "AUTO DE VISTORIA ELABORADO PELA COMISSÃO DE VISTORIAS E NOTIFICAR OS PROPRIETÁRIOS DOS PRÉDIOS PARA QUE, NO PRAZO DE 30 DIAS PROCEDAM ÁS NECESSÁRIAS OBRAS DE REPARAÇÃO",
+            "type": "SUBJECT",
+            "start": 3749,
+            "end": 3916
+          },
+          "pred": {
+            "text": "AUTO DE VISTORIA",
+            "type": "SUBJECT",
+            "start": 3749,
+            "end": 3765
+          },
+          "context": "ÂMARA DELIBEROU, POR UNANIMIDADE, CONCORDAR COM O **AUTO DE VISTORIA ELABORADO PELA COMISSÃO DE VISTORIAS E NOTIFICAR OS PROPRIETÁRIOS DOS PRÉDIOS PARA QUE, NO PRAZO DE 30 DIAS PROCEDAM ÁS NECESSÁRIAS OBRAS DE REPARAÇÃO** E SE PERSISTIR OS PROBLEMAS E O LITÍGIO ENTRE OS "
+        },
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_4",
+          "category": "INC_BOUNDARY",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "AQUISIÇÃO DE 1 VIATURA CRV2000, CORRESPONDENTE AO LOTE 1.7, AO ABRIGO DO \"ACORDO QUADRO PARA AQUISIÇÃO E ALUGUER DE VIATURAS, EQUIPAMENTOS E EQUIPAS DE APOIO AOS RSU CNCM-AQ/42/2021\"",
+            "type": "SUBJECT",
+            "start": 2006,
+            "end": 2188
+          },
+          "pred": {
+            "text": "AQUISIÇÃO DE 1 VIATURA CRV2000",
+            "type": "SUBJECT",
+            "start": 2006,
+            "end": 2036
+          },
+          "context": "ICAR O DESPACHO DO SENHOR PRESIDENTE, REFERENTE À **AQUISIÇÃO DE 1 VIATURA CRV2000, CORRESPONDENTE AO LOTE 1.7, AO ABRIGO DO \"ACORDO QUADRO PARA AQUISIÇÃO E ALUGUER DE VIATURAS, EQUIPAMENTOS E EQUIPAS DE APOIO AOS RSU CNCM-AQ/42/2021\"**, PROMOVIDO PELA CNCM COM O ID BASE Nº 5224846."
+        },
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_6",
+          "category": "INC_BOUNDARY",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "APOIO NO VALOR DE 500,00€ (QUINHENTOS EUROS) AO CEAN-CENTRO EDUCATIVO ALICE NABEIRO, TENDO EM VISTA AJUDAR A CUSTEAR A VIAGEM DE FINALISTA 2024",
+            "type": "SUBJECT",
+            "start": 1050,
+            "end": 1193
+          },
+          "pred": {
+            "text": "APOIO NO VALOR DE 500,00€ (QUINHENTOS EUROS) AO CEAN-CENTRO EDUCATIVO ALICE NABEIRO",
+            "type": "SUBJECT",
+            "start": 1050,
+            "end": 1133
+          },
+          "context": "-A CÂMARA DELIBEROU, POR UNANIMIDADE, ATRIBUIR UM **APOIO NO VALOR DE 500,00€ (QUINHENTOS EUROS) AO CEAN-CENTRO EDUCATIVO ALICE NABEIRO, TENDO EM VISTA AJUDAR A CUSTEAR A VIAGEM DE FINALISTA 2024**."
+        },
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_7",
+          "category": "INC_BOUNDARY",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "APOIO NO VALOR DE 3.000,00€ (TRÊS MIL EUROS) À ASSOCIAÇÃO CULTURAL AXPRESS-ARTE, TENDO EM VISTA A REALIZAÇÃO DO FESTIVAL INTERNACIONAL DE DANÇA",
+            "type": "SUBJECT",
+            "start": 1402,
+            "end": 1545
+          },
+          "pred": {
+            "text": "APOIO NO VALOR DE 3.000,00€ (TRÊS MIL EUROS) À ASSOCIAÇÃO CULTURAL AXPRESS-ARTE",
+            "type": "SUBJECT",
+            "start": 1402,
+            "end": 1481
+          },
+          "context": "-A CÂMARA DELIBEROU, POR UNANIMIDADE, ATRIBUIR UM **APOIO NO VALOR DE 3.000,00€ (TRÊS MIL EUROS) À ASSOCIAÇÃO CULTURAL AXPRESS-ARTE, TENDO EM VISTA A REALIZAÇÃO DO FESTIVAL INTERNACIONAL DE DANÇA**."
+        },
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_11",
+          "category": "INC_BOUNDARY",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "RECRUTAMENTO DE UM TÉCNICO SUPERIOR PARA EXERCER FUNÇÕES NA ÁREA DO DESPORTO, EM REGIME DE CONTRATO DE TRABALHO EM FUNÇÕES PÚBLICAS POR TEMPO INDETERMINADO",
+            "type": "SUBJECT",
+            "start": 3696,
+            "end": 3851
+          },
+          "pred": {
+            "text": "RECRUTAMENTO DE UM TÉCNICO SUPERIOR PARA EXERCER FUNÇÕES NA ÁREA DO DESPORTO, EM REGIME DE CONTRATO DE TRABALHO EM FUNÇÕES PÚBLICAS POR TEMPO INDETERMINADO, POR RECURSO À MOBILIDADE INTERNA ENTRE ÓRGÃOS",
+            "type": "SUBJECT",
+            "start": 3696,
+            "end": 3898
+          },
+          "context": "VAR A PROPOSTA DO SENHOR PRESIDENTE, REFERENTE AO **RECRUTAMENTO DE UM TÉCNICO SUPERIOR PARA EXERCER FUNÇÕES NA ÁREA DO DESPORTO, EM REGIME DE CONTRATO DE TRABALHO EM FUNÇÕES PÚBLICAS POR TEMPO INDETERMINADO**, POR RECURSO À MOBILIDADE INTERNA ENTRE ÓRGÃOS."
+        }
+      ],
+      "SPU": [
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_2",
+          "category": "SPU",
+          "entity_type": "SUBJECT",
+          "gold": null,
+          "pred": {
+            "text": "VISTORIA AO PRÉDIO",
+            "type": "SUBJECT",
+            "start": 1,
+            "end": 19
+          },
+          "context": "-**VISTORIA AO PRÉDIO** SITO NA Travessa Nacional 209, 67, Abrantes:\n-Apr"
+        },
+        {
+          "doc_id": "Campomaior_cm_010_2024-05-15_2",
+          "category": "SPU",
+          "entity_type": "SUBJECT",
+          "gold": null,
+          "pred": {
+            "text": "ALTERAÇÃO Á PROPRIEDADE HORIZONTAL",
+            "type": "SUBJECT",
+            "start": 1695,
+            "end": 1729
+          },
+          "context": "-A CÂMARA DELIBEROU, POR UNANIMIDADE, AUTORIZAR A **ALTERAÇÃO Á PROPRIEDADE HORIZONTAL**, CORRESPONDENTE AO AUTO DE VISTORIA NÚMERO FASZ/2"
+        },
+        {
+          "doc_id": "Campomaior_cm_010_2024-05-15_3",
+          "category": "SPU",
+          "entity_type": "SUBJECT",
+          "gold": null,
+          "pred": {
+            "text": "DEVOLUÇÃO AO EMPREITEIRO DAMIÃO & BELO, LDª., DE 15% (1.236,57 €) DO VALOR DA RETENÇÃO EFETUADA, FICANDO ESTA EM 824,38€",
+            "type": "SUBJECT",
+            "start": 1910,
+            "end": 2030
+          },
+          "context": "O, A CÂMARA DELIBEROU, POR UNANIMIDADE, APROVAR A **DEVOLUÇÃO AO EMPREITEIRO DAMIÃO & BELO, LDª., DE 15% (1.236,57 €) DO VALOR DA RETENÇÃO EFETUADA, FICANDO ESTA EM 824,38€**, APROVAR A REDUÇÃO DO DEPÓSITO DA CAUÇÃO INICIAL "
+        },
+        {
+          "doc_id": "Campomaior_cm_010_2024-05-15_4",
+          "category": "SPU",
+          "entity_type": "SUBJECT",
+          "gold": null,
+          "pred": {
+            "text": "DEVOLUÇÃO AO EMPREITEIRO D",
+            "type": "SUBJECT",
+            "start": 2025,
+            "end": 2051
+          },
+          "context": "O, A CÂMARA DELIBEROU, POR UNANIMIDADE, APROVAR A **DEVOLUÇÃO AO EMPREITEIRO D**AMIÃO & BELO, LDª., DE 30% (2.475,81€) DO VALOR DA"
+        },
+        {
+          "doc_id": "Campomaior_cm_010_2024-05-15_19",
+          "category": "SPU",
+          "entity_type": "SUBJECT",
+          "gold": null,
+          "pred": {
+            "text": "H",
+            "type": "SUBJECT",
+            "start": 1,
+            "end": 2
+          },
+          "context": "-**H**ASTA PÚBLICA Nº 03/2024 - LOCAÇÃO DO QUIOSQUE, SIT"
+        }
+      ],
+      "MIS": [
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_3",
+          "category": "MIS",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "AUTO DE VISTORIA ELABORADO PELA COMISSÃO DE VISTORIAS E NOTIFICAR OS PROPRIETÁRIOS DOS PRÉDIOS\nPARA QUE, NO PRAZO DE 30 DIAS PROCEDAM ÁS NECESSÁRIAS OBRAS DE REPARAÇÃO",
+            "type": "SUBJECT",
+            "start": 3632,
+            "end": 3799
+          },
+          "pred": null,
+          "context": "ÂMARA DELIBEROU, POR UNANIMIDADE, CONCORDAR COM O **AUTO DE VISTORIA ELABORADO PELA COMISSÃO DE VISTORIAS E NOTIFICAR OS PROPRIETÁRIOS DOS PRÉDIOS\nPARA QUE, NO PRAZO DE 30 DIAS PROCEDAM ÁS NECESSÁRIAS OBRAS DE REPARAÇÃO** E SE PERSISTIR OS PROBLEMAS E O LITÍGIO ENTRE OS "
+        },
+        {
+          "doc_id": "Campomaior_cm_010_2024-05-15_22",
+          "category": "MIS",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "MINUTA DO PROTOCOLO ENTRE O MUNICÍPIO DE CAMPO MAIOR E A SANTA CASA DA MISERICÓRDIA DE CAMPO MAIOR, PARA APOIO FINANCEIRO, COM VISTA À SUBSTITUIÇÃO DE VÃOS E PORTAS, LUMINÁRIA E AQUISIÇÃO DE PAINÉIS FOTOVOLTAICOS PARA O EDIFÍCIO DA PROVEDORIA",
+            "type": "SUBJECT",
+            "start": 1,
+            "end": 243
+          },
+          "pred": null,
+          "context": "-**MINUTA DO PROTOCOLO ENTRE O MUNICÍPIO DE CAMPO MAIOR E A SANTA CASA DA MISERICÓRDIA DE CAMPO MAIOR, PARA APOIO FINANCEIRO, COM VISTA À SUBSTITUIÇÃO DE VÃOS E PORTAS, LUMINÁRIA E AQUISIÇÃO DE PAINÉIS FOTOVOLTAICOS PARA O EDIFÍCIO DA PROVEDORIA**:\n-Apreciação da proposta (registo 8469) do senhor"
+        },
+        {
+          "doc_id": "Campomaior_cm_018_2024-10-02_5",
+          "category": "MIS",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "ACORDO INTERADMINISTRATIVO E DE DELEGAÇÃO DE COMPETÊNCIAS COM A JUNTA DE FREGUESIA DE NOSSA SENHORA DA EXPECTAÇÃO - 2º QUADRIMESTRE - EXERCÍCIO 2024",
+            "type": "SUBJECT",
+            "start": 1,
+            "end": 149
+          },
+          "pred": null,
+          "context": "-**ACORDO INTERADMINISTRATIVO E DE DELEGAÇÃO DE COMPETÊNCIAS COM A JUNTA DE FREGUESIA DE NOSSA SENHORA DA EXPECTAÇÃO - 2º QUADRIMESTRE - EXERCÍCIO 2024**:\n-Apreciação da informação (registo 15873) dos Se"
+        },
+        {
+          "doc_id": "Campomaior_cm_018_2024-10-02_6",
+          "category": "MIS",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "ACORDO INTERADMINISTRATIVO E DE DELEGAÇÃO DE COMPETÊNCIAS COM A JUNTA DE FREGUESIA DE NOSSA SENHORA DA GRAÇA DOS DEGOLADOS - 2º QUADRIMESTRE - EXERCÍCIO 2024",
+            "type": "SUBJECT",
+            "start": 1,
+            "end": 158
+          },
+          "pred": null,
+          "context": "-**ACORDO INTERADMINISTRATIVO E DE DELEGAÇÃO DE COMPETÊNCIAS COM A JUNTA DE FREGUESIA DE NOSSA SENHORA DA GRAÇA DOS DEGOLADOS - 2º QUADRIMESTRE - EXERCÍCIO 2024**:\n-Apreciação da informação (registo 16026) dos Se"
+        },
+        {
+          "doc_id": "Campomaior_cm_018_2024-10-02_14",
+          "category": "MIS",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "ARTIGO 35º DO REGULAMENTO - ANEXO R.4 – REGULAMENTO MUNICIPAL DAS ÁREAS DE ACOLHIMENTO EMPRESARIAL DO MUNICÍPIO DE CAMPO MAIOR - CASOS OMISSOS",
+            "type": "SUBJECT",
+            "start": 1,
+            "end": 143
+          },
+          "pred": null,
+          "context": "-**ARTIGO 35º DO REGULAMENTO - ANEXO R.4 – REGULAMENTO MUNICIPAL DAS ÁREAS DE ACOLHIMENTO EMPRESARIAL DO MUNICÍPIO DE CAMPO MAIOR - CASOS OMISSOS**:\n-Apreciação da proposta (registo 16294) do senho"
+        }
+      ],
+      "INC_TYPE": [
+        {
+          "doc_id": "Alandroal_cm_015_2024-06-19_7",
+          "category": "INC_TYPE",
+          "entity_type": "VOTER-ABSENT",
+          "gold": {
+            "text": "Fernanda Romão",
+            "type": "VOTER-ABSENT",
+            "start": 256,
+            "end": 270
+          },
+          "pred": {
+            "text": "Fernanda Romão",
+            "type": "VOTER-ABSTENTION",
+            "start": 256,
+            "end": 270
+          },
+          "context": "pelo Nós, Cidadãos e com a abstenção da vereadora **Fernanda Romão**, por não ter estado presente na reunião, aprovar "
+        }
+      ]
+    }
+  },
+  "BERTimbau-CRF": {
+    "total_errors": 177,
+    "error_breakdown": {
+      "MIS": 45,
+      "SPU": 36,
+      "INC_BOUNDARY": 92,
+      "INC_TYPE": 4
+    },
+    "errors_by_type": {
+      "SUBJECT": {
+        "MIS": 33,
+        "SPU": 27,
+        "INC_BOUNDARY": 58
+      },
+      "COUNTING-UNANIMITY": {
+        "INC_BOUNDARY": 2,
+        "SPU": 1
+      },
+      "VOTING": {
+        "SPU": 2,
+        "MIS": 4
+      },
+      "VOTER-FAVOR": {
+        "MIS": 8,
+        "SPU": 2,
+        "INC_BOUNDARY": 15
+      },
+      "VOTER-AGAINST": {
+        "INC_BOUNDARY": 1,
+        "SPU": 1
+      },
+      "VOTER-ABSTENTION": {
+        "INC_BOUNDARY": 11,
+        "SPU": 2
+      },
+      "VOTER-ABSENT": {
+        "INC_TYPE": 4,
+        "INC_BOUNDARY": 4,
+        "SPU": 1
+      },
+      "COUNT-BLANK": {
+        "INC_BOUNDARY": 1
+      }
+    },
+    "example_errors": {
+      "MIS": [
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_2",
+          "category": "MIS",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "AUTO DE VISTORIA ELABORADO PELA COMISSÃO DE VISTORIAS E NOTIFICAR OS PROPRIETÁRIOS DOS PRÉDIOS PARA QUE, NO PRAZO DE 30 DIAS PROCEDAM ÁS NECESSÁRIAS OBRAS DE REPARAÇÃO",
+            "type": "SUBJECT",
+            "start": 3749,
+            "end": 3916
+          },
+          "pred": null,
+          "context": "ÂMARA DELIBEROU, POR UNANIMIDADE, CONCORDAR COM O **AUTO DE VISTORIA ELABORADO PELA COMISSÃO DE VISTORIAS E NOTIFICAR OS PROPRIETÁRIOS DOS PRÉDIOS PARA QUE, NO PRAZO DE 30 DIAS PROCEDAM ÁS NECESSÁRIAS OBRAS DE REPARAÇÃO** E SE PERSISTIR OS PROBLEMAS E O LITÍGIO ENTRE OS "
+        },
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_3",
+          "category": "MIS",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "AUTO DE VISTORIA ELABORADO PELA COMISSÃO DE VISTORIAS E NOTIFICAR OS PROPRIETÁRIOS DOS PRÉDIOS\nPARA QUE, NO PRAZO DE 30 DIAS PROCEDAM ÁS NECESSÁRIAS OBRAS DE REPARAÇÃO",
+            "type": "SUBJECT",
+            "start": 3632,
+            "end": 3799
+          },
+          "pred": null,
+          "context": "ÂMARA DELIBEROU, POR UNANIMIDADE, CONCORDAR COM O **AUTO DE VISTORIA ELABORADO PELA COMISSÃO DE VISTORIAS E NOTIFICAR OS PROPRIETÁRIOS DOS PRÉDIOS\nPARA QUE, NO PRAZO DE 30 DIAS PROCEDAM ÁS NECESSÁRIAS OBRAS DE REPARAÇÃO** E SE PERSISTIR OS PROBLEMAS E O LITÍGIO ENTRE OS "
+        },
+        {
+          "doc_id": "Campomaior_cm_010_2024-05-15_2",
+          "category": "MIS",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "CORREÇÃO DE CERTIDÃO, REFERENTE AO AUTO DE VISTORIA",
+            "type": "SUBJECT",
+            "start": 1,
+            "end": 52
+          },
+          "pred": null,
+          "context": "-**CORREÇÃO DE CERTIDÃO, REFERENTE AO AUTO DE VISTORIA** Nº 97/4181-Q, DATADO DE 20 de Agosto:\n-Apreciação"
+        },
+        {
+          "doc_id": "Campomaior_cm_010_2024-05-15_20",
+          "category": "MIS",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "PREÇO DA VENDA DE TOUCAS NA PISCINA MUNICIPAL AO PREÇO DE € 3,50",
+            "type": "SUBJECT",
+            "start": 1175,
+            "end": 1239
+          },
+          "pred": null,
+          "context": "AS. MAIS FOI DELIBERADO, POR UNANIMIDADE, FIXAR O **PREÇO DA VENDA DE TOUCAS NA PISCINA MUNICIPAL AO PREÇO DE € 3,50** (IVA INCLUÍDO) UNIDADE."
+        },
+        {
+          "doc_id": "Campomaior_cm_010_2024-05-15_22",
+          "category": "MIS",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "MINUTA DO PROTOCOLO ENTRE O MUNICÍPIO DE CAMPO MAIOR E A SANTA CASA DA MISERICÓRDIA DE CAMPO MAIOR, PARA APOIO FINANCEIRO, COM VISTA À SUBSTITUIÇÃO DE VÃOS E PORTAS, LUMINÁRIA E AQUISIÇÃO DE PAINÉIS FOTOVOLTAICOS PARA O EDIFÍCIO DA PROVEDORIA",
+            "type": "SUBJECT",
+            "start": 1,
+            "end": 243
+          },
+          "pred": null,
+          "context": "-**MINUTA DO PROTOCOLO ENTRE O MUNICÍPIO DE CAMPO MAIOR E A SANTA CASA DA MISERICÓRDIA DE CAMPO MAIOR, PARA APOIO FINANCEIRO, COM VISTA À SUBSTITUIÇÃO DE VÃOS E PORTAS, LUMINÁRIA E AQUISIÇÃO DE PAINÉIS FOTOVOLTAICOS PARA O EDIFÍCIO DA PROVEDORIA**:\n-Apreciação da proposta (registo 8469) do senhor"
+        }
+      ],
+      "SPU": [
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_2",
+          "category": "SPU",
+          "entity_type": "SUBJECT",
+          "gold": null,
+          "pred": {
+            "text": "VISTOR",
+            "type": "SUBJECT",
+            "start": 1,
+            "end": 7
+          },
+          "context": "-**VISTOR**IA AO PRÉDIO SITO NA Travessa Nacional 209, 67, Ab"
+        },
+        {
+          "doc_id": "Campomaior_cm_010_2024-05-15_2",
+          "category": "SPU",
+          "entity_type": "SUBJECT",
+          "gold": null,
+          "pred": {
+            "text": "ALTERAÇÃO Á PROPRIEDADE HORIZONTAL, CORRESPONDENTE",
+            "type": "SUBJECT",
+            "start": 1695,
+            "end": 1745
+          },
+          "context": "-A CÂMARA DELIBEROU, POR UNANIMIDADE, AUTORIZAR A **ALTERAÇÃO Á PROPRIEDADE HORIZONTAL, CORRESPONDENTE** AO AUTO DE VISTORIA NÚMERO FASZ/2021/8015, DATADO"
+        },
+        {
+          "doc_id": "Campomaior_cm_010_2024-05-15_5",
+          "category": "SPU",
+          "entity_type": "SUBJECT",
+          "gold": null,
+          "pred": {
+            "text": "RUA ALMIRANTE GAGO COUTINHO E RUA SACADURA CABRAL OS DOIS ARRUAMENTOS DO LOTEAMENTO DE VALE MASSANO",
+            "type": "SUBJECT",
+            "start": 2255,
+            "end": 2354
+          },
+          "context": " DA LEI 75/2013/, DE 12 DE SETEMBRO, DENOMINAR DE **RUA ALMIRANTE GAGO COUTINHO E RUA SACADURA CABRAL OS DOIS ARRUAMENTOS DO LOTEAMENTO DE VALE MASSANO**."
+        },
+        {
+          "doc_id": "Campomaior_cm_010_2024-05-15_6",
+          "category": "SPU",
+          "entity_type": "SUBJECT",
+          "gold": null,
+          "pred": {
+            "text": "AVISO Nº02/C7-I01/2021 – PRR, COMPONENTE 7 – INFRAESTRUTURAS",
+            "type": "SUBJECT",
+            "start": 956,
+            "end": 1016
+          },
+          "context": "ÁREA DE ACOLHIMENTO EMPRESARIAL DE NOVA GERAÇÃO” (**AVISO Nº02/C7-I01/2021 – PRR, COMPONENTE 7 – INFRAESTRUTURAS**).\n-LUIS FERNANDO MARTINS ROSINHA, PRESIDENTE DA C"
+        },
+        {
+          "doc_id": "Campomaior_cm_010_2024-05-15_13",
+          "category": "SPU",
+          "entity_type": "SUBJECT",
+          "gold": null,
+          "pred": {
+            "text": "DECISÃO DE ADJUDICAÇÃO E APROVAÇÃO DA MINUTA DO CONTRATO - AJUSTE DIRETO - ACORDO QUADRO Nº 3/2024 - AQUISIÇÃO DE SERVIÇOS DE SEGUROS DO SEGMENTO NÃO VIDA, AO ABRIGO DO ACORDO QUADRO\n2023/300.10.005/171",
+            "type": "SUBJECT",
+            "start": 1,
+            "end": 203
+          },
+          "context": "-**DECISÃO DE ADJUDICAÇÃO E APROVAÇÃO DA MINUTA DO CONTRATO - AJUSTE DIRETO - ACORDO QUADRO Nº 3/2024 - AQUISIÇÃO DE SERVIÇOS DE SEGUROS DO SEGMENTO NÃO VIDA, AO ABRIGO DO ACORDO QUADRO\n2023/300.10.005/171**, PELO PRAZO DE 36 MESES:\n-Ratificação do despacho"
+        }
+      ],
+      "INC_BOUNDARY": [
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_6",
+          "category": "INC_BOUNDARY",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "APOIO NO VALOR DE 500,00€ (QUINHENTOS EUROS) AO CEAN-CENTRO EDUCATIVO ALICE NABEIRO, TENDO EM VISTA AJUDAR A CUSTEAR A VIAGEM DE FINALISTA 2024",
+            "type": "SUBJECT",
+            "start": 1050,
+            "end": 1193
+          },
+          "pred": {
+            "text": "APOIO NO VALOR DE 500,00€ (QUINHENTOS EUROS) AO CEAN-CENTRO EDUCATIVO ALICE NABEIRO",
+            "type": "SUBJECT",
+            "start": 1050,
+            "end": 1133
+          },
+          "context": "-A CÂMARA DELIBEROU, POR UNANIMIDADE, ATRIBUIR UM **APOIO NO VALOR DE 500,00€ (QUINHENTOS EUROS) AO CEAN-CENTRO EDUCATIVO ALICE NABEIRO, TENDO EM VISTA AJUDAR A CUSTEAR A VIAGEM DE FINALISTA 2024**."
+        },
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_8",
+          "category": "INC_BOUNDARY",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "PLANO DE PAGAMENTO, REFERENTE DE RENDAS EM ATRASO",
+            "type": "SUBJECT",
+            "start": 922,
+            "end": 971
+          },
+          "pred": {
+            "text": "PLANO DE PAGAMENTO, REFERENTE",
+            "type": "SUBJECT",
+            "start": 922,
+            "end": 951
+          },
+          "context": " A CÂMARA DELIBEROU, POR UNANIMIDADE, AUTORIZAR O **PLANO DE PAGAMENTO, REFERENTE DE RENDAS EM ATRASO** DO Rua de Barbosa, S/N, Albufeira."
+        },
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_11",
+          "category": "INC_BOUNDARY",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "RECRUTAMENTO DE UM TÉCNICO SUPERIOR PARA EXERCER FUNÇÕES NA ÁREA DO DESPORTO, EM REGIME DE CONTRATO DE TRABALHO EM FUNÇÕES PÚBLICAS POR TEMPO INDETERMINADO",
+            "type": "SUBJECT",
+            "start": 3696,
+            "end": 3851
+          },
+          "pred": {
+            "text": "RECRUTAMENTO DE UM TÉCNICO SUPERIOR PARA EXERCER FUNÇÕES NA ÁREA DO DESPORTO, EM REGIME DE CONTRATO DE TRABALHO EM FUNÇÕES PÚBLICAS POR TEMPO INDETERMINADO, POR RECURSO À MOBILIDADE INTERNA ENTRE ÓRGÃOS",
+            "type": "SUBJECT",
+            "start": 3696,
+            "end": 3898
+          },
+          "context": "VAR A PROPOSTA DO SENHOR PRESIDENTE, REFERENTE AO **RECRUTAMENTO DE UM TÉCNICO SUPERIOR PARA EXERCER FUNÇÕES NA ÁREA DO DESPORTO, EM REGIME DE CONTRATO DE TRABALHO EM FUNÇÕES PÚBLICAS POR TEMPO INDETERMINADO**, POR RECURSO À MOBILIDADE INTERNA ENTRE ÓRGÃOS."
+        },
+        {
+          "doc_id": "Campomaior_cm_010_2024-05-15_5",
+          "category": "INC_BOUNDARY",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "PROPOSTA DE DENOMINAÇÃO EM CUMPRIMENTO COM A ALIENA SS) DO NÚMERO 1 DO ARTIGO 33 DA LEI 75/2013/, DE 12 DE SETEMBRO, DENOMINAR DE RUA ALMIRANTE GAGO COUTINHO E RUA SACADURA CABRAL OS DOIS ARRUAMENTOS DO LOTEAMENTO DE VALE MASSANO",
+            "type": "SUBJECT",
+            "start": 2125,
+            "end": 2354
+          },
+          "pred": {
+            "text": "PROPOSTA DE DENOMINAÇÃO EM CUMPRIMENTO COM A ALIENA SS) DO NÚMERO 1 DO ARTIGO",
+            "type": "SUBJECT",
+            "start": 2125,
+            "end": 2202
+          },
+          "context": "O, A CÂMARA DELIBEROU, POR UNANIMIDADE, APROVAR A **PROPOSTA DE DENOMINAÇÃO EM CUMPRIMENTO COM A ALIENA SS) DO NÚMERO 1 DO ARTIGO 33 DA LEI 75/2013/, DE 12 DE SETEMBRO, DENOMINAR DE RUA ALMIRANTE GAGO COUTINHO E RUA SACADURA CABRAL OS DOIS ARRUAMENTOS DO LOTEAMENTO DE VALE MASSANO**."
+        },
+        {
+          "doc_id": "Campomaior_cm_010_2024-05-15_6",
+          "category": "INC_BOUNDARY",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "PRORROGAÇÃO DE PRAZO PARA APRESENTAÇÃO DE PROPOSTAS NO CONCURSO LIMITADO POR PRÉVIA QUALIFICAÇÃO, COM PUBLICAÇÃO DE ANÚNCIO NO JORNAL OFICIAL DA UNIÃO EUROPEIA, DESTINADO À CELEBRAÇÃO DE CONTRATO DE EMPREITADA DA CONCEÇÃO- CONSTRUÇÃO DAS AÇÕES PREVISTAS NO PROJETO DE INVESTIMENTO Nº 78 \"PARQUE INDUSTRIAL DE CAMPO MAIOR - ÁREA DE ACOLHIMENTO EMPRESARIAL DE NOVA GERAÇÃO\"",
+            "type": "SUBJECT",
+            "start": 2380,
+            "end": 2751
+          },
+          "pred": {
+            "text": "PRORROGAÇÃO DE PRAZO PARA APRESENTAÇÃO DE PROPOSTAS NO CONCURSO LIMITADO POR PRÉVIA QUALIFICAÇÃO, COM PUBLIC",
+            "type": "SUBJECT",
+            "start": 2380,
+            "end": 2488
+          },
+          "context": "ICAR O DESPACHO DO SENHOR PRESIDENTE, REFERENTE À **PRORROGAÇÃO DE PRAZO PARA APRESENTAÇÃO DE PROPOSTAS NO CONCURSO LIMITADO POR PRÉVIA QUALIFICAÇÃO, COM PUBLICAÇÃO DE ANÚNCIO NO JORNAL OFICIAL DA UNIÃO EUROPEIA, DESTINADO À CELEBRAÇÃO DE CONTRATO DE EMPREITADA DA CONCEÇÃO- CONSTRUÇÃO DAS AÇÕES PREVISTAS NO PROJETO DE INVESTIMENTO Nº 78 \"PARQUE INDUSTRIAL DE CAMPO MAIOR - ÁREA DE ACOLHIMENTO EMPRESARIAL DE NOVA GERAÇÃO\"** (AVISO Nº 02/C7-101/2021 - PRR, COMPONENTE 7 – IN"
+        }
+      ],
+      "INC_TYPE": [
+        {
+          "doc_id": "Alandroal_cm_015_2024-06-19_7",
+          "category": "INC_TYPE",
+          "entity_type": "VOTER-ABSENT",
+          "gold": {
+            "text": "Fernanda Romão",
+            "type": "VOTER-ABSENT",
+            "start": 256,
+            "end": 270
+          },
+          "pred": {
+            "text": "Fernanda Romão",
+            "type": "VOTER-ABSTENTION",
+            "start": 256,
+            "end": 270
+          },
+          "context": "pelo Nós, Cidadãos e com a abstenção da vereadora **Fernanda Romão**, por não ter estado presente na reunião, aprovar "
+        },
+        {
+          "doc_id": "Covilha_cm_010_2024-06-17_2",
+          "category": "INC_TYPE",
+          "entity_type": "VOTER-ABSENT",
+          "gold": {
+            "text": "Maria Regina Gomes Gouveia",
+            "type": "VOTER-ABSENT",
+            "start": 1507,
+            "end": 1533
+          },
+          "pred": {
+            "text": "Maria Regina Gomes Gouveia",
+            "type": "VOTER-AGAINST",
+            "start": 1507,
+            "end": 1533
+          },
+          "context": "otação do presente assunto os Senhores Vereadores **Maria Regina Gomes Gouveia** e José Miguel Ribeiro Oliveira, nos termos previs"
+        },
+        {
+          "doc_id": "Covilha_cm_010_2024-06-17_2",
+          "category": "INC_TYPE",
+          "entity_type": "VOTER-ABSENT",
+          "gold": {
+            "text": "José Miguel Ribeiro Oliveira",
+            "type": "VOTER-ABSENT",
+            "start": 1536,
+            "end": 1564
+          },
+          "pred": {
+            "text": "José Miguel Ribeiro Oliveira",
+            "type": "VOTER-AGAINST",
+            "start": 1536,
+            "end": 1564
+          },
+          "context": " Senhores Vereadores Maria Regina Gomes Gouveia e **José Miguel Ribeiro Oliveira**, nos termos previstos no n.º 6 do artigo 55.º do "
+        },
+        {
+          "doc_id": "Guimaraes_cm_016_2024-09-30_8",
+          "category": "INC_TYPE",
+          "entity_type": "VOTER-ABSENT",
+          "gold": {
+            "text": "Ana Cotter",
+            "type": "VOTER-ABSENT",
+            "start": 15473,
+            "end": 15483
+          },
+          "pred": {
+            "text": "Ana",
+            "type": "VOTER-AGAINST",
+            "start": 15473,
+            "end": 15476
+          },
+          "context": "a Silva, Hugo Ribeiro e Emília Lemos. A Vereadora **Ana Cotter** não participou na votação da proposta por se cons"
+        }
+      ]
+    }
+  },
+  "Gemini-Few-Shot": {
+    "total_errors": 1010,
+    "error_breakdown": {
+      "INC_BOUNDARY": 437,
+      "MIS": 222,
+      "SPU": 319,
+      "INC_TYPE": 32
+    },
+    "errors_by_type": {
+      "SUBJECT": {
+        "INC_BOUNDARY": 253,
+        "MIS": 139,
+        "SPU": 173
+      },
+      "VOTING": {
+        "SPU": 105,
+        "INC_BOUNDARY": 12,
+        "MIS": 23
+      },
+      "COUNTING-MAJORITY": {
+        "INC_BOUNDARY": 48,
+        "SPU": 1
+      },
+      "VOTER-ABSTENTION": {
+        "INC_BOUNDARY": 75,
+        "SPU": 18,
+        "INC_TYPE": 25,
+        "MIS": 11
+      },
+      "VOTER-FAVOR": {
+        "MIS": 33,
+        "INC_BOUNDARY": 9,
+        "SPU": 9,
+        "INC_TYPE": 1
+      },
+      "COUNTING-UNANIMITY": {
+        "MIS": 9,
+        "SPU": 10,
+        "INC_BOUNDARY": 3,
+        "INC_TYPE": 1
+      },
+      "VOTER-AGAINST": {
+        "INC_BOUNDARY": 25,
+        "INC_TYPE": 4,
+        "MIS": 4,
+        "SPU": 2
+      },
+      "VOTER-ABSENT": {
+        "INC_BOUNDARY": 11,
+        "INC_TYPE": 1,
+        "MIS": 3,
+        "SPU": 1
+      },
+      "VOTING-METHOD": {
+        "INC_BOUNDARY": 1
+      }
+    },
+    "example_errors": {
+      "INC_BOUNDARY": [
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_2",
+          "category": "INC_BOUNDARY",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "AUTO DE VISTORIA ELABORADO PELA COMISSÃO DE VISTORIAS E NOTIFICAR OS PROPRIETÁRIOS DOS PRÉDIOS PARA QUE, NO PRAZO DE 30 DIAS PROCEDAM ÁS NECESSÁRIAS OBRAS DE REPARAÇÃO",
+            "type": "SUBJECT",
+            "start": 3749,
+            "end": 3916
+          },
+          "pred": {
+            "text": "O AUTO DE VISTORIA ELABORADO PELA COMISSÃO DE VISTORIAS E NOTIFICAR OS PROPRIETÁRIOS DOS PRÉDIOS PARA QUE, NO PRAZO DE 30 DIAS PROCEDAM ÁS NECESSÁRIAS OBRAS DE REPARAÇÃO E SE PERSISTIR OS PROBLEMAS E O LITÍGIO ENTRE OS PARTICULARES DEVEM OS MESMOS SOCORRER-SE DAS INSTÂNCIAS LEGALMENTE COMPETENTES PARA DIRIMIR ESTAS QUESTÕES, DESIGNADAMENTE OS TRIBUNAIS COMUNS",
+            "type": "SUBJECT",
+            "start": 3747,
+            "end": 4108
+          },
+          "context": "ÂMARA DELIBEROU, POR UNANIMIDADE, CONCORDAR COM O **AUTO DE VISTORIA ELABORADO PELA COMISSÃO DE VISTORIAS E NOTIFICAR OS PROPRIETÁRIOS DOS PRÉDIOS PARA QUE, NO PRAZO DE 30 DIAS PROCEDAM ÁS NECESSÁRIAS OBRAS DE REPARAÇÃO** E SE PERSISTIR OS PROBLEMAS E O LITÍGIO ENTRE OS "
+        },
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_4",
+          "category": "INC_BOUNDARY",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "AQUISIÇÃO DE 1 VIATURA CRV2000, CORRESPONDENTE AO LOTE 1.7, AO ABRIGO DO \"ACORDO QUADRO PARA AQUISIÇÃO E ALUGUER DE VIATURAS, EQUIPAMENTOS E EQUIPAS DE APOIO AOS RSU CNCM-AQ/42/2021\"",
+            "type": "SUBJECT",
+            "start": 2006,
+            "end": 2188
+          },
+          "pred": {
+            "text": "O DESPACHO DO SENHOR PRESIDENTE, REFERENTE À AQUISIÇÃO DE 1 VIATURA CRV2000, CORRESPONDENTE AO LOTE 1.7, AO ABRIGO DO \"ACORDO QUADRO PARA AQUISIÇÃO E ALUGUER DE VIATURAS, EQUIPAMENTOS E EQUIPAS DE APOIO AOS RSU CNCM-AQ/42/2021\", PROMOVIDO PELA CNCM COM O ID BASE Nº 5224846",
+            "type": "SUBJECT",
+            "start": 1961,
+            "end": 2234
+          },
+          "context": "ICAR O DESPACHO DO SENHOR PRESIDENTE, REFERENTE À **AQUISIÇÃO DE 1 VIATURA CRV2000, CORRESPONDENTE AO LOTE 1.7, AO ABRIGO DO \"ACORDO QUADRO PARA AQUISIÇÃO E ALUGUER DE VIATURAS, EQUIPAMENTOS E EQUIPAS DE APOIO AOS RSU CNCM-AQ/42/2021\"**, PROMOVIDO PELA CNCM COM O ID BASE Nº 5224846."
+        },
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_5",
+          "category": "INC_BOUNDARY",
+          "entity_type": "COUNTING-MAJORITY",
+          "gold": {
+            "text": "POR MAIORIA",
+            "type": "COUNTING-MAJORITY",
+            "start": 1039,
+            "end": 1050
+          },
+          "pred": {
+            "text": "POR MAIORIA, COM A ABSTENÇÃO DOS SENHORES VEREADORES PAULO IVO E FÁTIMA VITORINO",
+            "type": "COUNTING-MAJORITY",
+            "start": 1039,
+            "end": 1119
+          },
+          "context": "35º da Lei supra mencionada.\n-A CÂMARA DELIBEROU, **POR MAIORIA**, COM A ABSTENÇÃO DOS SENHORES VEREADORES PAULO IV"
+        },
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_5",
+          "category": "INC_BOUNDARY",
+          "entity_type": "VOTER-ABSTENTION",
+          "gold": {
+            "text": "PAULO IVO",
+            "type": "VOTER-ABSTENTION",
+            "start": 1092,
+            "end": 1101
+          },
+          "pred": {
+            "text": "SENHORES VEREADORES PAULO IVO",
+            "type": "VOTER-ABSTENTION",
+            "start": 1072,
+            "end": 1101
+          },
+          "context": " MAIORIA, COM A ABSTENÇÃO DOS SENHORES VEREADORES **PAULO IVO** E FÁTIMA VITORINO, RATIFICAR O DESPACHO DO SENHOR"
+        },
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_5",
+          "category": "INC_BOUNDARY",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "EXECUÇÃO E CONTABILIZAÇÃO\nDA 5ª MODIFICAÇÃO AOS DOCUMENTOS PREVISIONAIS AOS DOCUMENTOS PREVISIONAIS 2024 - 5ª ALTERAÇÃO AO ORÇAMENTO 2024 - 5ª ALTERAÇÃO ÀS GRANDES OPÇÕES DO PLANO 2024",
+            "type": "SUBJECT",
+            "start": 1176,
+            "end": 1360
+          },
+          "pred": {
+            "text": "O DESPACHO DO SENHOR PRESIDENTE, REFERENTE À EXECUÇÃO E CONTABILIZAÇÃO\nDA 5ª MODIFICAÇÃO AOS DOCUMENTOS PREVISIONAIS AOS DOCUMENTOS PREVISIONAIS 2024 - 5ª ALTERAÇÃO AO ORÇAMENTO 2024 - 5ª ALTERAÇÃO ÀS GRANDES OPÇÕES DO PLANO 2024",
+            "type": "SUBJECT",
+            "start": 1131,
+            "end": 1360
+          },
+          "context": "ICAR O DESPACHO DO SENHOR PRESIDENTE, REFERENTE À **EXECUÇÃO E CONTABILIZAÇÃO\nDA 5ª MODIFICAÇÃO AOS DOCUMENTOS PREVISIONAIS AOS DOCUMENTOS PREVISIONAIS 2024 - 5ª ALTERAÇÃO AO ORÇAMENTO 2024 - 5ª ALTERAÇÃO ÀS GRANDES OPÇÕES DO PLANO 2024**.\n-O senhor vereador Paulo Ivo usou da palavra e q"
+        }
+      ],
+      "MIS": [
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_3",
+          "category": "MIS",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "AUTO DE VISTORIA ELABORADO PELA COMISSÃO DE VISTORIAS E NOTIFICAR OS PROPRIETÁRIOS DOS PRÉDIOS\nPARA QUE, NO PRAZO DE 30 DIAS PROCEDAM ÁS NECESSÁRIAS OBRAS DE REPARAÇÃO",
+            "type": "SUBJECT",
+            "start": 3632,
+            "end": 3799
+          },
+          "pred": null,
+          "context": "ÂMARA DELIBEROU, POR UNANIMIDADE, CONCORDAR COM O **AUTO DE VISTORIA ELABORADO PELA COMISSÃO DE VISTORIAS E NOTIFICAR OS PROPRIETÁRIOS DOS PRÉDIOS\nPARA QUE, NO PRAZO DE 30 DIAS PROCEDAM ÁS NECESSÁRIAS OBRAS DE REPARAÇÃO** E SE PERSISTIR OS PROBLEMAS E O LITÍGIO ENTRE OS "
+        },
+        {
+          "doc_id": "Campomaior_cm_010_2024-05-15_2",
+          "category": "MIS",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "CORREÇÃO DE CERTIDÃO, REFERENTE AO AUTO DE VISTORIA",
+            "type": "SUBJECT",
+            "start": 1,
+            "end": 52
+          },
+          "pred": null,
+          "context": "-**CORREÇÃO DE CERTIDÃO, REFERENTE AO AUTO DE VISTORIA** Nº 97/4181-Q, DATADO DE 20 de Agosto:\n-Apreciação"
+        },
+        {
+          "doc_id": "Campomaior_cm_010_2024-05-15_3",
+          "category": "MIS",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "LIBERTAÇÃO DA RETENÇÃO RELATIVA À EMPREITADA DE RECUPERAÇÃO PRAÇA DE ARMAS DO CASTELO DE OUGUELA",
+            "type": "SUBJECT",
+            "start": 14,
+            "end": 110
+          },
+          "pred": null,
+          "context": "-APROVAÇÃO DE **LIBERTAÇÃO DA RETENÇÃO RELATIVA À EMPREITADA DE RECUPERAÇÃO PRAÇA DE ARMAS DO CASTELO DE OUGUELA**:\n-Apreciação da informação (registo 8494) da Divi"
+        },
+        {
+          "doc_id": "Campomaior_cm_010_2024-05-15_4",
+          "category": "MIS",
+          "entity_type": "SUBJECT",
+          "gold": {
+            "text": "REDUÇÃO DA GARANTIA BANCÁRIA E DEVOLUÇÃO DA RETENÇÃO, RELATIVA À EMPREITADA DE PROJETO DE REABILITAÇÃO DO IMÓVEL",
+            "type": "SUBJECT",
+            "start": 14,
+            "end": 126
+          },
+          "pred": null,
+          "context": "-APROVAÇÃO DA **REDUÇÃO DA GARANTIA BANCÁRIA E DEVOLUÇÃO DA RETENÇÃO, RELATIVA À EMPREITADA DE PROJETO DE REABILITAÇÃO DO IMÓVEL**, SITO NA RUA DIREITA DA COMISSÃO, 22, EM CAMPO MA"
+        },
+        {
+          "doc_id": "Campomaior_cm_010_2024-05-15_13",
+          "category": "MIS",
+          "entity_type": "VOTER-FAVOR",
+          "gold": {
+            "text": "A CÂMARA",
+            "type": "VOTER-FAVOR",
+            "start": 1495,
+            "end": 1503
+          },
+          "pred": null,
+          "context": "eito a ratificação na próxima reunião de câmara.\n-**A CÂMARA** DELIBEROU, POR MAIORIA, COM A ABSTENÇÃO\nDOS SENHO"
+        }
+      ],
+      "SPU": [
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_4",
+          "category": "SPU",
+          "entity_type": "VOTING",
+          "gold": null,
+          "pred": {
+            "text": "RATIFICAR",
+            "type": "VOTING",
+            "start": 1951,
+            "end": 1960
+          },
+          "context": " de câmara.\n-A CÂMARA DELIBEROU, POR UNANIMIDADE, **RATIFICAR** O DESPACHO DO SENHOR PRESIDENTE, REFERENTE À AQUI"
+        },
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_5",
+          "category": "SPU",
+          "entity_type": "VOTING",
+          "gold": null,
+          "pred": {
+            "text": "RATIFICAR",
+            "type": "VOTING",
+            "start": 1121,
+            "end": 1130
+          },
+          "context": " SENHORES VEREADORES PAULO IVO E FÁTIMA VITORINO, **RATIFICAR** O DESPACHO DO SENHOR PRESIDENTE, REFERENTE À EXEC"
+        },
+        {
+          "doc_id": "Campomaior_cm_007_2024-04-03_10",
+          "category": "SPU",
+          "entity_type": "VOTING",
+          "gold": null,
+          "pred": {
+            "text": "APROVAR",
+            "type": "VOTING",
+            "start": 754,
+            "end": 761
+          },
+          "context": "o mesmo mês.\nA CÂMARA DELIBEROU, POR UNANIMIDADE, **APROVAR** A PROPOSTA DO SENHOR PRESIDENTE, REFERENTE À\nANTE"
+        },
+        {
+          "doc_id": "Campomaior_cm_010_2024-05-15_2",
+          "category": "SPU",
+          "entity_type": "SUBJECT",
+          "gold": null,
+          "pred": {
+            "text": "A ALTERAÇÃO Á PROPRIEDADE HORIZONTAL, CORRESPONDENTE AO AUTO DE VISTORIA NÚMERO FASZ/2021/8015, DATADO DE 07/12/2023, ASSIM, ONDE SE LÊ:“JGNI/2020/8955 (ALTERADA): COMPOSTA POR solteiro, COM DUAS DIVISÕES, UMA INSTALAÇÃO SANITÁRIA E UMA ARRECADAÇÃO, COM ACESSO PRIVATIVO PARA A VIA PÚBLICA PELO R. do Campo da Bola, 5986-098 Coimbra…”, DEVERÁ LER-SE: “…96394-IF (ALTERADA): COMPOSTA POR Enfermeiro Especialista, COM DUAS DIVISÕES, UMA INSTALAÇÃO SANITÁRIA E UMA ARRECADAÇÃO, COM ACESSO PRIVATIVO PARA A VIA PÚBLICA PELO R. de Vaz, S/N, Estarreja…”, BEM COMO, ONDE SE LÊ: “99324-LW\n(INALTERADAS)”, DEVERÁ LER-SE: “8156, COM ACESSO PRIVATIVO PARA A VIA PÚBLICA PELO Travessa Vera Gaspar, 95, Espinho, , COM ACESSO PRIVATIVO PARA A VIA PÚBLICA PELO Rua Erika Lima, 56, Miranda do Douro (INALTERADAS) E ONDE SE LÊ: “22/5503-F (ALTERADA): COMPOSTA POR Técnico de Diagnóstico e Terapêutica, COM UMA DIVISÕES, E UMA INSTALAÇÃO SANITÁRIA, COM ACESSO PRIVATIVO PARA A VIA PÚBLICA PELO Alameda do Outeiro, 93, Vila Nova de Gaia”, DEVERÁ LER-SE: “XXBF/2020/4381 (ALTERADA): COMPOSTA POR Dra., COM UMA DIVISÃO, E UMA INSTALAÇÃO SANITÁRIA, COM ACESSO PRIVATIVO PARA A VIA PÚBLICA PELO Praça de Antero de Quental, Paços de Ferreira",
+            "type": "SUBJECT",
+            "start": 1693,
+            "end": 2910
+          },
+          "context": ".\n-A CÂMARA DELIBEROU, POR UNANIMIDADE, AUTORIZAR **A ALTERAÇÃO Á PROPRIEDADE HORIZONTAL, CORRESPONDENTE AO AUTO DE VISTORIA NÚMERO FASZ/2021/8015, DATADO DE 07/12/2023, ASSIM, ONDE SE LÊ:“JGNI/2020/8955 (ALTERADA): COMPOSTA POR solteiro, COM DUAS DIVISÕES, UMA INSTALAÇÃO SANITÁRIA E UMA ARRECADAÇÃO, COM ACESSO PRIVATIVO PARA A VIA PÚBLICA PELO R. do Campo da Bola, 5986-098 Coimbra…”, DEVERÁ LER-SE: “…96394-IF (ALTERADA): COMPOSTA POR Enfermeiro Especialista, COM DUAS DIVISÕES, UMA INSTALAÇÃO SANITÁRIA E UMA ARRECADAÇÃO, COM ACESSO PRIVATIVO PARA A VIA PÚBLICA PELO R. de Vaz, S/N, Estarreja…”, BEM COMO, ONDE SE LÊ: “99324-LW\n(INALTERADAS)”, DEVERÁ LER-SE: “8156, COM ACESSO PRIVATIVO PARA A VIA PÚBLICA PELO Travessa Vera Gaspar, 95, Espinho, , COM ACESSO PRIVATIVO PARA A VIA PÚBLICA PELO Rua Erika Lima, 56, Miranda do Douro (INALTERADAS) E ONDE SE LÊ: “22/5503-F (ALTERADA): COMPOSTA POR Técnico de Diagnóstico e Terapêutica, COM UMA DIVISÕES, E UMA INSTALAÇÃO SANITÁRIA, COM ACESSO PRIVATIVO PARA A VIA PÚBLICA PELO Alameda do Outeiro, 93, Vila Nova de Gaia”, DEVERÁ LER-SE: “XXBF/2020/4381 (ALTERADA): COMPOSTA POR Dra., COM UMA DIVISÃO, E UMA INSTALAÇÃO SANITÁRIA, COM ACESSO PRIVATIVO PARA A VIA PÚBLICA PELO Praça de Antero de Quental, Paços de Ferreira**."
+        },
+        {
+          "doc_id": "Campomaior_cm_010_2024-05-15_3",
+          "category": "SPU",
+          "entity_type": "SUBJECT",
+          "gold": null,
+          "pred": {
+            "text": "A DEVOLUÇÃO AO EMPREITEIRO DAMIÃO & BELO, LDª., DE 15% (1.236,57 €) DO VALOR DA RETENÇÃO EFETUADA, FICANDO ESTA EM 824,38€",
+            "type": "SUBJECT",
+            "start": 1908,
+            "end": 2030
+          },
+          "context": "SMO, A CÂMARA DELIBEROU, POR UNANIMIDADE, APROVAR **A DEVOLUÇÃO AO EMPREITEIRO DAMIÃO & BELO, LDª., DE 15% (1.236,57 €) DO VALOR DA RETENÇÃO EFETUADA, FICANDO ESTA EM 824,38€**, APROVAR A REDUÇÃO DO DEPÓSITO DA CAUÇÃO INICIAL "
+        }
+      ],
+      "INC_TYPE": [
+        {
+          "doc_id": "Campomaior_cm_018_2024-10-02_12",
+          "category": "INC_TYPE",
+          "entity_type": "COUNTING-UNANIMITY",
+          "gold": {
+            "text": "POR TODOS OS MEMBROS PRESENTES",
+            "type": "COUNTING-UNANIMITY",
+            "start": 2933,
+            "end": 2963
+          },
+          "pred": {
+            "text": "TODOS OS MEMBROS PRESENTES",
+            "type": "VOTER-FAVOR",
+            "start": 2937,
+            "end": 2963
+          },
+          "context": "s por tempo indeterminado.\n-A CÂMARA DELIBEROU, P **POR TODOS OS MEMBROS PRESENTES**, APROVAR A PROPOSTA DO SENHOR PRESIDENTE, REFEREN"
+        },
+        {
+          "doc_id": "Alandroal_cm_015_2024-06-19_7",
+          "category": "INC_TYPE",
+          "entity_type": "VOTER-ABSENT",
+          "gold": {
+            "text": "Fernanda Romão",
+            "type": "VOTER-ABSENT",
+            "start": 256,
+            "end": 270
+          },
+          "pred": {
+            "text": "a vereadora Fernanda Romão",
+            "type": "VOTER-ABSTENTION",
+            "start": 244,
+            "end": 270
+          },
+          "context": "pelo Nós, Cidadãos e com a abstenção da vereadora **Fernanda Romão**, por não ter estado presente na reunião, aprovar "
+        },
+        {
+          "doc_id": "Covilha_cm_006_2024-03-28_1",
+          "category": "INC_TYPE",
+          "entity_type": "VOTER-AGAINST",
+          "gold": {
+            "text": "Pedro Miguel Santos Farromba",
+            "type": "VOTER-AGAINST",
+            "start": 3992,
+            "end": 4020
+          },
+          "pred": {
+            "text": "com o voto contra dos Senhores Vereadores Pedro Miguel Santos Farromba, Ricardo Miguel Correia Leitão Ferreira da Silva e Marta Maria Tomaz Gomes Morais Alçada Bom Jesus",
+            "type": "COUNTING-MAJORITY",
+            "start": 3950,
+            "end": 4119
+          },
+          "context": "iberou, com o voto contra dos Senhores Vereadores **Pedro Miguel Santos Farromba**, Ricardo Miguel Correia Leitão Ferreira da Silva "
+        },
+        {
+          "doc_id": "Covilha_cm_006_2024-03-28_8",
+          "category": "INC_TYPE",
+          "entity_type": "VOTER-ABSTENTION",
+          "gold": {
+            "text": "Pedro Miguel Santos Farromba",
+            "type": "VOTER-ABSTENTION",
+            "start": 531,
+            "end": 559
+          },
+          "pred": {
+            "text": "com a abstenção dos Senhores Vereadores Pedro Miguel Santos Farromba, Ricardo Miguel Correia Leitão Ferreira da Silva e Marta Maria Tomaz Gomes Morais Alçada Bom Jesus",
+            "type": "COUNTING-MAJORITY",
+            "start": 491,
+            "end": 658
+          },
+          "context": "eliberou, com a abstenção dos Senhores Vereadores **Pedro Miguel Santos Farromba**, Ricardo Miguel Correia Leitão Ferreira da Silva "
+        },
+        {
+          "doc_id": "Covilha_cm_006_2024-03-28_9",
+          "category": "INC_TYPE",
+          "entity_type": "VOTER-ABSTENTION",
+          "gold": {
+            "text": "Pedro Miguel Santos Farromba",
+            "type": "VOTER-ABSTENTION",
+            "start": 598,
+            "end": 626
+          },
+          "pred": {
+            "text": "com a abstenção dos Senhores Vereadores Pedro Miguel Santos Farromba, Ricardo Miguel Correia Leitão Ferreira da Silva e Marta Maria Tomaz Gomes Morais Alçada Bom Jesus",
+            "type": "COUNTING-MAJORITY",
+            "start": 558,
+            "end": 725
+          },
+          "context": "eliberou, com a abstenção dos Senhores Vereadores **Pedro Miguel Santos Farromba**, Ricardo Miguel Correia Leitão Ferreira da Silva "
+        }
+      ]
+    }
+  }
+}

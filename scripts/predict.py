@@ -9,7 +9,7 @@ Usage:
     from scripts.predict import predict
     predict(
         model_path='results/bert_crf/best_model',
-        test_data_path='data/citilink_spans/test.jsonl',
+        test_data_path='data/citilink-votie/test.jsonl',
         output_path='predictions/test_predictions.jsonl'
     )
 """
@@ -29,8 +29,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from src.models.bertimbau_models import BertimbauLinearVotIE, BertimbauCRFVotIE
 from src.models.deberta_models import DebertaLinearVotIE, DebertaCRFVotIE
 from src.models.xlmr_models import XLMRLinearVotIE, XLMRCRFVotIE
-from src.models.bilstm_crf import BiLSTMFastTextVotIE
+# BiLSTMFastTextVotIE is imported lazily inside load_model — its module pulls in
+# `fasttext`, which is an optional dependency only needed for that baseline.
 from src.data.dataset import load_jsonl_file, align_tokens_with_subwords, create_dynamic_windows
+from src.data.span_to_bio import create_subword_windows
 
 logging.basicConfig(
     level=logging.INFO,
@@ -68,8 +70,8 @@ def load_model(model_path: str, device: str = 'cuda'):
     if model_type == 'bilstm_fasttext':
         # Load BiLSTM model using its from_pretrained method
         try:
-            from src.models.bilstm_crf import FastTextEmbedding, CharacterVocab
-            
+            from src.models.bilstm_crf import BiLSTMFastTextVotIE, FastTextEmbedding, CharacterVocab
+
             model = BiLSTMFastTextVotIE.from_pretrained(model_path)
             model.to(device)
             model.eval()
@@ -166,6 +168,7 @@ def load_model(model_path: str, device: str = 'cuda'):
         raise FileNotFoundError(f"No model weights found. Expected {safetensors_path} or {pytorch_path}")
 
     model.load_state_dict(state_dict)
+    model.float()  # mdeberta-v3-base ships FP16 embeddings; force FP32 to match classifier head
     model.to(device)
     model.eval()
     
@@ -352,6 +355,84 @@ def predict_with_windowing(model, tokenizer, tokens: List[str], device: str = 'c
     return merged_predictions
 
 
+def predict_offset_aligned(
+    model, tokenizer, text: str, id_to_label: Dict[int, str],
+    device: str = 'cuda', max_length: int = 512, overlap_subwords: int = 50,
+) -> Dict[str, Any]:
+    """Predict on raw text using the offset-aligned pipeline.
+
+    Returns a dict with ``subword_offsets`` and ``subword_pred_labels`` already
+    merged across windows (first-window-wins for overlap regions, matching the
+    semantics of the legacy word-level merger). The caller can pass these to
+    ``bio_to_spans`` directly with the original ``text``.
+
+    Args:
+        model: Loaded transformer model with ``.decode(...)`` method.
+        tokenizer: HuggingFace fast tokenizer.
+        text: Raw text to predict on.
+        id_to_label: Mapping from label ID to BIO string (loaded from checkpoint config).
+        device: Inference device.
+        max_length: Window size including [CLS]/[SEP].
+        overlap_subwords: Subword overlap between adjacent windows.
+    """
+    if not text or not text.strip():
+        return {"subword_offsets": [], "subword_pred_labels": []}
+
+    # Get the full token-level offsets once. Used both for window construction
+    # and as the canonical positional index for merged predictions.
+    full = tokenizer(text, return_offsets_mapping=True, truncation=False, add_special_tokens=False)
+    full_offsets = [list(o) for o in full["offset_mapping"]]
+    n_subwords = len(full_offsets)
+    if n_subwords == 0:
+        return {"subword_offsets": [], "subword_pred_labels": []}
+
+    # Build windows the same way the trainer did (no spans needed at predict time;
+    # the helper just needs the text geometry).
+    windows = create_subword_windows(
+        text=text, spans=[], tokenizer=tokenizer,
+        max_length=max_length, overlap_subwords=overlap_subwords,
+    )
+
+    # Per-position label, "first window wins"
+    merged_labels = ['O'] * n_subwords
+
+    for w in windows:
+        ws, we = w["window_subword_range"]
+        input_ids = torch.tensor([w["input_ids"]], dtype=torch.long).to(device)
+        attention_mask = torch.tensor([w["attention_mask"]], dtype=torch.long).to(device)
+        subtoken_mask = torch.tensor([w["subtoken_mask"]], dtype=torch.bool).to(device)
+
+        with torch.no_grad():
+            preds = model.decode(
+                input_ids=input_ids,
+                attention_mask=attention_mask,
+                subtoken_mask=subtoken_mask,
+                apply_bio_validation=False,
+                id_to_label=None,
+            )
+        if not preds or not preds[0]:
+            continue
+        pred_ids = preds[0]
+        # ``preds[0]`` is filtered to valid (non-special, non-padding) subwords
+        # in the order they appear in the window. Map them back to the global
+        # subword index.
+        valid_positions = [i for i, m in enumerate(w["subtoken_mask"]) if m]
+        if len(pred_ids) != len(valid_positions):
+            logger.warning(
+                f"Window pred-length {len(pred_ids)} ≠ valid-position count {len(valid_positions)}; "
+                "skipping this window"
+            )
+            continue
+        for local_pos, label_id in zip(valid_positions, pred_ids):
+            # local_pos: index into the full window (with [CLS] at 0). The
+            # original text subword sits at global index ws + (local_pos - 1).
+            global_pos = ws + (local_pos - 1)
+            if 0 <= global_pos < n_subwords and merged_labels[global_pos] == 'O':
+                merged_labels[global_pos] = id_to_label.get(int(label_id), 'O')
+
+    return {"subword_offsets": full_offsets, "subword_pred_labels": merged_labels}
+
+
 def predict_crf(model, tokens: List[str]) -> List[int]:
     """Predict labels for CRF model."""
     # CRF models work directly with tokens - no device or tensor conversion needed
@@ -408,40 +489,62 @@ def predict_bilstm(model, tokens: List[str], device: str = 'cuda') -> List[int]:
         return [0] * len(tokens)
 
 
-def predict_example(model, tokenizer, id_to_label: Dict[int, str], example: Dict[str, Any], device: str = 'cuda') -> Dict[str, Any]:
-    """Generate predictions for a single example."""
+def predict_example(
+    model, tokenizer, id_to_label: Dict[int, str],
+    example: Dict[str, Any], device: str = 'cuda',
+) -> Dict[str, Any]:
+    """Generate predictions for a single example.
+
+    Transformer models use the offset-aligned pipeline (the model's native
+    tokenizer drives subword boundaries; BIO labels are assigned by char-
+    offset overlap; no regex pre-tokenizer). CRF and BiLSTM models continue
+    to use word-level inputs since they don't have subword tokenizers.
+    """
+    if tokenizer is not None:
+        # Transformer: offset-aligned predict path.
+        text = example.get('text')
+        if not text:
+            raise ValueError(
+                f"Example {example.get('id', '?')}: transformer prediction requires "
+                f"a 'text' field. Use span-format JSONL (load via load_jsonl_span_format)."
+            )
+        offset_pred = predict_offset_aligned(
+            model, tokenizer, text, id_to_label=id_to_label, device=device,
+        )
+        result = {
+            'id': example['id'],
+            'text': text,
+            'subword_offsets': offset_pred['subword_offsets'],
+            'subword_pred_labels': offset_pred['subword_pred_labels'],
+        }
+        if 'spans' in example:
+            result['gold_spans'] = example['spans']
+        if 'labels' in example:
+            result['gold_labels'] = example['labels']
+        return result
+
+    # CRF / BiLSTM: word-level inputs.
     tokens = example['tokens']
-    
-    # Check model type for prediction
-    if tokenizer is None:
-        # Check if this is a traditional CRF model (has label_list and crf attributes)
-        if hasattr(model, 'label_list') and hasattr(model, 'crf') and not hasattr(model, 'bilstm'):
-            # Traditional CRF models (sklearn-crfsuite)
-            pred_label_ids = predict_crf(model, tokens)
-        elif hasattr(model, 'use_crf') or 'BiLSTM' in str(type(model).__name__):
-            # BiLSTM models - use their decode method with proper encoding
-            pred_label_ids = predict_bilstm(model, tokens, device)
-        else:
-            # Unknown model type
-            logger.warning(f"Unknown model type: {type(model)}, using fallback prediction")
-            pred_label_ids = [0] * len(tokens)  # All 'O' labels
+    if hasattr(model, 'label_list') and hasattr(model, 'crf') and not hasattr(model, 'bilstm'):
+        pred_label_ids = predict_crf(model, tokens)
+    elif hasattr(model, 'use_crf') or 'BiLSTM' in str(type(model).__name__):
+        pred_label_ids = predict_bilstm(model, tokens, device)
     else:
-        # Predict label IDs using transformer model
-        pred_label_ids = predict_with_windowing(model, tokenizer, tokens, device)
-    
-    # Convert IDs to labels
+        logger.warning(f"Unknown model type: {type(model)}, using fallback prediction")
+        pred_label_ids = [0] * len(tokens)
+
     pred_labels = [id_to_label.get(lid, 'O') for lid in pred_label_ids]
-    
     result = {
         'id': example['id'],
         'tokens': tokens,
-        'pred_labels': pred_labels
+        'pred_labels': pred_labels,
     }
-    
-    # Include gold labels if available
+    if 'text' in example:
+        result['text'] = example['text']
+    if 'token_offsets' in example:
+        result['token_offsets'] = example['token_offsets']
     if 'labels' in example:
         result['gold_labels'] = example['labels']
-    
     return result
 
 
@@ -449,11 +552,16 @@ def predict(model_path: str, test_data_path: str, output_path: str, device: str 
     """
     Generate predictions for a test dataset and save to file.
 
+    Transformer models predict via the offset-aligned pipeline (raw text →
+    native tokenizer → subword-level BIO → char-offset spans). CRF/BiLSTM
+    models continue to use word-level inputs.
+
     Args:
         model_path: Path to trained model directory
-        test_data_path: Path to input JSONL file
+        test_data_path: Path to input JSONL file (span format for transformers,
+            BIO format for CRF/BiLSTM)
         output_path: Path to output predictions file
-        device: Device to use for inference ('auto', 'cuda', 'mps', or 'cpu')
+        device: 'auto', 'cuda', 'mps', or 'cpu'
     """
     # Auto-detect device if requested
     if device == 'auto':
@@ -472,16 +580,20 @@ def predict(model_path: str, test_data_path: str, output_path: str, device: str 
     # Load model
     logger.info(f"Loading model from: {model_path}")
     model, tokenizer, id_to_label, config = load_model(model_path, device=device)
-    
-    # Load test data
+
+    # Load test data. Transformers need raw text+spans; CRF/BiLSTM need pre-
+    # tokenized BIO. Detect by whether a tokenizer was loaded.
     logger.info(f"Loading test data from: {test_data_path}")
-    examples = load_jsonl_file(test_data_path)
+    if tokenizer is not None:
+        from src.data.dataset import load_jsonl_span_format
+        examples = load_jsonl_span_format(Path(test_data_path))
+    else:
+        examples = load_jsonl_file(test_data_path)
     logger.info(f"✓ Loaded {len(examples)} examples")
-    
+
     # Generate predictions
     logger.info("Generating predictions...")
     predictions = []
-    
     for example in tqdm(examples, desc="Predicting"):
         pred = predict_example(model, tokenizer, id_to_label, example, device)
         predictions.append(pred)
@@ -507,8 +619,8 @@ if __name__ == '__main__':
     if len(sys.argv) < 4:
         print("Usage: python scripts/predict.py MODEL_PATH TEST_DATA_PATH OUTPUT_PATH [DEVICE]")
         print("\nExample:")
-        print("  python scripts/predict.py results/bert_crf/best_model data/citilink_spans/test.jsonl predictions/test_predictions.jsonl")
-        print("  python scripts/predict.py results/bert_crf/best_model data/citilink_spans/test.jsonl predictions/test_predictions.jsonl cuda")
+        print("  python scripts/predict.py results/bert_crf/best_model data/citilink-votie/test.jsonl predictions/test_predictions.jsonl")
+        print("  python scripts/predict.py results/bert_crf/best_model data/citilink-votie/test.jsonl predictions/test_predictions.jsonl cuda")
         sys.exit(1)
     
     model_path = sys.argv[1]

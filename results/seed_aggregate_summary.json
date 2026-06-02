@@ -1,0 +1,2034 @@
+{
+  "in_domain": {
+    "bert_crf": {
+      "per_seed": {
+        "42": {
+          "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/bert_crf_bert_crf_deucalion.json",
+          "present": true,
+          "macro_f1": 0.9239661928889057,
+          "micro_f1": 0.9239661928889057,
+          "exact_precision": 0.9137502890095622,
+          "exact_recall": 0.9367140167348527,
+          "relaxed_precision": 0.9757584886180564,
+          "relaxed_recall": 0.9714521194244927,
+          "relaxed_f1": 0.9727082198675217
+        },
+        "13": {
+          "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/bert_crf_bert_crf_seeds_s13.json",
+          "present": true,
+          "macro_f1": 0.9018805927888668,
+          "micro_f1": 0.9018805927888668,
+          "exact_precision": 0.8880589715819045,
+          "exact_recall": 0.9191887449388961,
+          "relaxed_precision": 0.9811394767322377,
+          "relaxed_recall": 0.93648610709999,
+          "relaxed_f1": 0.9553695256771778
+        },
+        "123": {
+          "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/bert_crf_bert_crf_seeds_s123.json",
+          "present": true,
+          "macro_f1": 0.888376602075127,
+          "micro_f1": 0.8883766020751268,
+          "exact_precision": 0.8523841055003057,
+          "exact_recall": 0.9379252346790615,
+          "relaxed_precision": 0.9419057005533894,
+          "relaxed_recall": 0.9782415391758037,
+          "relaxed_f1": 0.9566648182043291
+        }
+      },
+      "macro_f1": {
+        "n": 3,
+        "mean": 0.9047411292509665,
+        "std": 0.014669509085430707,
+        "min": 0.888376602075127,
+        "max": 0.9239661928889057,
+        "range": 0.03558959081377866,
+        "values": [
+          0.9239661928889057,
+          0.9018805927888668,
+          0.888376602075127
+        ]
+      },
+      "micro_f1": {
+        "n": 3,
+        "mean": 0.9047411292509664,
+        "std": 0.01466950908543079,
+        "min": 0.8883766020751268,
+        "max": 0.9239661928889057,
+        "range": 0.03558959081377888,
+        "values": [
+          0.9239661928889057,
+          0.9018805927888668,
+          0.8883766020751268
+        ]
+      },
+      "exact_precision": {
+        "n": 3,
+        "mean": 0.8847311220305908,
+        "std": 0.025162909961556113,
+        "min": 0.8523841055003057,
+        "max": 0.9137502890095622,
+        "range": 0.06136618350925649,
+        "values": [
+          0.9137502890095622,
+          0.8880589715819045,
+          0.8523841055003057
+        ]
+      },
+      "exact_recall": {
+        "n": 3,
+        "mean": 0.9312759987842701,
+        "std": 0.008561270986988414,
+        "min": 0.9191887449388961,
+        "max": 0.9379252346790615,
+        "range": 0.018736489740165396,
+        "values": [
+          0.9367140167348527,
+          0.9191887449388961,
+          0.9379252346790615
+        ]
+      },
+      "relaxed_precision": {
+        "n": 3,
+        "mean": 0.9662678886345611,
+        "std": 0.017366172373286137,
+        "min": 0.9419057005533894,
+        "max": 0.9811394767322377,
+        "range": 0.03923377617884827,
+        "values": [
+          0.9757584886180564,
+          0.9811394767322377,
+          0.9419057005533894
+        ]
+      },
+      "relaxed_recall": {
+        "n": 3,
+        "mean": 0.9620599219000955,
+        "std": 0.01829460863592409,
+        "min": 0.93648610709999,
+        "max": 0.9782415391758037,
+        "range": 0.04175543207581367,
+        "values": [
+          0.9714521194244927,
+          0.93648610709999,
+          0.9782415391758037
+        ]
+      },
+      "relaxed_f1": {
+        "n": 3,
+        "mean": 0.9615808545830096,
+        "std": 0.00788598500776103,
+        "min": 0.9553695256771778,
+        "max": 0.9727082198675217,
+        "range": 0.01733869419034384,
+        "values": [
+          0.9727082198675217,
+          0.9553695256771778,
+          0.9566648182043291
+        ]
+      },
+      "per_type_macro": {
+        "COUNT-BLANK": {
+          "n": 3,
+          "mean": 0.7515151515151515,
+          "std": 0.03428396514843878,
+          "min": 0.7272727272727272,
+          "max": 0.8000000000000002,
+          "range": 0.07272727272727297,
+          "values": [
+            0.7272727272727272,
+            0.8000000000000002,
+            0.7272727272727272
+          ]
+        },
+        "COUNT-FAVOR": {
+          "n": 3,
+          "mean": 0.9090909090909091,
+          "std": 0.12856486930664499,
+          "min": 0.7272727272727273,
+          "max": 1.0,
+          "range": 0.2727272727272727,
+          "values": [
+            1.0,
+            1.0,
+            0.7272727272727273
+          ]
+        },
+        "COUNTING-MAJORITY": {
+          "n": 3,
+          "mean": 0.9701897018970189,
+          "std": 0.04215812787562074,
+          "min": 0.9105691056910569,
+          "max": 1.0,
+          "range": 0.08943089430894313,
+          "values": [
+            1.0,
+            1.0,
+            0.9105691056910569
+          ]
+        },
+        "COUNTING-UNANIMITY": {
+          "n": 3,
+          "mean": 0.9903336931018983,
+          "std": 0.0006759841585197833,
+          "min": 0.9893778452200305,
+          "max": 0.9908256880733946,
+          "range": 0.0014478428533640786,
+          "values": [
+            0.9908256880733946,
+            0.9893778452200305,
+            0.99079754601227
+          ]
+        },
+        "SUBJECT": {
+          "n": 3,
+          "mean": 0.7476657507912831,
+          "std": 0.01570575791081967,
+          "min": 0.7314814814814815,
+          "max": 0.7689320388349513,
+          "range": 0.037450557353469804,
+          "values": [
+            0.7689320388349513,
+            0.7314814814814815,
+            0.7425837320574163
+          ]
+        },
+        "VOTER-ABSENT": {
+          "n": 3,
+          "mean": 0.7729618163054695,
+          "std": 0.011675653765722124,
+          "min": 0.7647058823529411,
+          "max": 0.7894736842105262,
+          "range": 0.024767801857585092,
+          "values": [
+            0.7647058823529411,
+            0.7647058823529411,
+            0.7894736842105262
+          ]
+        },
+        "VOTER-ABSTENTION": {
+          "n": 3,
+          "mean": 0.9804724687077628,
+          "std": 0.007581014508177208,
+          "min": 0.9705882352941176,
+          "max": 0.989010989010989,
+          "range": 0.01842275371687141,
+          "values": [
+            0.989010989010989,
+            0.9818181818181818,
+            0.9705882352941176
+          ]
+        },
+        "VOTER-AGAINST": {
+          "n": 3,
+          "mean": 0.9473684210526316,
+          "std": 0.0,
+          "min": 0.9473684210526316,
+          "max": 0.9473684210526316,
+          "range": 0.0,
+          "values": [
+            0.9473684210526316,
+            0.9473684210526316,
+            0.9473684210526316
+          ]
+        },
+        "VOTER-FAVOR": {
+          "n": 3,
+          "mean": 0.980633289383428,
+          "std": 0.005276647969537312,
+          "min": 0.97339593114241,
+          "max": 0.9858267716535433,
+          "range": 0.012430840511133301,
+          "values": [
+            0.9826771653543307,
+            0.9858267716535433,
+            0.97339593114241
+          ]
+        },
+        "VOTING": {
+          "n": 3,
+          "mean": 0.9928303108241695,
+          "std": 6.928234827697803e-06,
+          "min": 0.9928205128205129,
+          "max": 0.9928352098259978,
+          "range": 1.4697005484953785e-05,
+          "values": [
+            0.9928352098259978,
+            0.9928352098259978,
+            0.9928205128205129
+          ]
+        },
+        "VOTING-METHOD": {
+          "n": 3,
+          "mean": 0.9090909090909091,
+          "std": 0.12856486930664504,
+          "min": 0.7272727272727272,
+          "max": 1.0,
+          "range": 0.2727272727272728,
+          "values": [
+            1.0,
+            0.7272727272727272,
+            1.0
+          ]
+        }
+      }
+    },
+    "xlmr_crf": {
+      "per_seed": {
+        "42": {
+          "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/xlmr_crf_xlmr_crf_deucalion.json",
+          "present": true,
+          "macro_f1": 0.9158064548923438,
+          "micro_f1": 0.9158064548923438,
+          "exact_precision": 0.8880556827378132,
+          "exact_recall": 0.9499517359330816,
+          "relaxed_precision": 0.9462575181965757,
+          "relaxed_recall": 0.9762863610098449,
+          "relaxed_f1": 0.9589367876529299
+        },
+        "13": {
+          "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/xlmr_crf_xlmr_crf_seeds_s13.json",
+          "present": true,
+          "macro_f1": 0.9288371670826767,
+          "micro_f1": 0.9288371670826767,
+          "exact_precision": 0.9165793512047958,
+          "exact_recall": 0.9449012308825765,
+          "relaxed_precision": 0.9662453978233653,
+          "relaxed_recall": 0.9807212630391754,
+          "relaxed_f1": 0.9726969143747692
+        },
+        "123": {
+          "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/xlmr_crf_xlmr_crf_seeds_s123.json",
+          "present": true,
+          "macro_f1": 0.9528200700041922,
+          "micro_f1": 0.9528200700041922,
+          "exact_precision": 0.9504902081483894,
+          "exact_recall": 0.9555089724180799,
+          "relaxed_precision": 0.9887285084845296,
+          "relaxed_recall": 0.9674911280061054,
+          "relaxed_f1": 0.9770015832482151
+        }
+      },
+      "macro_f1": {
+        "n": 3,
+        "mean": 0.9324878973264042,
+        "std": 0.015329661866163554,
+        "min": 0.9158064548923438,
+        "max": 0.9528200700041922,
+        "range": 0.03701361511184842,
+        "values": [
+          0.9158064548923438,
+          0.9288371670826767,
+          0.9528200700041922
+        ]
+      },
+      "micro_f1": {
+        "n": 3,
+        "mean": 0.9324878973264042,
+        "std": 0.015329661866163554,
+        "min": 0.9158064548923438,
+        "max": 0.9528200700041922,
+        "range": 0.03701361511184842,
+        "values": [
+          0.9158064548923438,
+          0.9288371670826767,
+          0.9528200700041922
+        ]
+      },
+      "exact_precision": {
+        "n": 3,
+        "mean": 0.9183750806969995,
+        "std": 0.02552039673304273,
+        "min": 0.8880556827378132,
+        "max": 0.9504902081483894,
+        "range": 0.06243452541057615,
+        "values": [
+          0.8880556827378132,
+          0.9165793512047958,
+          0.9504902081483894
+        ]
+      },
+      "exact_recall": {
+        "n": 3,
+        "mean": 0.9501206464112459,
+        "std": 0.004332239081063134,
+        "min": 0.9449012308825765,
+        "max": 0.9555089724180799,
+        "range": 0.010607741535503368,
+        "values": [
+          0.9499517359330816,
+          0.9449012308825765,
+          0.9555089724180799
+        ]
+      },
+      "relaxed_precision": {
+        "n": 3,
+        "mean": 0.9670771415014902,
+        "std": 0.017348681067436526,
+        "min": 0.9462575181965757,
+        "max": 0.9887285084845296,
+        "range": 0.04247099028795398,
+        "values": [
+          0.9462575181965757,
+          0.9662453978233653,
+          0.9887285084845296
+        ]
+      },
+      "relaxed_recall": {
+        "n": 3,
+        "mean": 0.9748329173517085,
+        "std": 0.005498090098622081,
+        "min": 0.9674911280061054,
+        "max": 0.9807212630391754,
+        "range": 0.013230135033070023,
+        "values": [
+          0.9762863610098449,
+          0.9807212630391754,
+          0.9674911280061054
+        ]
+      },
+      "relaxed_f1": {
+        "n": 3,
+        "mean": 0.9695450950919714,
+        "std": 0.007704314097457385,
+        "min": 0.9589367876529299,
+        "max": 0.9770015832482151,
+        "range": 0.018064795595285177,
+        "values": [
+          0.9589367876529299,
+          0.9726969143747692,
+          0.9770015832482151
+        ]
+      },
+      "per_type_macro": {
+        "COUNT-BLANK": {
+          "n": 3,
+          "mean": 0.7111111111111111,
+          "std": 0.06285393610547098,
+          "min": 0.6666666666666666,
+          "max": 0.8000000000000002,
+          "range": 0.13333333333333353,
+          "values": [
+            0.6666666666666666,
+            0.6666666666666666,
+            0.8000000000000002
+          ]
+        },
+        "COUNT-FAVOR": {
+          "n": 3,
+          "mean": 0.962962962962963,
+          "std": 0.05237828008789238,
+          "min": 0.888888888888889,
+          "max": 1.0,
+          "range": 0.11111111111111105,
+          "values": [
+            0.888888888888889,
+            1.0,
+            1.0
+          ]
+        },
+        "COUNTING-MAJORITY": {
+          "n": 3,
+          "mean": 0.9887005649717514,
+          "std": 0.007989907132051364,
+          "min": 0.9830508474576272,
+          "max": 1.0,
+          "range": 0.016949152542372836,
+          "values": [
+            0.9830508474576272,
+            0.9830508474576272,
+            1.0
+          ]
+        },
+        "COUNTING-UNANIMITY": {
+          "n": 3,
+          "mean": 0.9953917050691243,
+          "std": 0.0,
+          "min": 0.9953917050691243,
+          "max": 0.9953917050691243,
+          "range": 0.0,
+          "values": [
+            0.9953917050691243,
+            0.9953917050691243,
+            0.9953917050691243
+          ]
+        },
+        "SUBJECT": {
+          "n": 3,
+          "mean": 0.7738950867893428,
+          "std": 0.012049050761182888,
+          "min": 0.7574304889741131,
+          "max": 0.7859296482412059,
+          "range": 0.02849915926709279,
+          "values": [
+            0.7574304889741131,
+            0.7783251231527094,
+            0.7859296482412059
+          ]
+        },
+        "VOTER-ABSENT": {
+          "n": 3,
+          "mean": 0.9083941083941084,
+          "std": 0.04563840546520028,
+          "min": 0.8648648648648649,
+          "max": 0.9714285714285714,
+          "range": 0.1065637065637065,
+          "values": [
+            0.8648648648648649,
+            0.8888888888888888,
+            0.9714285714285714
+          ]
+        },
+        "VOTER-ABSTENTION": {
+          "n": 3,
+          "mean": 0.9842244394767403,
+          "std": 0.004466937784133446,
+          "min": 0.9782608695652174,
+          "max": 0.989010989010989,
+          "range": 0.010750119445771644,
+          "values": [
+            0.989010989010989,
+            0.9854014598540146,
+            0.9782608695652174
+          ]
+        },
+        "VOTER-AGAINST": {
+          "n": 3,
+          "mean": 0.9767830728664223,
+          "std": 0.013460904703274684,
+          "min": 0.9577464788732395,
+          "max": 0.9863013698630138,
+          "range": 0.028554890989774262,
+          "values": [
+            0.9863013698630138,
+            0.9577464788732395,
+            0.9863013698630138
+          ]
+        },
+        "VOTER-FAVOR": {
+          "n": 3,
+          "mean": 0.9664451048231573,
+          "std": 0.005742714691471298,
+          "min": 0.9585253456221199,
+          "max": 0.9719626168224299,
+          "range": 0.01343727120031002,
+          "values": [
+            0.9585253456221199,
+            0.9719626168224299,
+            0.9688473520249221
+          ]
+        },
+        "VOTING": {
+          "n": 3,
+          "mean": 0.9894587141257261,
+          "std": 0.0045458059657894085,
+          "min": 0.983739837398374,
+          "max": 0.9948612538540597,
+          "range": 0.011121416455685651,
+          "values": [
+            0.983739837398374,
+            0.9897750511247444,
+            0.9948612538540597
+          ]
+        },
+        "VOTING-METHOD": {
+          "n": 3,
+          "mean": 1.0,
+          "std": 0.0,
+          "min": 1.0,
+          "max": 1.0,
+          "range": 0.0,
+          "values": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      }
+    },
+    "deberta_crf": {
+      "per_seed": {
+        "42": {
+          "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/deberta_crf_deberta_crf_deucalion.json",
+          "present": true,
+          "macro_f1": 0.8990546076671554,
+          "micro_f1": 0.8990546076671556,
+          "exact_precision": 0.8720898291614797,
+          "exact_recall": 0.9355724837991457,
+          "relaxed_precision": 0.9507756221969719,
+          "relaxed_recall": 0.9512786891521571,
+          "relaxed_f1": 0.9456133640976674
+        },
+        "13": {
+          "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/deberta_crf_deberta_crf_seeds_s13.json",
+          "present": true,
+          "macro_f1": 0.9318698686595611,
+          "micro_f1": 0.9318698686595611,
+          "exact_precision": 0.9149811126567958,
+          "exact_recall": 0.9536454303942826,
+          "relaxed_precision": 0.9857409427339519,
+          "relaxed_recall": 0.9651582252539154,
+          "relaxed_f1": 0.9740050720856371
+        },
+        "123": {
+          "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/deberta_crf_deberta_crf_seeds_s123.json",
+          "present": true,
+          "macro_f1": 0.9131475746040916,
+          "micro_f1": 0.9131475746040916,
+          "exact_precision": 0.8831482807734797,
+          "exact_recall": 0.956026462270755,
+          "relaxed_precision": 0.9438972055962135,
+          "relaxed_recall": 0.9862680818205507,
+          "relaxed_f1": 0.9631341054831445
+        }
+      },
+      "macro_f1": {
+        "n": 3,
+        "mean": 0.9146906836436027,
+        "std": 0.013441136549929893,
+        "min": 0.8990546076671554,
+        "max": 0.9318698686595611,
+        "range": 0.032815260992405726,
+        "values": [
+          0.8990546076671554,
+          0.9318698686595611,
+          0.9131475746040916
+        ]
+      },
+      "micro_f1": {
+        "n": 3,
+        "mean": 0.9146906836436027,
+        "std": 0.013441136549929808,
+        "min": 0.8990546076671556,
+        "max": 0.9318698686595611,
+        "range": 0.032815260992405504,
+        "values": [
+          0.8990546076671556,
+          0.9318698686595611,
+          0.9131475746040916
+        ]
+      },
+      "exact_precision": {
+        "n": 3,
+        "mean": 0.8900730741972518,
+        "std": 0.018182044676737754,
+        "min": 0.8720898291614797,
+        "max": 0.9149811126567958,
+        "range": 0.042891283495316124,
+        "values": [
+          0.8720898291614797,
+          0.9149811126567958,
+          0.8831482807734797
+        ]
+      },
+      "exact_recall": {
+        "n": 3,
+        "mean": 0.9484147921547278,
+        "std": 0.009132761215320173,
+        "min": 0.9355724837991457,
+        "max": 0.956026462270755,
+        "range": 0.020453978471609346,
+        "values": [
+          0.9355724837991457,
+          0.9536454303942826,
+          0.956026462270755
+        ]
+      },
+      "relaxed_precision": {
+        "n": 3,
+        "mean": 0.9601379235090457,
+        "std": 0.0183205549189352,
+        "min": 0.9438972055962135,
+        "max": 0.9857409427339519,
+        "range": 0.04184373713773837,
+        "values": [
+          0.9507756221969719,
+          0.9857409427339519,
+          0.9438972055962135
+        ]
+      },
+      "relaxed_recall": {
+        "n": 3,
+        "mean": 0.967568332075541,
+        "std": 0.0143856609393867,
+        "min": 0.9512786891521571,
+        "max": 0.9862680818205507,
+        "range": 0.034989392668393626,
+        "values": [
+          0.9512786891521571,
+          0.9651582252539154,
+          0.9862680818205507
+        ]
+      },
+      "relaxed_f1": {
+        "n": 3,
+        "mean": 0.9609175138888163,
+        "std": 0.011696359243815173,
+        "min": 0.9456133640976674,
+        "max": 0.9740050720856371,
+        "range": 0.02839170798796975,
+        "values": [
+          0.9456133640976674,
+          0.9740050720856371,
+          0.9631341054831445
+        ]
+      },
+      "per_type_macro": {
+        "COUNT-BLANK": {
+          "n": 3,
+          "mean": 0.7757575757575759,
+          "std": 0.03428396514843878,
+          "min": 0.7272727272727272,
+          "max": 0.8000000000000002,
+          "range": 0.07272727272727297,
+          "values": [
+            0.8000000000000002,
+            0.8000000000000002,
+            0.7272727272727272
+          ]
+        },
+        "COUNT-FAVOR": {
+          "n": 3,
+          "mean": 0.8350168350168351,
+          "std": 0.07618658921875261,
+          "min": 0.7272727272727273,
+          "max": 0.888888888888889,
+          "range": 0.16161616161616166,
+          "values": [
+            0.888888888888889,
+            0.888888888888889,
+            0.7272727272727273
+          ]
+        },
+        "COUNTING-MAJORITY": {
+          "n": 3,
+          "mean": 0.9833333333333333,
+          "std": 0.023570226039551605,
+          "min": 0.95,
+          "max": 1.0,
+          "range": 0.050000000000000044,
+          "values": [
+            0.95,
+            1.0,
+            1.0
+          ]
+        },
+        "COUNTING-UNANIMITY": {
+          "n": 3,
+          "mean": 0.9908272276773895,
+          "std": 0.0044961493493395,
+          "min": 0.9862595419847328,
+          "max": 0.9969418960244648,
+          "range": 0.010682354039732056,
+          "values": [
+            0.9892802450229708,
+            0.9862595419847328,
+            0.9969418960244648
+          ]
+        },
+        "SUBJECT": {
+          "n": 3,
+          "mean": 0.7454207635316468,
+          "std": 0.015689821508178478,
+          "min": 0.7240461401952085,
+          "max": 0.7612655800575264,
+          "range": 0.037219439862317905,
+          "values": [
+            0.7509505703422054,
+            0.7240461401952085,
+            0.7612655800575264
+          ]
+        },
+        "VOTER-ABSENT": {
+          "n": 3,
+          "mean": 0.8493843303911954,
+          "std": 0.0783687043129409,
+          "min": 0.7391304347826088,
+          "max": 0.9142857142857143,
+          "range": 0.1751552795031055,
+          "values": [
+            0.7391304347826088,
+            0.9142857142857143,
+            0.8947368421052632
+          ]
+        },
+        "VOTER-ABSTENTION": {
+          "n": 3,
+          "mean": 0.9781769007575459,
+          "std": 0.00868764002667343,
+          "min": 0.967741935483871,
+          "max": 0.989010989010989,
+          "range": 0.021269053527118054,
+          "values": [
+            0.989010989010989,
+            0.967741935483871,
+            0.9777777777777777
+          ]
+        },
+        "VOTER-AGAINST": {
+          "n": 3,
+          "mean": 0.995433789954338,
+          "std": 0.006457596175219586,
+          "min": 0.9863013698630138,
+          "max": 1.0,
+          "range": 0.013698630136986245,
+          "values": [
+            1.0,
+            1.0,
+            0.9863013698630138
+          ]
+        },
+        "VOTER-FAVOR": {
+          "n": 3,
+          "mean": 0.9817517485387378,
+          "std": 0.006248784210773704,
+          "min": 0.9765258215962441,
+          "max": 0.9905362776025236,
+          "range": 0.014010456006279481,
+          "values": [
+            0.9905362776025236,
+            0.9765258215962441,
+            0.9781931464174456
+          ]
+        },
+        "VOTING": {
+          "n": 3,
+          "mean": 0.993161681787699,
+          "std": 0.001271508350053976,
+          "min": 0.9918032786885246,
+          "max": 0.9948612538540597,
+          "range": 0.003057975165535076,
+          "values": [
+            0.9918032786885246,
+            0.9928205128205129,
+            0.9948612538540597
+          ]
+        },
+        "VOTING-METHOD": {
+          "n": 3,
+          "mean": 0.9333333333333333,
+          "std": 0.09428090415820627,
+          "min": 0.8000000000000002,
+          "max": 1.0,
+          "range": 0.19999999999999984,
+          "values": [
+            0.8000000000000002,
+            1.0,
+            1.0
+          ]
+        }
+      }
+    }
+  },
+  "lomo": {
+    "bert_crf": {
+      "per_municipality": {
+        "M01": {
+          "per_seed": {
+            "42": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/lomo/bert_crf_lomo_M01_deucalion.json",
+              "present": true,
+              "macro_f1": 0.5621065608520539,
+              "micro_f1": 0.5621065608520539,
+              "relaxed_f1": 0.7284818516036682
+            },
+            "13": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/bert_crf_lomo_M01_seeds_s13.json",
+              "present": false
+            },
+            "123": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/bert_crf_lomo_M01_seeds_s123.json",
+              "present": false
+            }
+          },
+          "macro_f1": {
+            "n": 1,
+            "mean": 0.5621065608520539,
+            "std": 0.0,
+            "min": 0.5621065608520539,
+            "max": 0.5621065608520539,
+            "range": 0.0,
+            "values": [
+              0.5621065608520539
+            ]
+          },
+          "micro_f1": {
+            "n": 1,
+            "mean": 0.5621065608520539,
+            "std": 0.0,
+            "min": 0.5621065608520539,
+            "max": 0.5621065608520539,
+            "range": 0.0,
+            "values": [
+              0.5621065608520539
+            ]
+          },
+          "relaxed_f1": {
+            "n": 1,
+            "mean": 0.7284818516036682,
+            "std": 0.0,
+            "min": 0.7284818516036682,
+            "max": 0.7284818516036682,
+            "range": 0.0,
+            "values": [
+              0.7284818516036682
+            ]
+          }
+        },
+        "M02": {
+          "per_seed": {
+            "42": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/lomo/bert_crf_lomo_M02_deucalion.json",
+              "present": true,
+              "macro_f1": 0.4437016259798007,
+              "micro_f1": 0.4437016259798007,
+              "relaxed_f1": 0.6067493031377514
+            },
+            "13": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/bert_crf_lomo_M02_seeds_s13.json",
+              "present": false
+            },
+            "123": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/bert_crf_lomo_M02_seeds_s123.json",
+              "present": false
+            }
+          },
+          "macro_f1": {
+            "n": 1,
+            "mean": 0.4437016259798007,
+            "std": 0.0,
+            "min": 0.4437016259798007,
+            "max": 0.4437016259798007,
+            "range": 0.0,
+            "values": [
+              0.4437016259798007
+            ]
+          },
+          "micro_f1": {
+            "n": 1,
+            "mean": 0.4437016259798007,
+            "std": 0.0,
+            "min": 0.4437016259798007,
+            "max": 0.4437016259798007,
+            "range": 0.0,
+            "values": [
+              0.4437016259798007
+            ]
+          },
+          "relaxed_f1": {
+            "n": 1,
+            "mean": 0.6067493031377514,
+            "std": 0.0,
+            "min": 0.6067493031377514,
+            "max": 0.6067493031377514,
+            "range": 0.0,
+            "values": [
+              0.6067493031377514
+            ]
+          }
+        },
+        "M03": {
+          "per_seed": {
+            "42": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/lomo/bert_crf_lomo_M03_deucalion.json",
+              "present": true,
+              "macro_f1": 0.5492489513636414,
+              "micro_f1": 0.5492489513636413,
+              "relaxed_f1": 0.6432278104383736
+            },
+            "13": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/bert_crf_lomo_M03_seeds_s13.json",
+              "present": false
+            },
+            "123": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/bert_crf_lomo_M03_seeds_s123.json",
+              "present": false
+            }
+          },
+          "macro_f1": {
+            "n": 1,
+            "mean": 0.5492489513636414,
+            "std": 0.0,
+            "min": 0.5492489513636414,
+            "max": 0.5492489513636414,
+            "range": 0.0,
+            "values": [
+              0.5492489513636414
+            ]
+          },
+          "micro_f1": {
+            "n": 1,
+            "mean": 0.5492489513636413,
+            "std": 0.0,
+            "min": 0.5492489513636413,
+            "max": 0.5492489513636413,
+            "range": 0.0,
+            "values": [
+              0.5492489513636413
+            ]
+          },
+          "relaxed_f1": {
+            "n": 1,
+            "mean": 0.6432278104383736,
+            "std": 0.0,
+            "min": 0.6432278104383736,
+            "max": 0.6432278104383736,
+            "range": 0.0,
+            "values": [
+              0.6432278104383736
+            ]
+          }
+        },
+        "M04": {
+          "per_seed": {
+            "42": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/lomo/bert_crf_lomo_M04_deucalion.json",
+              "present": true,
+              "macro_f1": 0.40995259468676337,
+              "micro_f1": 0.4099525946867634,
+              "relaxed_f1": 0.4467860436129303
+            },
+            "13": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/bert_crf_lomo_M04_seeds_s13.json",
+              "present": false
+            },
+            "123": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/bert_crf_lomo_M04_seeds_s123.json",
+              "present": false
+            }
+          },
+          "macro_f1": {
+            "n": 1,
+            "mean": 0.40995259468676337,
+            "std": 0.0,
+            "min": 0.40995259468676337,
+            "max": 0.40995259468676337,
+            "range": 0.0,
+            "values": [
+              0.40995259468676337
+            ]
+          },
+          "micro_f1": {
+            "n": 1,
+            "mean": 0.4099525946867634,
+            "std": 0.0,
+            "min": 0.4099525946867634,
+            "max": 0.4099525946867634,
+            "range": 0.0,
+            "values": [
+              0.4099525946867634
+            ]
+          },
+          "relaxed_f1": {
+            "n": 1,
+            "mean": 0.4467860436129303,
+            "std": 0.0,
+            "min": 0.4467860436129303,
+            "max": 0.4467860436129303,
+            "range": 0.0,
+            "values": [
+              0.4467860436129303
+            ]
+          }
+        },
+        "M05": {
+          "per_seed": {
+            "42": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/lomo/bert_crf_lomo_M05_deucalion.json",
+              "present": true,
+              "macro_f1": 0.4711546726723684,
+              "micro_f1": 0.4711546726723684,
+              "relaxed_f1": 0.5738115305134893
+            },
+            "13": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/bert_crf_lomo_M05_seeds_s13.json",
+              "present": false
+            },
+            "123": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/bert_crf_lomo_M05_seeds_s123.json",
+              "present": false
+            }
+          },
+          "macro_f1": {
+            "n": 1,
+            "mean": 0.4711546726723684,
+            "std": 0.0,
+            "min": 0.4711546726723684,
+            "max": 0.4711546726723684,
+            "range": 0.0,
+            "values": [
+              0.4711546726723684
+            ]
+          },
+          "micro_f1": {
+            "n": 1,
+            "mean": 0.4711546726723684,
+            "std": 0.0,
+            "min": 0.4711546726723684,
+            "max": 0.4711546726723684,
+            "range": 0.0,
+            "values": [
+              0.4711546726723684
+            ]
+          },
+          "relaxed_f1": {
+            "n": 1,
+            "mean": 0.5738115305134893,
+            "std": 0.0,
+            "min": 0.5738115305134893,
+            "max": 0.5738115305134893,
+            "range": 0.0,
+            "values": [
+              0.5738115305134893
+            ]
+          }
+        },
+        "M06": {
+          "per_seed": {
+            "42": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/lomo/bert_crf_lomo_M06_deucalion.json",
+              "present": true,
+              "macro_f1": 0.33395215517664,
+              "micro_f1": 0.33395215517664,
+              "relaxed_f1": 0.42065168486477994
+            },
+            "13": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/bert_crf_lomo_M06_seeds_s13.json",
+              "present": false
+            },
+            "123": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/bert_crf_lomo_M06_seeds_s123.json",
+              "present": false
+            }
+          },
+          "macro_f1": {
+            "n": 1,
+            "mean": 0.33395215517664,
+            "std": 0.0,
+            "min": 0.33395215517664,
+            "max": 0.33395215517664,
+            "range": 0.0,
+            "values": [
+              0.33395215517664
+            ]
+          },
+          "micro_f1": {
+            "n": 1,
+            "mean": 0.33395215517664,
+            "std": 0.0,
+            "min": 0.33395215517664,
+            "max": 0.33395215517664,
+            "range": 0.0,
+            "values": [
+              0.33395215517664
+            ]
+          },
+          "relaxed_f1": {
+            "n": 1,
+            "mean": 0.42065168486477994,
+            "std": 0.0,
+            "min": 0.42065168486477994,
+            "max": 0.42065168486477994,
+            "range": 0.0,
+            "values": [
+              0.42065168486477994
+            ]
+          }
+        }
+      },
+      "mean_macro_f1_per_seed": {
+        "42": 0.4616860934552112,
+        "13": null,
+        "123": null
+      },
+      "mean_micro_f1_per_seed": {
+        "42": 0.4616860934552112,
+        "13": null,
+        "123": null
+      },
+      "mean_relaxed_f1_per_seed": {
+        "42": 0.5699513706951654,
+        "13": null,
+        "123": null
+      },
+      "summary": {
+        "macro_f1": {
+          "n": 1,
+          "mean": 0.4616860934552112,
+          "std": 0.0,
+          "min": 0.4616860934552112,
+          "max": 0.4616860934552112,
+          "range": 0.0,
+          "values": [
+            0.4616860934552112
+          ]
+        },
+        "micro_f1": {
+          "n": 1,
+          "mean": 0.4616860934552112,
+          "std": 0.0,
+          "min": 0.4616860934552112,
+          "max": 0.4616860934552112,
+          "range": 0.0,
+          "values": [
+            0.4616860934552112
+          ]
+        },
+        "relaxed_f1": {
+          "n": 1,
+          "mean": 0.5699513706951654,
+          "std": 0.0,
+          "min": 0.5699513706951654,
+          "max": 0.5699513706951654,
+          "range": 0.0,
+          "values": [
+            0.5699513706951654
+          ]
+        }
+      }
+    },
+    "xlmr_crf": {
+      "per_municipality": {
+        "M01": {
+          "per_seed": {
+            "42": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/lomo/xlmr_crf_lomo_M01_deucalion.json",
+              "present": true,
+              "macro_f1": 0.6044881593085191,
+              "micro_f1": 0.6044881593085191,
+              "relaxed_f1": 0.7566539337771543
+            },
+            "13": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/xlmr_crf_lomo_M01_seeds_s13.json",
+              "present": true,
+              "macro_f1": 0.38043141709553635,
+              "micro_f1": 0.38043141709553635,
+              "relaxed_f1": 0.5336027554314864
+            },
+            "123": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/xlmr_crf_lomo_M01_seeds_s123.json",
+              "present": true,
+              "macro_f1": 0.5397442389770362,
+              "micro_f1": 0.5397442389770362,
+              "relaxed_f1": 0.8177489186808127
+            }
+          },
+          "macro_f1": {
+            "n": 3,
+            "mean": 0.5082212717936971,
+            "std": 0.09414750493350013,
+            "min": 0.38043141709553635,
+            "max": 0.6044881593085191,
+            "range": 0.22405674221298272,
+            "values": [
+              0.6044881593085191,
+              0.38043141709553635,
+              0.5397442389770362
+            ]
+          },
+          "micro_f1": {
+            "n": 3,
+            "mean": 0.5082212717936971,
+            "std": 0.09414750493350013,
+            "min": 0.38043141709553635,
+            "max": 0.6044881593085191,
+            "range": 0.22405674221298272,
+            "values": [
+              0.6044881593085191,
+              0.38043141709553635,
+              0.5397442389770362
+            ]
+          },
+          "relaxed_f1": {
+            "n": 3,
+            "mean": 0.7026685359631512,
+            "std": 0.1221217368180356,
+            "min": 0.5336027554314864,
+            "max": 0.8177489186808127,
+            "range": 0.2841461632493263,
+            "values": [
+              0.7566539337771543,
+              0.5336027554314864,
+              0.8177489186808127
+            ]
+          }
+        },
+        "M02": {
+          "per_seed": {
+            "42": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/lomo/xlmr_crf_lomo_M02_deucalion.json",
+              "present": true,
+              "macro_f1": 0.4786541096476168,
+              "micro_f1": 0.4786541096476168,
+              "relaxed_f1": 0.6272560464149237
+            },
+            "13": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/xlmr_crf_lomo_M02_seeds_s13.json",
+              "present": true,
+              "macro_f1": 0.5292123590736705,
+              "micro_f1": 0.5292123590736705,
+              "relaxed_f1": 0.7586381046406175
+            },
+            "123": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/xlmr_crf_lomo_M02_seeds_s123.json",
+              "present": false
+            }
+          },
+          "macro_f1": {
+            "n": 2,
+            "mean": 0.5039332343606436,
+            "std": 0.025279124713026846,
+            "min": 0.4786541096476168,
+            "max": 0.5292123590736705,
+            "range": 0.05055824942605369,
+            "values": [
+              0.4786541096476168,
+              0.5292123590736705
+            ]
+          },
+          "micro_f1": {
+            "n": 2,
+            "mean": 0.5039332343606436,
+            "std": 0.025279124713026846,
+            "min": 0.4786541096476168,
+            "max": 0.5292123590736705,
+            "range": 0.05055824942605369,
+            "values": [
+              0.4786541096476168,
+              0.5292123590736705
+            ]
+          },
+          "relaxed_f1": {
+            "n": 2,
+            "mean": 0.6929470755277707,
+            "std": 0.06569102911284691,
+            "min": 0.6272560464149237,
+            "max": 0.7586381046406175,
+            "range": 0.13138205822569382,
+            "values": [
+              0.6272560464149237,
+              0.7586381046406175
+            ]
+          }
+        },
+        "M03": {
+          "per_seed": {
+            "42": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/lomo/xlmr_crf_lomo_M03_deucalion.json",
+              "present": true,
+              "macro_f1": 0.6145003377749254,
+              "micro_f1": 0.6145003377749253,
+              "relaxed_f1": 0.6672086740020539
+            },
+            "13": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/xlmr_crf_lomo_M03_seeds_s13.json",
+              "present": false
+            },
+            "123": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/xlmr_crf_lomo_M03_seeds_s123.json",
+              "present": false
+            }
+          },
+          "macro_f1": {
+            "n": 1,
+            "mean": 0.6145003377749254,
+            "std": 0.0,
+            "min": 0.6145003377749254,
+            "max": 0.6145003377749254,
+            "range": 0.0,
+            "values": [
+              0.6145003377749254
+            ]
+          },
+          "micro_f1": {
+            "n": 1,
+            "mean": 0.6145003377749253,
+            "std": 0.0,
+            "min": 0.6145003377749253,
+            "max": 0.6145003377749253,
+            "range": 0.0,
+            "values": [
+              0.6145003377749253
+            ]
+          },
+          "relaxed_f1": {
+            "n": 1,
+            "mean": 0.6672086740020539,
+            "std": 0.0,
+            "min": 0.6672086740020539,
+            "max": 0.6672086740020539,
+            "range": 0.0,
+            "values": [
+              0.6672086740020539
+            ]
+          }
+        },
+        "M04": {
+          "per_seed": {
+            "42": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/lomo/xlmr_crf_lomo_M04_deucalion.json",
+              "present": true,
+              "macro_f1": 0.4867953115665011,
+              "micro_f1": 0.4867953115665011,
+              "relaxed_f1": 0.5793395775891753
+            },
+            "13": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/xlmr_crf_lomo_M04_seeds_s13.json",
+              "present": false
+            },
+            "123": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/xlmr_crf_lomo_M04_seeds_s123.json",
+              "present": false
+            }
+          },
+          "macro_f1": {
+            "n": 1,
+            "mean": 0.4867953115665011,
+            "std": 0.0,
+            "min": 0.4867953115665011,
+            "max": 0.4867953115665011,
+            "range": 0.0,
+            "values": [
+              0.4867953115665011
+            ]
+          },
+          "micro_f1": {
+            "n": 1,
+            "mean": 0.4867953115665011,
+            "std": 0.0,
+            "min": 0.4867953115665011,
+            "max": 0.4867953115665011,
+            "range": 0.0,
+            "values": [
+              0.4867953115665011
+            ]
+          },
+          "relaxed_f1": {
+            "n": 1,
+            "mean": 0.5793395775891753,
+            "std": 0.0,
+            "min": 0.5793395775891753,
+            "max": 0.5793395775891753,
+            "range": 0.0,
+            "values": [
+              0.5793395775891753
+            ]
+          }
+        },
+        "M05": {
+          "per_seed": {
+            "42": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/lomo/xlmr_crf_lomo_M05_deucalion.json",
+              "present": true,
+              "macro_f1": 0.5115080337773285,
+              "micro_f1": 0.5115080337773283,
+              "relaxed_f1": 0.5929714110971853
+            },
+            "13": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/xlmr_crf_lomo_M05_seeds_s13.json",
+              "present": false
+            },
+            "123": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/xlmr_crf_lomo_M05_seeds_s123.json",
+              "present": false
+            }
+          },
+          "macro_f1": {
+            "n": 1,
+            "mean": 0.5115080337773285,
+            "std": 0.0,
+            "min": 0.5115080337773285,
+            "max": 0.5115080337773285,
+            "range": 0.0,
+            "values": [
+              0.5115080337773285
+            ]
+          },
+          "micro_f1": {
+            "n": 1,
+            "mean": 0.5115080337773283,
+            "std": 0.0,
+            "min": 0.5115080337773283,
+            "max": 0.5115080337773283,
+            "range": 0.0,
+            "values": [
+              0.5115080337773283
+            ]
+          },
+          "relaxed_f1": {
+            "n": 1,
+            "mean": 0.5929714110971853,
+            "std": 0.0,
+            "min": 0.5929714110971853,
+            "max": 0.5929714110971853,
+            "range": 0.0,
+            "values": [
+              0.5929714110971853
+            ]
+          }
+        },
+        "M06": {
+          "per_seed": {
+            "42": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/lomo/xlmr_crf_lomo_M06_deucalion.json",
+              "present": true,
+              "macro_f1": 0.28848146359824456,
+              "micro_f1": 0.28848146359824456,
+              "relaxed_f1": 0.45365270782826034
+            },
+            "13": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/xlmr_crf_lomo_M06_seeds_s13.json",
+              "present": false
+            },
+            "123": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/xlmr_crf_lomo_M06_seeds_s123.json",
+              "present": false
+            }
+          },
+          "macro_f1": {
+            "n": 1,
+            "mean": 0.28848146359824456,
+            "std": 0.0,
+            "min": 0.28848146359824456,
+            "max": 0.28848146359824456,
+            "range": 0.0,
+            "values": [
+              0.28848146359824456
+            ]
+          },
+          "micro_f1": {
+            "n": 1,
+            "mean": 0.28848146359824456,
+            "std": 0.0,
+            "min": 0.28848146359824456,
+            "max": 0.28848146359824456,
+            "range": 0.0,
+            "values": [
+              0.28848146359824456
+            ]
+          },
+          "relaxed_f1": {
+            "n": 1,
+            "mean": 0.45365270782826034,
+            "std": 0.0,
+            "min": 0.45365270782826034,
+            "max": 0.45365270782826034,
+            "range": 0.0,
+            "values": [
+              0.45365270782826034
+            ]
+          }
+        }
+      },
+      "mean_macro_f1_per_seed": {
+        "42": 0.49740456927885596,
+        "13": 0.45482188808460344,
+        "123": 0.5397442389770362
+      },
+      "mean_micro_f1_per_seed": {
+        "42": 0.4974045692788558,
+        "13": 0.45482188808460344,
+        "123": 0.5397442389770362
+      },
+      "mean_relaxed_f1_per_seed": {
+        "42": 0.6128470584514588,
+        "13": 0.6461204300360519,
+        "123": 0.8177489186808127
+      },
+      "summary": {
+        "macro_f1": {
+          "n": 3,
+          "mean": 0.4973235654468319,
+          "std": 0.03466945188961957,
+          "min": 0.45482188808460344,
+          "max": 0.5397442389770362,
+          "range": 0.08492235089243272,
+          "values": [
+            0.49740456927885596,
+            0.45482188808460344,
+            0.5397442389770362
+          ]
+        },
+        "micro_f1": {
+          "n": 3,
+          "mean": 0.4973235654468318,
+          "std": 0.03466945188961957,
+          "min": 0.45482188808460344,
+          "max": 0.5397442389770362,
+          "range": 0.08492235089243272,
+          "values": [
+            0.4974045692788558,
+            0.45482188808460344,
+            0.5397442389770362
+          ]
+        },
+        "relaxed_f1": {
+          "n": 3,
+          "mean": 0.6922388023894411,
+          "std": 0.08978259401746276,
+          "min": 0.6128470584514588,
+          "max": 0.8177489186808127,
+          "range": 0.20490186022935386,
+          "values": [
+            0.6128470584514588,
+            0.6461204300360519,
+            0.8177489186808127
+          ]
+        }
+      }
+    },
+    "deberta_crf": {
+      "per_municipality": {
+        "M01": {
+          "per_seed": {
+            "42": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/lomo/deberta_crf_lomo_M01_deucalion.json",
+              "present": true,
+              "macro_f1": 0.5519225437172447,
+              "micro_f1": 0.5519225437172447,
+              "relaxed_f1": 0.7414069546113131
+            },
+            "13": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/deberta_crf_lomo_M01_seeds_s13.json",
+              "present": true,
+              "macro_f1": 0.5940185050606663,
+              "micro_f1": 0.5940185050606663,
+              "relaxed_f1": 0.7001121062448646
+            },
+            "123": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/deberta_crf_lomo_M01_seeds_s123.json",
+              "present": true,
+              "macro_f1": 0.5773584952085501,
+              "micro_f1": 0.5773584952085501,
+              "relaxed_f1": 0.795998464181314
+            }
+          },
+          "macro_f1": {
+            "n": 3,
+            "mean": 0.5744331813288204,
+            "std": 0.01730964252139862,
+            "min": 0.5519225437172447,
+            "max": 0.5940185050606663,
+            "range": 0.04209596134342164,
+            "values": [
+              0.5519225437172447,
+              0.5940185050606663,
+              0.5773584952085501
+            ]
+          },
+          "micro_f1": {
+            "n": 3,
+            "mean": 0.5744331813288204,
+            "std": 0.01730964252139862,
+            "min": 0.5519225437172447,
+            "max": 0.5940185050606663,
+            "range": 0.04209596134342164,
+            "values": [
+              0.5519225437172447,
+              0.5940185050606663,
+              0.5773584952085501
+            ]
+          },
+          "relaxed_f1": {
+            "n": 3,
+            "mean": 0.7458391750124973,
+            "std": 0.03927070021311672,
+            "min": 0.7001121062448646,
+            "max": 0.795998464181314,
+            "range": 0.0958863579364494,
+            "values": [
+              0.7414069546113131,
+              0.7001121062448646,
+              0.795998464181314
+            ]
+          }
+        },
+        "M02": {
+          "per_seed": {
+            "42": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/lomo/deberta_crf_lomo_M02_deucalion.json",
+              "present": true,
+              "macro_f1": 0.7574499467484056,
+              "micro_f1": 0.7574499467484057,
+              "relaxed_f1": 0.8319812743257378
+            },
+            "13": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/deberta_crf_lomo_M02_seeds_s13.json",
+              "present": true,
+              "macro_f1": 0.7336159487253702,
+              "micro_f1": 0.7336159487253702,
+              "relaxed_f1": 0.7892351067734882
+            },
+            "123": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/deberta_crf_lomo_M02_seeds_s123.json",
+              "present": true,
+              "macro_f1": 0.7212971578559022,
+              "micro_f1": 0.7212971578559022,
+              "relaxed_f1": 0.7612610842243696
+            }
+          },
+          "macro_f1": {
+            "n": 3,
+            "mean": 0.7374543511098927,
+            "std": 0.015006799255128994,
+            "min": 0.7212971578559022,
+            "max": 0.7574499467484056,
+            "range": 0.036152788892503396,
+            "values": [
+              0.7574499467484056,
+              0.7336159487253702,
+              0.7212971578559022
+            ]
+          },
+          "micro_f1": {
+            "n": 3,
+            "mean": 0.7374543511098927,
+            "std": 0.015006799255129042,
+            "min": 0.7212971578559022,
+            "max": 0.7574499467484057,
+            "range": 0.03615278889250351,
+            "values": [
+              0.7574499467484057,
+              0.7336159487253702,
+              0.7212971578559022
+            ]
+          },
+          "relaxed_f1": {
+            "n": 3,
+            "mean": 0.7941591551078652,
+            "std": 0.029080589299311836,
+            "min": 0.7612610842243696,
+            "max": 0.8319812743257378,
+            "range": 0.07072019010136821,
+            "values": [
+              0.8319812743257378,
+              0.7892351067734882,
+              0.7612610842243696
+            ]
+          }
+        },
+        "M03": {
+          "per_seed": {
+            "42": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/lomo/deberta_crf_lomo_M03_deucalion.json",
+              "present": true,
+              "macro_f1": 0.47719185088402083,
+              "micro_f1": 0.47719185088402083,
+              "relaxed_f1": 0.5642600041254311
+            },
+            "13": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/deberta_crf_lomo_M03_seeds_s13.json",
+              "present": true,
+              "macro_f1": 0.5701322432986149,
+              "micro_f1": 0.5701322432986149,
+              "relaxed_f1": 0.7118792824643843
+            },
+            "123": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/deberta_crf_lomo_M03_seeds_s123.json",
+              "present": true,
+              "macro_f1": 0.6320925465882292,
+              "micro_f1": 0.6320925465882292,
+              "relaxed_f1": 0.6661144865858482
+            }
+          },
+          "macro_f1": {
+            "n": 3,
+            "mean": 0.5598055469236216,
+            "std": 0.06365813315897095,
+            "min": 0.47719185088402083,
+            "max": 0.6320925465882292,
+            "range": 0.1549006957042084,
+            "values": [
+              0.47719185088402083,
+              0.5701322432986149,
+              0.6320925465882292
+            ]
+          },
+          "micro_f1": {
+            "n": 3,
+            "mean": 0.5598055469236216,
+            "std": 0.06365813315897095,
+            "min": 0.47719185088402083,
+            "max": 0.6320925465882292,
+            "range": 0.1549006957042084,
+            "values": [
+              0.47719185088402083,
+              0.5701322432986149,
+              0.6320925465882292
+            ]
+          },
+          "relaxed_f1": {
+            "n": 3,
+            "mean": 0.6474179243918878,
+            "std": 0.06169837335907002,
+            "min": 0.5642600041254311,
+            "max": 0.7118792824643843,
+            "range": 0.14761927833895316,
+            "values": [
+              0.5642600041254311,
+              0.7118792824643843,
+              0.6661144865858482
+            ]
+          }
+        },
+        "M04": {
+          "per_seed": {
+            "42": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/lomo/deberta_crf_lomo_M04_deucalion.json",
+              "present": true,
+              "macro_f1": 0.5452773869253097,
+              "micro_f1": 0.5452773869253097,
+              "relaxed_f1": 0.6066747673295154
+            },
+            "13": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/deberta_crf_lomo_M04_seeds_s13.json",
+              "present": true,
+              "macro_f1": 0.5886382616567193,
+              "micro_f1": 0.5886382616567192,
+              "relaxed_f1": 0.6168323306173802
+            },
+            "123": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/deberta_crf_lomo_M04_seeds_s123.json",
+              "present": true,
+              "macro_f1": 0.5525676117458754,
+              "micro_f1": 0.5525676117458754,
+              "relaxed_f1": 0.6268938199138665
+            }
+          },
+          "macro_f1": {
+            "n": 3,
+            "mean": 0.5621610867759681,
+            "std": 0.018957275414872746,
+            "min": 0.5452773869253097,
+            "max": 0.5886382616567193,
+            "range": 0.04336087473140959,
+            "values": [
+              0.5452773869253097,
+              0.5886382616567193,
+              0.5525676117458754
+            ]
+          },
+          "micro_f1": {
+            "n": 3,
+            "mean": 0.5621610867759681,
+            "std": 0.018957275414872694,
+            "min": 0.5452773869253097,
+            "max": 0.5886382616567192,
+            "range": 0.04336087473140948,
+            "values": [
+              0.5452773869253097,
+              0.5886382616567192,
+              0.5525676117458754
+            ]
+          },
+          "relaxed_f1": {
+            "n": 3,
+            "mean": 0.6168003059535874,
+            "std": 0.008254424713913818,
+            "min": 0.6066747673295154,
+            "max": 0.6268938199138665,
+            "range": 0.020219052584351083,
+            "values": [
+              0.6066747673295154,
+              0.6168323306173802,
+              0.6268938199138665
+            ]
+          }
+        },
+        "M05": {
+          "per_seed": {
+            "42": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/lomo/deberta_crf_lomo_M05_deucalion.json",
+              "present": true,
+              "macro_f1": 0.49274258443207763,
+              "micro_f1": 0.49274258443207763,
+              "relaxed_f1": 0.5794500894222476
+            },
+            "13": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/deberta_crf_lomo_M05_seeds_s13.json",
+              "present": true,
+              "macro_f1": 0.5484141930037251,
+              "micro_f1": 0.5484141930037251,
+              "relaxed_f1": 0.6072424402506418
+            },
+            "123": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/deberta_crf_lomo_M05_seeds_s123.json",
+              "present": true,
+              "macro_f1": 0.5869165505910189,
+              "micro_f1": 0.5869165505910189,
+              "relaxed_f1": 0.6974763899909764
+            }
+          },
+          "macro_f1": {
+            "n": 3,
+            "mean": 0.5426911093422738,
+            "std": 0.0386587570111726,
+            "min": 0.49274258443207763,
+            "max": 0.5869165505910189,
+            "range": 0.09417396615894125,
+            "values": [
+              0.49274258443207763,
+              0.5484141930037251,
+              0.5869165505910189
+            ]
+          },
+          "micro_f1": {
+            "n": 3,
+            "mean": 0.5426911093422738,
+            "std": 0.0386587570111726,
+            "min": 0.49274258443207763,
+            "max": 0.5869165505910189,
+            "range": 0.09417396615894125,
+            "values": [
+              0.49274258443207763,
+              0.5484141930037251,
+              0.5869165505910189
+            ]
+          },
+          "relaxed_f1": {
+            "n": 3,
+            "mean": 0.628056306554622,
+            "std": 0.05038164136121375,
+            "min": 0.5794500894222476,
+            "max": 0.6974763899909764,
+            "range": 0.11802630056872876,
+            "values": [
+              0.5794500894222476,
+              0.6072424402506418,
+              0.6974763899909764
+            ]
+          }
+        },
+        "M06": {
+          "per_seed": {
+            "42": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/lomo/deberta_crf_lomo_M06_deucalion.json",
+              "present": true,
+              "macro_f1": 0.32633480821949296,
+              "micro_f1": 0.32633480821949296,
+              "relaxed_f1": 0.4424768307670382
+            },
+            "13": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/deberta_crf_lomo_M06_seeds_s13.json",
+              "present": true,
+              "macro_f1": 0.26790451153267053,
+              "micro_f1": 0.2679045115326706,
+              "relaxed_f1": 0.372018134349336
+            },
+            "123": {
+              "path": "/Users/josepedroevans/Desktop/INESC/Citilink/citilink_vote_identification/evaluation/deberta_crf_lomo_M06_seeds_s123.json",
+              "present": true,
+              "macro_f1": 0.3376762100645943,
+              "micro_f1": 0.3376762100645943,
+              "relaxed_f1": 0.4525459296159564
+            }
+          },
+          "macro_f1": {
+            "n": 3,
+            "mean": 0.3106385099389193,
+            "std": 0.030570168615737893,
+            "min": 0.26790451153267053,
+            "max": 0.3376762100645943,
+            "range": 0.06977169853192378,
+            "values": [
+              0.32633480821949296,
+              0.26790451153267053,
+              0.3376762100645943
+            ]
+          },
+          "micro_f1": {
+            "n": 3,
+            "mean": 0.3106385099389193,
+            "std": 0.03057016861573787,
+            "min": 0.2679045115326706,
+            "max": 0.3376762100645943,
+            "range": 0.06977169853192372,
+            "values": [
+              0.32633480821949296,
+              0.2679045115326706,
+              0.3376762100645943
+            ]
+          },
+          "relaxed_f1": {
+            "n": 3,
+            "mean": 0.4223469649107769,
+            "std": 0.035824480244370974,
+            "min": 0.372018134349336,
+            "max": 0.4525459296159564,
+            "range": 0.0805277952666204,
+            "values": [
+              0.4424768307670382,
+              0.372018134349336,
+              0.4525459296159564
+            ]
+          }
+        }
+      },
+      "mean_macro_f1_per_seed": {
+        "42": 0.5251531868210918,
+        "13": 0.5504539438796278,
+        "123": 0.5679847620090284
+      },
+      "mean_micro_f1_per_seed": {
+        "42": 0.5251531868210919,
+        "13": 0.5504539438796278,
+        "123": 0.5679847620090284
+      },
+      "mean_relaxed_f1_per_seed": {
+        "42": 0.6277083200968806,
+        "13": 0.6328865667833491,
+        "123": 0.6667150290853886
+      },
+      "summary": {
+        "macro_f1": {
+          "n": 3,
+          "mean": 0.5478639642365827,
+          "std": 0.017581561443427162,
+          "min": 0.5251531868210918,
+          "max": 0.5679847620090284,
+          "range": 0.042831575187936566,
+          "values": [
+            0.5251531868210918,
+            0.5504539438796278,
+            0.5679847620090284
+          ]
+        },
+        "micro_f1": {
+          "n": 3,
+          "mean": 0.5478639642365827,
+          "std": 0.017581561443427113,
+          "min": 0.5251531868210919,
+          "max": 0.5679847620090284,
+          "range": 0.042831575187936455,
+          "values": [
+            0.5251531868210919,
+            0.5504539438796278,
+            0.5679847620090284
+          ]
+        },
+        "relaxed_f1": {
+          "n": 3,
+          "mean": 0.6424366386552061,
+          "std": 0.017297085324735367,
+          "min": 0.6277083200968806,
+          "max": 0.6667150290853886,
+          "range": 0.039006708988508,
+          "values": [
+            0.6277083200968806,
+            0.6328865667833491,
+            0.6667150290853886
+          ]
+        }
+      }
+    }
+  },
+  "notes": {
+    "macro_f1": "Average of per_type F1 over the 11 entity types (paper headline).",
+    "micro_f1": "entity_f1 field from the eval JSON (precision/recall aggregated over all entity spans).",
+    "seeds": [
+      "42 (deucalion)",
+      "13 (seeds_s13)",
+      "123 (seeds_s123)"
+    ]
+  }
+}

@@ -1,6 +1,6 @@
-"""Gemini-based span extraction."""
+"""Gemini-based span extraction via langextract."""
 
 from .extractor import GeminiSpanExtractor
-from .config import GeminiConfig, DEFAULT_CONFIG
+from .config import GeminiConfig
 
-__all__ = ["GeminiSpanExtractor", "GeminiConfig", "DEFAULT_CONFIG"]
+__all__ = ["GeminiSpanExtractor", "GeminiConfig"]

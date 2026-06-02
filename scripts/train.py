@@ -22,6 +22,7 @@ Usage:
     python scripts/train.py --config configs/main_experiment/crf.yaml --experiment-name exp1
 """
 
+import json
 import sys
 import logging
 from pathlib import Path
@@ -57,7 +58,7 @@ TRANSFORMER_BASELINES = {
 ALL_BASELINES = {**TRADITIONAL_BASELINES, **TRANSFORMER_BASELINES}
 
 
-def train_crf(baseline_name: str, config_file: str = None, experiment_name: str = None):
+def train_crf(baseline_name: str, config_file: str = None, experiment_name: str = None, output_dir: str = None):
     """Train CRF baseline."""
     from src.models.crf import TraditionalCRFModel
     from src.data.dataset import load_jsonl_file
@@ -80,7 +81,7 @@ def train_crf(baseline_name: str, config_file: str = None, experiment_name: str 
     print(f"   Train: {len(train_data)}, Dev: {len(dev_data)} examples")
 
     # Train CRF
-    output_dir = Path("models") / baseline_name / experiment_name
+    output_dir = Path(output_dir) if output_dir else Path("models") / baseline_name / experiment_name
     output_dir.mkdir(parents=True, exist_ok=True)
 
     model = TraditionalCRFModel(
@@ -116,7 +117,7 @@ def train_crf(baseline_name: str, config_file: str = None, experiment_name: str 
     return output_dir
 
 
-def train_bilstm(baseline_name: str, config_file: str = None, experiment_name: str = None):
+def train_bilstm(baseline_name: str, config_file: str = None, experiment_name: str = None, output_dir: str = None):
     """Train BiLSTM+FastText baseline."""
     from src.bilstm_trainer import BiLSTMTrainer
     import yaml
@@ -129,7 +130,7 @@ def train_bilstm(baseline_name: str, config_file: str = None, experiment_name: s
     data_config = config['data']
     training_config = config['training']
 
-    output_dir = Path("models") / baseline_name / experiment_name
+    output_dir = Path(output_dir) if output_dir else Path("models") / baseline_name / experiment_name
 
     # Filter out 'name' field from model_config as it's not a BiLSTMTrainer parameter
     model_params_filtered = {k: v for k, v in model_config.items() if k != 'name'}
@@ -156,7 +157,7 @@ def train_bilstm(baseline_name: str, config_file: str = None, experiment_name: s
     return output_dir
 
 
-def train_transformer(baseline_name: str, config_file: str = None, experiment_name: str = None):
+def train_transformer(baseline_name: str, config_file: str = None, experiment_name: str = None, output_dir: str = None):
     """Train transformer baseline (BERT, DeBERTa, XLM-R)."""
     import torch
     import yaml
@@ -165,7 +166,7 @@ def train_transformer(baseline_name: str, config_file: str = None, experiment_na
     from src.models.bertimbau_models import BertimbauLinearVotIE, BertimbauCRFVotIE
     from src.models.deberta_models import DebertaLinearVotIE, DebertaCRFVotIE
     from src.models.xlmr_models import XLMRLinearVotIE, XLMRCRFVotIE
-    from src.data.dataset import load_ner_dataset_with_dynamic_windowing
+    from src.data.dataset import load_ner_dataset_offset_aligned
 
     MODEL_CLASSES = {
         "bert_linear": BertimbauLinearVotIE,
@@ -190,15 +191,42 @@ def train_transformer(baseline_name: str, config_file: str = None, experiment_na
     data_dir = Path(data_config['data_dir'])
 
     model_name = model_config['model_name']
-    train_dataset, dev_dataset, _, label_to_id, id_to_label, tokenizer = load_ner_dataset_with_dynamic_windowing(
+
+    # When resuming from a checkpoint, the model's classifier head must match
+    # the checkpoint's label dimension. Load label2id from the run's config.json
+    # so the rebuilt model has the same num_labels. The trainer writes the raw
+    # checkpoint to <output_dir>/best_model/checkpoint.pt but config.json to
+    # <output_dir>/config.json, so check the parent dir too.
+    override_label_to_id = None
+    resume_ckpt = training_config.get('resume_from_checkpoint')
+    if resume_ckpt:
+        ckpt_parent = Path(resume_ckpt).parent
+        candidate_paths = [ckpt_parent / 'config.json', ckpt_parent.parent / 'config.json']
+        ckpt_config_path = next((p for p in candidate_paths if p.exists()), None)
+        if ckpt_config_path is not None:
+            with open(ckpt_config_path, 'r', encoding='utf-8') as f:
+                ckpt_cfg = json.load(f)
+            if 'label2id' in ckpt_cfg:
+                override_label_to_id = {str(k): int(v) for k, v in ckpt_cfg['label2id'].items()}
+                print(f"📥 Loaded label mapping from {ckpt_config_path} ({len(override_label_to_id)} labels)")
+            else:
+                print(f"⚠️  {ckpt_config_path} has no 'label2id' — falling back to data-derived labels")
+        else:
+            tried = ", ".join(str(p) for p in candidate_paths)
+            print(f"⚠️  Checkpoint config not found (tried: {tried}) — falling back to data-derived labels")
+
+    # Offset-aligned tokenization: the model's native subword tokenizer is the
+    # source of truth for word boundaries; BIO labels are assigned per-subword
+    # via char-offset overlap. No regex pre-tokenizer, no train-inference gap.
+    train_dataset, dev_dataset, _, label_to_id, id_to_label, tokenizer = load_ner_dataset_offset_aligned(
         data_dir=data_dir,
         train_file=data_config.get('train_file', 'train.jsonl'),
         dev_file=data_config.get('dev_file', 'dev.jsonl'),
-        test_file=data_config.get('test_file', 'test.jsonl'),  # Still needed for label mapping
+        test_file=data_config.get('test_file', 'test.jsonl'),
         tokenizer_name=model_name,
         max_length=augmentation_config.get('max_length', 512),
-        overlap_tokens=windowing_config.get('overlap_tokens', 50),
-        enable_windowing=windowing_config.get('enable_windowing', True)
+        overlap_subwords=windowing_config.get('overlap_tokens', 50),
+        override_label_to_id=override_label_to_id,
     )
 
     # Create model
@@ -208,7 +236,7 @@ def train_transformer(baseline_name: str, config_file: str = None, experiment_na
     print(f"✓ Model created with {len(label_to_id)} labels")
 
     # Train
-    output_dir = Path("models") / baseline_name / experiment_name
+    output_dir = Path(output_dir) if output_dir else Path("models") / baseline_name / experiment_name
     print(f"\n📦 Initializing trainer...")
 
     trainer = VotIETrainer(
@@ -228,7 +256,11 @@ def train_transformer(baseline_name: str, config_file: str = None, experiment_na
         tokenizer=tokenizer,
         base_model=model_name,
         device=int(training_config.get('device', 0)),
-        apply_bio_validation=bool(training_config.get('apply_bio_validation', True))
+        apply_bio_validation=bool(training_config.get('apply_bio_validation', True)),
+        resume_from_checkpoint=training_config.get('resume_from_checkpoint'),
+        reset_optimizer=bool(training_config.get('reset_optimizer', False)),
+        reset_scheduler=bool(training_config.get('reset_scheduler', False)),
+        reset_epochs=bool(training_config.get('reset_epochs', True)),
     )
     print(f"✓ Trainer initialized\n")
 
@@ -243,11 +275,11 @@ def train_transformer(baseline_name: str, config_file: str = None, experiment_na
     return output_dir
 
 
-def main(config_file: str, experiment_name: str = None):
+def main(config_file: str, experiment_name: str = None, output_dir: str = None):
     """Main training entry point."""
     import yaml
     from pathlib import Path
-    
+
     # Check if config file exists
     config_path = Path(config_file)
     if not config_path.exists():
@@ -260,13 +292,13 @@ def main(config_file: str, experiment_name: str = None):
         print("\nExample usage:")
         print("  python scripts/train.py --config configs/main_experiment/bert_crf.yaml")
         sys.exit(1)
-    
+
     # Load config to get baseline name
     with open(config_file, 'r') as f:
         config = yaml.safe_load(f)
-    
+
     baseline_name = config['model']['name']
-    
+
     # Generate experiment name if not provided
     if experiment_name is None:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -290,16 +322,16 @@ def main(config_file: str, experiment_name: str = None):
 
     # Route to appropriate trainer
     try:
-        output_dir = None
+        result_dir = None
         if baseline_name == "crf":
-            output_dir = train_crf(baseline_name, config_file, experiment_name)
+            result_dir = train_crf(baseline_name, config_file, experiment_name, output_dir)
         elif baseline_name == "bilstm_fasttext":
-            output_dir = train_bilstm(baseline_name, config_file, experiment_name)
+            result_dir = train_bilstm(baseline_name, config_file, experiment_name, output_dir)
         else:
-            output_dir = train_transformer(baseline_name, config_file, experiment_name)
+            result_dir = train_transformer(baseline_name, config_file, experiment_name, output_dir)
 
         print(f"\n🎉 Training completed successfully!")
-        print(f"📁 Model saved to: {output_dir}")
+        print(f"📁 Model saved to: {result_dir}")
 
     except Exception as e:
         print(f"\n❌ Training failed: {e}")
@@ -331,6 +363,7 @@ if __name__ == "__main__":
     # Parse arguments
     config_file = None
     experiment_name = None
+    output_dir = None
 
     i = 1
     while i < len(sys.argv):
@@ -340,12 +373,15 @@ if __name__ == "__main__":
         elif sys.argv[i] == "--experiment-name" and i + 1 < len(sys.argv):
             experiment_name = sys.argv[i + 1]
             i += 2
+        elif sys.argv[i] == "--output-dir" and i + 1 < len(sys.argv):
+            output_dir = sys.argv[i + 1]
+            i += 2
         else:
             i += 1
 
     if not config_file:
         print("❌ Error: --config argument is required")
-        print("Usage: python scripts/train.py --config CONFIG_FILE [--experiment-name NAME]")
+        print("Usage: python scripts/train.py --config CONFIG_FILE [--experiment-name NAME] [--output-dir DIR]")
         sys.exit(1)
 
-    main(config_file, experiment_name)
+    main(config_file, experiment_name, output_dir)

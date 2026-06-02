@@ -125,35 +125,95 @@ class ErrorClassifier:
         return gold_entities
 
     def load_predictions(self, pred_file: str) -> Dict[str, List[Entity]]:
-        """Load predicted entities from predictions file (handles both BIO and span formats)"""
+        """Load predicted entities from predictions file.
+
+        Supports three formats:
+        (a) ``tokens`` + ``pred_labels`` (legacy CRF/BiLSTM output)
+        (b) ``subword_offsets`` + ``subword_pred_labels`` + ``text`` (current
+            transformer pipeline; char-level offsets in the original text)
+        (c) ``entities`` (LLM/Gemini output with text+type+start+end)
+        """
         predictions = defaultdict(list)
         data = load_jsonl(pred_file)
-        
+
         for example in data:
             doc_id = example['id']
-            
-            # Check if this is BIO format (has pred_labels) or span format (has entities)
-            if 'pred_labels' in example and 'tokens' in example:
-                # BIO format - extract entities from labels
+
+            if 'subword_offsets' in example and 'subword_pred_labels' in example:
+                entities = self._extract_entities_from_offsets(
+                    text=example.get('text', ''),
+                    offsets=example['subword_offsets'],
+                    labels=example['subword_pred_labels'],
+                    doc_id=doc_id,
+                )
+                predictions[doc_id].extend(entities)
+            elif 'pred_labels' in example and 'tokens' in example:
                 entities = self._extract_entities_from_bio(
                     tokens=example['tokens'],
                     labels=example['pred_labels'],
-                    doc_id=doc_id
+                    doc_id=doc_id,
                 )
                 predictions[doc_id].extend(entities)
             elif 'entities' in example:
-                # Span format - direct extraction
                 for ent in example.get('entities', []):
-                    entity = Entity(
+                    predictions[doc_id].append(Entity(
                         text=ent['text'],
                         type=ent['type'],
                         start=ent['start'],
                         end=ent['end'],
-                        doc_id=doc_id
-                    )
-                    predictions[doc_id].append(entity)
-        
+                        doc_id=doc_id,
+                    ))
+
         return predictions
+
+    def _extract_entities_from_offsets(
+        self,
+        text: str,
+        offsets: List[List[int]],
+        labels: List[str],
+        doc_id: str,
+    ) -> List[Entity]:
+        """Convert subword BIO labels + char offsets into entity spans.
+
+        Adjacent B-X / I-X subwords are merged. Span boundaries come from
+        the first subword's start and the last subword's end in the original
+        ``text`` (whitespace trimmed)."""
+        entities: List[Entity] = []
+        cur_type = None
+        cur_start = None
+        cur_end = None
+
+        def flush():
+            if cur_type is None:
+                return
+            s, e = cur_start, cur_end
+            while s < e and s < len(text) and text[s].isspace():
+                s += 1
+            while e > s and e <= len(text) and text[e - 1].isspace():
+                e -= 1
+            entities.append(Entity(
+                text=text[s:e] if text else '',
+                type=cur_type,
+                start=s,
+                end=e,
+                doc_id=doc_id,
+            ))
+
+        for (sw_start, sw_end), label in zip(offsets, labels):
+            if label.startswith('B-'):
+                flush()
+                cur_type = label[2:]
+                cur_start = sw_start
+                cur_end = sw_end
+            elif label.startswith('I-') and cur_type is not None and label[2:] == cur_type:
+                cur_end = sw_end
+            else:
+                flush()
+                cur_type = None
+                cur_start = None
+                cur_end = None
+        flush()
+        return entities
     
     def _extract_entities_from_bio(
         self,
@@ -581,21 +641,27 @@ def main():
     # Models with their corresponding gold standard files
     models = [
         {
-            'name': 'DeBERTa-CRF',
-            'pred_file': 'results/discriminative_models/deberta_crf/deberta_crf_predictions.jsonl',
-            'gold_file': 'data/citilink_bio/test.jsonl',  # BIO format
-            'gold_format': 'bio'
+            'name': 'XLM-R-CRF',
+            'pred_file': 'predictions/xlmr_crf_xlmr_crf_deucalion.jsonl',
+            'gold_file': 'data/citilink-votie/test.jsonl',
+            'gold_format': 'spans'
         },
         {
-            'name': 'XLM-R-CRF',
-            'pred_file': 'results/discriminative_models/xmlr_crf/xlmr_crf_paper_reproduction.jsonl',
-            'gold_file': 'data/citilink_bio/test.jsonl',  # BIO format
-            'gold_format': 'bio'
+            'name': 'DeBERTa-CRF',
+            'pred_file': 'predictions/deberta_crf_deberta_crf_deucalion.jsonl',
+            'gold_file': 'data/citilink-votie/test.jsonl',
+            'gold_format': 'spans'
+        },
+        {
+            'name': 'BERTimbau-CRF',
+            'pred_file': 'predictions/bert_crf_bert_crf_deucalion.jsonl',
+            'gold_file': 'data/citilink-votie/test.jsonl',
+            'gold_format': 'spans'
         },
         {
             'name': 'Gemini-Few-Shot',
-            'pred_file': 'results/llm_extraction/gemini_few_final.jsonl',
-            'gold_file': 'data/citilink_spans/test.jsonl',  # Span format
+            'pred_file': 'results/llm_extraction/gemini/few_shot.jsonl',
+            'gold_file': 'data/citilink-votie/test.jsonl',
             'gold_format': 'spans'
         }
     ]

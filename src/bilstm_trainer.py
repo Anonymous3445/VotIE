@@ -271,7 +271,13 @@ class BiLSTMTrainer:
 
     def load_data_from_jsonl(self, file_path: Union[str, Path]) -> Tuple[List[List[str]], List[List[str]]]:
         """
-        Load data from JSONL file.
+        Load data from JSONL file. Accepts both span format and BIO format.
+
+        Span format (primary): {"id", "text", "spans": [...], "municipality", ...}
+        BIO format (derived):  span format + {"tokens": [...], "labels": [...]}
+
+        Span format is automatically converted to BIO using the same regex-based
+        tokenizer as all other models (src/data/span_to_bio.py).
 
         Args:
             file_path: Path to JSONL file
@@ -279,6 +285,8 @@ class BiLSTMTrainer:
         Returns:
             Tuple of (sentences, labels)
         """
+        from src.data.span_to_bio import convert_span_to_bio
+
         file_path = Path(file_path)
         sentences = []
         labels = []
@@ -287,6 +295,9 @@ class BiLSTMTrainer:
             for line in f:
                 if line.strip():
                     example = json.loads(line.strip())
+                    # Auto-convert span format → BIO if needed
+                    if 'spans' in example and 'tokens' not in example:
+                        example = convert_span_to_bio(example, validate=False)
                     if 'tokens' in example and 'labels' in example:
                         sentences.append(example['tokens'])
                         labels.append(example['labels'])

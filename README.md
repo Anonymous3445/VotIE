@@ -1,994 +1,766 @@
-# Citilink: Voting Information Extraction from Municipal Meeting Minutes
+# VotIE: Information Extraction from Meeting Minutes
 
 [![License: CC-BY-ND 4.0](https://img.shields.io/badge/License-CC--BY--ND%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nd/4.0/)
 [![Python 3.10](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org/)
 
-Official repository for the paper **"Citilink: Voting Information Extraction from Municipal Meeting Minutes"**, submitted to ACL 2026.
+Official repository for the paper **"VotIE: Information Extraction from Meeting Minutes"**, submitted to EMNLP 2026.
 
-This repository provides a comprehensive framework for extracting structured voting information from Portuguese municipal meeting minutes using span extraction with sequence labeling (BIO tagging) and LLM-based extraction.
+VotIE is a research framework for extracting structured voting information from Portuguese municipal meeting minutes. It implements two complementary approaches: discriminative sequence labeling with BIO tagging across five model families, and LLM-based extraction using Gemini 2.5 Pro, GPT 5.5, and AMALIA 8B in zero/few-shot configurations via langextract.
 
-> **🎯 Try Citilink Now**: Test the model interactively at [huggingface.co/spaces/Anonymous3445/VotIE-demo](https://huggingface.co/spaces/Anonymous3445/VotIE-demo)
+> **🎯 Try it now**: Test the model interactively at [huggingface.co/spaces/Anonymous3445/VotIE-demo](https://huggingface.co/spaces/Anonymous3445/VotIE-demo)
+> **📦 Pre-trained model**: [Anonymous3445/XLM-RoBERTa-CRF-VotIE](https://huggingface.co/Anonymous3445/XLM-RoBERTa-CRF-VotIE)
+
+<div align="center">
+    <img width="1000" alt="VotIE dataset diagram" src="VotIE_dataset_diagram.png" />
+</div>
 
 ---
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Key Features](#key-features)
-- [Project Status](#project-status)
-- [Technology Stack](#technology-stack)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Usage](#usage)
-  - [Training Models](#training-models)
-  - [Making Predictions](#making-predictions)
-  - [Running Evaluation](#running-evaluation)
-- [Dataset](#dataset)
-- [Models](#models)
-  - [Discriminative Models](#discriminative-models)
-  - [LLM-Based Extraction](#llm-based-extraction)
-  - [Prompts](#prompts)
-- [Experimental Results](#experimental-results)
-  - [Main Results](#main-results-test-set)
-  - [Leave-One-Municipality-Out (LOMO)](#leave-one-municipality-out-lomo-evaluation)
-- [Repository Structure](#repository-structure)
-- [Reproducibility](#reproducibility)
-- [Citation](#citation)
-- [License](#license)
-- [Acknowledgments](#acknowledgments)
+1. [Description](#description)
+2. [Project Status](#1-project-status)
+3. [Technology Stack](#2-technology-stack)
+4. [Dependencies](#3-dependencies)
+5. [Installation](#4-installation)
+6. [Usage](#5-usage)
+7. [Dataset](#6-dataset)
+8. [Architecture](#7-architecture)
+9. [Evaluation Metrics](#8-evaluation-metrics)
+10. [Experimental Results](#9-experimental-results)
+11. [Known Issues](#10-known-issues)
+12. [License](#11-license)
+13. [Resources](#12-resources)
+14. [Acknowledgments](#13-acknowledgments)
+15. [Citation](#14-citation)
 
 ---
 
-## Overview
+## Description
 
-![Citilink Overview](VotIE_dataset_diagram.png)
+VotIE addresses the task of identifying voting entities in Portuguese municipal council meeting minutes, a domain-specific challenge where voting-related spans must be identified and typed across highly formal, structured text.
 
-VotIE is a specialized framework designed to extract structured voting information from Portuguese municipal meeting minutes using:
+The framework supports **12 entity types** across four categories:
 
-- **Sequence Labeling** – Identifies and classifies voting-related spans using BIO tagging
-- **LLM-Based Extraction** – Uses Gemini with few-shot prompting for span extraction
+**Voter roles:** VOTER-FAVOR, VOTER-AGAINST, VOTER-ABSTENTION, VOTER-ABSENT
 
-The framework supports 8 entity types:
-- **VOTER-FAVOR** – Participants who voted in favor
-- **VOTER-AGAINST** – Participants who voted against
-- **VOTER-ABSTENTION** – Participants who abstained
-- **VOTER-ABSENT** – Participants who were absent
-- **VOTING** – Voting action expressions (e.g., "deliberated", "approved")
-- **SUBJECT** – The subject matter being voted on
-- **COUNTING-UNANIMITY** – Unanimous vote indicators
-- **COUNTING-MAJORITY** – Majority vote indicators
+**Voting event:** VOTING (the act of voting), SUBJECT (the matter under deliberation)
 
----
+**Counting expressions:** COUNTING-UNANIMITY, COUNTING-MAJORITY (natural-language outcomes); COUNT-FAVOR, COUNT-BLANK (numeric secret-ballot tallies); COUNT-AGAINST (schema element, zero test instances)
 
-## Key Features
+**Procedure:** VOTING-METHOD (e.g., "escrutínio secreto")
 
-- **Sequence Labeling**: Token-level F1 metrics using seqeval for strict BIO validation
-- **Multiple Architectures**: Traditional baselines (CRF, BiLSTM+FastText); Transformer models (BERTimbau, DeBERTa, XLM-RoBERTa); LLM extraction (Gemini via API)
-- **Windowing Support**: Handles long documents that exceed transformer context limits
-- **Cross-Municipality Evaluation**: Leave-One-Municipality-Out (LOMO) experiments for domain transfer analysis
-- **Reproducible**: Fixed seeds, documented hyperparameters, and detailed training logs
+### Key Features
+
+- **Unified training interface**: `scripts/train.py` auto-detects model type from YAML config; all configs live in `configs/`
+- **Multiple architectures**: Traditional (CRF, BiLSTM+FastText), Transformer (BERTimbau, mDeBERTa-v3, XLM-RoBERTa), and generative LLMs (Gemini 2.5 Pro, GPT 5.5, AMALIA 8B)
+- **Single canonical data format**: Span-annotated JSONL; BIO conversion is applied automatically at load time — no pre-processing required
+- **Windowing support**: Documents exceeding 512 tokens are split into overlapping windows and reassembled at inference
+- **Cross-municipality evaluation**: Leave-One-Municipality-Out (LOMO) experiments across 6 Portuguese municipalities
+- **Reproducible**: Three seeds (42, 13, 123) for encoder-CRF models; seed 42 for all other configurations.
 
 ---
 
-## Project Status
+## 1. Project Status
 
-The VotIE framework is **fully implemented and validated** for research use. The codebase is actively maintained to ensure reproducibility of published results.
+**Status**: ✅ Completed Research Prototype — Under Review
+
+The VotIE framework is fully implemented and validated. All experiments from the paper are reproducible using the provided code and dataset. The codebase is ready for research use.
 
 **Dataset Availability**:
-- ✅ **Sample Data Available**: 30 representative test examples for demonstration (included in repository)
-- ✅ **Full Dataset**: Available for download from [RDM Repository](https://rdm.inesctec.pt/dataset/cs-2025-007)
-- ✅ **Document ID Lists**: Train/dev/test split IDs included for reproducibility verification
+
+- ✅ **Full dataset**: Available at [rdm.inesctec.pt/dataset/cs-2025-007](https://rdm.inesctec.pt/dataset/cs-2025-007).
+- ✅ **Pre-trained model**: Available on [Hugging Face](https://huggingface.co/Anonymous3445/XLM-RoBERTa-CRF-VotIE)
+- ✅ **Interactive demo**: Available at [Hugging Face Spaces](https://huggingface.co/spaces/Anonymous3445/VotIE-demo)
 
 ---
 
-## Technology Stack
+## 2. Technology Stack
 
-### Core Frameworks
-- **PyTorch** (2.0+) – Deep learning backend
-- **Transformers (Hugging Face)** (4.20+) – Pre-trained language models
-- **seqeval** (1.2.2+) – Sequence labeling evaluation
+**Language**: Python 3.10+
 
-### NLP Libraries
-- **sklearn-crfsuite** (0.3.6+) – Traditional CRF baseline
-- **pytorch-crf** (0.7.2+) – CRF layer for transformers
-- **FastText** – Word embeddings for BiLSTM baseline
-- **spaCy** (3.4.0+) – Text preprocessing
+**Core Frameworks**:
+- **PyTorch** (2.0+) – Deep learning backend for all discriminative models
+- **Hugging Face Transformers** (4.20+) – Pre-trained language model loading and fine-tuning
+- **seqeval** (1.2.2+) – Sequence labeling evaluation with strict BIO validation
 
-### LLM Integration
-- **Google Generative AI** – Gemini API for LLM extraction with contrained output.
+**Key Libraries**:
+- `pytorch-crf` (0.7.2+): CRF layer used on top of transformer encoders
+- `sklearn-crfsuite` (0.3.6+): Traditional CRF baseline with hand-crafted features
+- `fasttext`: Pre-trained word embeddings for the BiLSTM baseline
+- `spaCy` (3.4.0+): Text preprocessing in dataset generation scripts
+- `google-generativeai` / `google-genai`: Gemini API for LLM-based extraction
 
-
-### Hardware
-- All experiments were conducted on a NVIDIA 5070 GPU
+**Hardware**: All transformer experiments were conducted on NVIDIA A100-SXM4-40GB GPUs on the Deucalion EuroHPC supercomputer. The CRF baseline runs on CPU. GPT 5.5 and Gemini 2.5 Pro were accessed via API.
 
 ---
 
-## Installation
+## 3. Dependencies
+
+All dependencies are in `requirements.txt`. Install with:
+
+```bash
+pip install -r requirements.txt
+```
+
+### Core Dependencies
+
+- **torch** (>=1.10.0) – PyTorch deep learning framework
+- **transformers** (>=4.20.0) – Hugging Face pre-trained models
+- **pytorch-crf** (>=0.7.2) – CRF layer for transformer NER models
+- **seqeval** (>=1.2.2) – Entity-level NER evaluation metrics
+- **sklearn-crfsuite** (>=0.3.6) – Traditional CRF baseline
+- **scikit-learn** (>=1.0.0) – Stratified splitting and utilities
+- **numpy** (>=1.21.0) / **pandas** (>=1.3.0) – Data manipulation
+- **pyyaml** (>=6.0) – Configuration file parsing
+- **pydantic** (>=2.0.0) – Output validation for LLM extraction
+
+### Optional Dependencies
+
+- **fasttext** – Required only for the BiLSTM+FastText baseline; also requires downloading `cc.pt.300.bin` embeddings separately
+- **google-genai** (>=0.1.0) – Required only for LLM extraction experiments (Gemini)
+- **spaCy** (>=3.4.0) – Required only for dataset generation scripts
+
+### API Keys (LLM experiments only)
+
+```bash
+export GEMINI_KEY="your-gemini-api-key"       # Gemini 2.5 Pro
+export IAEDU_API_KEY="your-iaedu-api-key"     # GPT 5.5 via IAEDU API
+# AMALIA 8B: requires a running vLLM server endpoint (see src/llm_extraction/amalia/config.py)
+```
+
+---
+
+## 4. Installation
 
 ### Prerequisites
-- Python 3.10+
-- CUDA 11.7+ (for GPU support)
-- Git
 
-### Step 1: Clone the Repository
+- Python 3.10 or higher
+- CUDA-capable GPU (recommended; CPU inference supported)
+
+### Setup Steps
+
+1. **Clone the repository**
 ```bash
 git clone https://github.com/Anonymous3445/citilink.git
 cd citilink
 ```
 
-### Step 2: Download the Full Dataset
-
-The complete Citilink dataset must be downloaded separately from the official RDM repository:
-
-**📥 Download Link**: https://rdm.inesctec.pt/dataset/cs-2025-007
-
-After downloading, extract the dataset files into the placeholder directories:
-
-```bash
-# Extract span format
-unzip citilink_spans.zip -d data/citilink_spans/
-
-# Extract BIO format
-unzip citilink_bio.zip -d data/citilink_bio/
-```
-
-The extracted files will be placed alongside the existing ID files in each directory.
-
-Verify the download matches the provided ID lists:
-```python
-import json
-
-# Verify train split
-with open('data/splits/train_ids.txt') as f:
-    expected_ids = set(line.strip() for line in f)
-
-with open('data/citilink_spans/train.jsonl') as f:
-    actual_ids = set(json.loads(line)['id'] for line in f)
-
-assert expected_ids == actual_ids
-print(f"✓ Train split verified: {len(expected_ids)} examples")
-```
-
-### Step 3: Create Virtual Environment
+2. **Create and activate a virtual environment**
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-### Step 4: Install Dependencies
+3. **Install dependencies**
 ```bash
 pip install -r requirements.txt
 ```
 
-### Step 5: (Optional) Set up Gemini API
-For LLM-based extraction experiments:
+4. **Dataset**: `data/citilink-votie/` (standard splits) is pre-generated and included. For LOMO experiments, generate the splits locally:
+
 ```bash
-export GOOGLE_API_KEY="your-api-key"
+python scripts/dataset_generation/create_lomo_splits_v6.py
+```
+
+   The raw source annotations are in `data/citilink-dataset/` and also available at [rdm.inesctec.pt/dataset/cs-2025-007](https://rdm.inesctec.pt/dataset/cs-2025-007).
+
+5. **Verify installation**
+```bash
+python scripts/quick_start.py
+```
+
+**Expected output:**
+```
+Loading model from HuggingFace: Anonymous3445/XLM-RoBERTa-CRF-VotIE
+Running inference on sample text...
+Word                           Label
+...
 ```
 
 ---
 
-## Quick Start
+## 5. Usage
 
-**Option 1: Try the Interactive Demo (Recommended)**
+### Quick Start
+
+**Option 1: Interactive Demo (no installation)**
 
 🎯 **[Live Demo on Hugging Face Spaces](https://huggingface.co/spaces/Anonymous3445/VotIE-demo)**
 
-Try VotIE directly in your browser without any installation! The interactive demo allows you to:
-- Test the model on sample Portuguese municipal texts
-- Upload your own text
-- Visualize entity extraction results in real-time
+Test on Portuguese municipal text in your browser — no setup required.
 
-**Option 2: Use Pre-trained Model Locally**
+**Option 2: Run the demo script locally**
 
-For a quick test of the model on your own text, see `scripts/quick_start.py`:
+```bash
+python scripts/quick_start.py
+```
+
+**Option 3: Use pre-trained model locally**
 
 ```python
 from transformers import AutoTokenizer, AutoModel
 
-# Load model and tokenizer
 model_name = "Anonymous3445/XLM-RoBERTa-CRF-VotIE"
 tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
 model = AutoModel.from_pretrained(model_name, trust_remote_code=True)
 
-# Example text
 text = "A Câmara deliberou aprovar a proposta por unanimidade."
-
-# Tokenize
 inputs = tokenizer(text, return_tensors="pt")
-
-# Get predictions
 predictions = model.decode(**inputs, tokenizer=tokenizer, text=text)
 
-# Print results
 for pred in predictions:
     print(f"{pred['word']:<30} {pred['label']}")
 ```
 
-**Option 3: Train from Scratch - Full Pipeline** (requires full dataset from RDM)
-```bash
-# Train, predict, and evaluate in one command
-python scripts/run_pipeline.py --config configs/deberta_crf.yaml --name my_experiment
-```
-
-**Option 4: Train from Scratch - Step by Step** (requires full dataset from RDM)
-```bash
-# 1. Train model
-python scripts/train.py --config configs/deberta_crf.yaml --experiment-name my_experiment
-
-# 2. Make predictions
-python scripts/predict.py \
-  models/deberta_crf/my_experiment/best_model \
-  data/citilink_spans/test.jsonl \
-  predictions/my_predictions.jsonl
-
-# 3. Evaluate
-python scripts/evaluate.py \
-  predictions/my_predictions.jsonl \
-  evaluation/my_results.json
-```
-
----
-
-## Usage
+See `scripts/quick_start.py` for a complete example.
 
 ### Training Models
 
-> **📥 Dataset Required**: Training requires the full Citilink dataset from [RDM](https://rdm.inesctec.pt/dataset/cs-2025-007). See [Installation → Step 2](#step-2-download-the-full-dataset) for download instructions. For quick testing without downloading, use the [pre-trained model](https://huggingface.co/Anonymous3445/XLM-RoBERTa-CRF-VotIE) or the [🎯 Interactive Demo](https://huggingface.co/spaces/Anonymous3445/VotIE-demo).
+The unified training script auto-detects the model type from the YAML config:
 
-The unified training script `scripts/train.py` supports all model architectures. Model type is automatically determined from the configuration file.
-
-#### Basic Training
 ```bash
 python scripts/train.py --config configs/MODEL_NAME.yaml
+python scripts/train.py --config configs/xlmr_crf.yaml --experiment-name my_run
 ```
 
-#### Available Model Configurations
+**Available configurations:**
 
-**Traditional Baselines:**
-- `configs/crf.yaml` – Conditional Random Fields
-- `configs/bilstm_fasttext.yaml` – BiLSTM + FastText embeddings
+| Config | Architecture |
+|--------|-------------|
+| `configs/crf.yaml` | Conditional Random Fields |
+| `configs/bilstm_fasttext.yaml` | BiLSTM + FastText embeddings |
+| `configs/bert_linear.yaml` | BERTimbau + Linear |
+| `configs/bert_crf.yaml` | BERTimbau + CRF |
+| `configs/deberta_linear.yaml` | DeBERTa-V3 + Linear |
+| `configs/deberta_crf.yaml` | DeBERTa-V3 + CRF |
+| `configs/xlmr_linear.yaml` | XLM-RoBERTa + Linear |
+| `configs/xlmr_crf.yaml` | XLM-RoBERTa + CRF ⭐ (Best) |
+| `configs/municipality_experiments/xlmr_crf_M0X.yaml` | XLM-R + CRF LOMO configs |
 
-**Transformer Baselines:**
-- `configs/bert_linear.yaml` – BERTimbau + Linear layer
-- `configs/bert_crf.yaml` – BERTimbau + CRF layer
-- `configs/deberta_linear.yaml` – DeBERTa + Linear layer
-- `configs/deberta_crf.yaml` – DeBERTa + CRF layer
-- `configs/xlmr_linear.yaml` – XLM-RoBERTa + Linear layer
-- `configs/xlmr_crf.yaml` – XLM-RoBERTa + CRF layer ⭐ (BEST)
-
-**Municipality-Specific (LOMO):**
-- `configs/municipality_experiments/deberta_crf_M01.yaml` – Leave out M01
-- `configs/municipality_experiments/deberta_crf_M02.yaml` – Leave out M02
-- ... (M01–M06)
-
-#### Training Examples
-```bash
-# Train CRF baseline
-python scripts/train.py --config configs/crf.yaml
-
-# Train BERTimbau+CRF with custom experiment name
-python scripts/train.py --config configs/bert_crf.yaml --experiment-name exp_001
-```
-
-#### Training Output
 Trained models are saved to `models/MODEL_NAME/EXPERIMENT_NAME/`:
 ```
-models/deberta_crf/run_20251017_120000/
+models/xlmr_crf/my_run/
 ├── best_model/              # Best checkpoint by validation F1
 │   ├── config.json
 │   ├── pytorch_model.bin
-│   ├── tokenizer_config.json
-│   └── ...
-├── training_results.json    # Training metrics and hyperparameters
-└── logs/                    # Training logs
+│   └── tokenizer_config.json
+├── training_results.json    # Metrics and hyperparameters
+└── logs/
 ```
 
 ### Making Predictions
 
-Generate predictions on new data:
-
 ```bash
 python scripts/predict.py MODEL_PATH INPUT_JSONL OUTPUT_JSONL [DEVICE]
-```
 
-**Examples:**
-```bash
-
-# Predict on test set (GPU)
+# Example
 python scripts/predict.py \
-  models/deberta_crf/run_20251017_120000/best_model \
-  data/citilink_spans/test.jsonl \
+  models/xlmr_crf/my_run/best_model \
+  data/citilink-votie/test.jsonl \
   predictions/test_predictions.jsonl \
   cuda
 ```
 
-**Input Format (JSONL):**
+**Input format (span JSONL)**:
 ```json
-{"id": "example_001", "tokens": ["O", "Executivo", "aprovou", "..."], "labels": ["O", "B-VOTER-FAVOR", "B-VOTING", "..."]}
+{"id": "M01_cm_003_2023-02-01_seg020", "text": "A Câmara deliberou aprovar...", "spans": [...], "municipality": "M01"}
 ```
 
-**Output Format (JSONL):**
+**Output format**:
 ```json
-{"id": "example_001", "tokens": ["O", "Executivo", "aprovou", "..."], "pred_labels": ["O", "B-VOTER-FAVOR", "B-VOTING", "..."], "gold_labels": ["O", "B-VOTER-FAVOR", "B-VOTING", "..."]}
+{"id": "M01_cm_003_2023-02-01_seg020", "tokens": ["A", "Câmara", ...], "pred_labels": ["O", "B-VOTER-FAVOR", ...], "gold_labels": ["O", "B-VOTER-FAVOR", ...]}
 ```
 
 ### Running Evaluation
 
-Evaluate predictions with entity-level metrics:
-
 ```bash
 python scripts/evaluate.py PREDICTIONS_JSONL [OUTPUT_JSON]
-```
 
-**Examples:**
-```bash
-# Evaluate with entity metrics
-python scripts/evaluate.py predictions/test_predictions.jsonl
-
-# Save detailed results to file
+# Example
 python scripts/evaluate.py \
   predictions/test_predictions.jsonl \
-  evaluation/detailed_results.json
+  results/my_experiment_evaluation.json
 ```
 
-**Metrics Computed:**
-- Precision, Recall, F1 (macro averaged and per-entity-type)
-- Uses `seqeval` library for strict BIO validation
+Outputs precision, recall, and F1 (macro-averaged and per entity type) using strict boundary matching via `seqeval`.
 
 ### Full Pipeline
 
-For convenience, use the pipeline script to run train → predict → evaluate in one command:
+Train → predict → evaluate in one command:
 
 ```bash
-python scripts/run_pipeline.py --config configs/deberta_crf.yaml --name my_experiment
+python scripts/run_pipeline.py --config configs/xlmr_crf.yaml --name my_experiment
+
+# Predict or evaluate only
+python scripts/run_pipeline.py --config configs/xlmr_crf.yaml --name my_experiment --predict-only
+python scripts/run_pipeline.py --config configs/xlmr_crf.yaml --name my_experiment --evaluate-only
 ```
 
-### Running All Experiments
+### LLM Extraction
 
-To reproduce all paper experiments (requires full dataset):
+All three LLM baselines use the langextract library with the same fixed prompts and few-shot examples.
 
 ```bash
-# Run all model configurations
-bash scripts/run_all_experiments.sh paper_reproduction
+# Gemini 2.5 Pro (requires GEMINI_KEY)
+python scripts/llm_extraction/extract_gemini_spans.py --strategy zero_shot
+python scripts/llm_extraction/extract_gemini_spans.py --strategy few_shot
+
+# GPT 5.5 via IAEDU API (requires IAEDU_API_KEY)
+python scripts/llm_extraction/extract_gpt_spans.py --strategy zero_shot
+python scripts/llm_extraction/extract_gpt_spans.py --strategy few_shot
+
+# AMALIA 8B (requires running vLLM endpoint)
+python scripts/llm_extraction/extract_amalia_spans.py --strategy zero_shot
+python scripts/llm_extraction/extract_amalia_spans.py --strategy few_shot
+
+# Evaluate any LLM predictions
+python scripts/llm_extraction/evaluate_spans.py \
+  results/llm_extraction/gemini/few_shot.jsonl
+```
+
+### LOMO Experiments
+
+```bash
+# Run all leave-one-municipality-out experiments
+python scripts/run_municipality_experiments.py
+
+# Run single municipality
+python scripts/run_pipeline.py \
+  --config configs/municipality_experiments/xlmr_crf_M01.yaml \
+  --name lomo_M01
+```
+
+### Advanced Usage
+
+**Custom configuration**: copy any YAML from `configs/`, edit fields, and pass with `--config`. Key settings:
+
+```yaml
+model:
+  name: "xlmr_crf"
+  architecture: "crf"   # "crf" or "linear"
+
+data:
+  data_dir: "data/citilink-votie"
+  train_file: "train.jsonl"
+
+training:
+  learning_rate: 5e-5
+  batch_size: 16
+  patience: 3
+  seed: 42
 ```
 
 ---
 
-## Dataset
+## 6. Dataset
 
-### Citilink Corpus
-
-The Citilink corpus consists of voting segments extracted from Portuguese municipal meeting minutes.
-
-> **📥 DOWNLOAD REQUIRED**
-> 
-> The **full Citilink dataset is NOT included** in this repository. You must download it from:
-> 
+> **📦 Dataset included**
+>
+> The training-ready dataset (`data/citilink-votie/`) is pre-generated and included in this repository. The raw source annotations are in `data/citilink-dataset/` and also available at:
+>
 > ### **https://rdm.inesctec.pt/dataset/cs-2025-007**
-> 
-> **What's Included in This Repository:**
-> - ✅ Document ID lists for train/dev/test splits (for reproducibility verification)
-> - ✅ Empty placeholder folders (`data/citilink_spans/`, `data/citilink_bio/`)
-> 
-> **What You Must Download:**
-> - ⚠️ Full dataset files: `train.jsonl`, `dev.jsonl`, `test.jsonl` (both span and BIO formats)
-> 
-> **Setup Instructions:** See [Installation → Step 2](#step-2-download-the-full-dataset)
-> 
-> **Test Without Downloading:** Try our **[🎯 Interactive Demo](https://huggingface.co/spaces/Anonymous3445/VotIE-demo)**
+>
+> Run `python scripts/quick_start.py` to verify your installation without downloading the full dataset.
 
-**Full Dataset Statistics**:
+### Overview
 
-| **Attribute** | **Value** |
-|---------------|-----------|
+The CitiLink-Minutes corpus consists of council meeting minutes from six Portuguese municipalities, annotated for 12 voting-related entity types. A subset of 2,885 segments were annotated, totalling 10,694 spans. All personal identifiers were manually anonymised.
+
+### Dataset Statistics (before oversampling)
+
+| Attribute | Value |
+|-----------|-------|
 | **Language** | Portuguese |
-| **Municipalities** | 6 (M01–M06) |
-| **Total Examples** | 2,879 voting segments |
-| **Total Characters** | ~5,119,217 characters |
-| **Total Entities** | 9,721 annotated entities |
-| **Train Examples** | 1,798 (62%) |
-| **Dev Examples** | 552 (19%) |
-| **Test Examples** | 529 (18%) |
-
-### Entity Distribution (Full Dataset)
-
-| **Entity Type** | **Train** | **Dev** | **Test** | **Total** |
-|-----------------|-----------|---------|----------|-----------|
-| VOTING | 1,709 | 472 | 467 | 2,648 |
-| SUBJECT | 1,422 | 406 | 420 | 2,248 |
-| VOTER-FAVOR | 1,039 | 311 | 300 | 1,650 |
-| COUNTING-UNANIMITY | 970 | 295 | 305 | 1,570 |
-| VOTER-ABSTENTION | 730 | 179 | 133 | 1,042 |
-| COUNTING-MAJORITY | 175 | 51 | 62 | 288 |
-| VOTER-AGAINST | 98 | 43 | 36 | 177 |
-| VOTER-ABSENT | 57 | 23 | 18 | 98 |
+| **Municipalities** | 6 (Alandroal, Campo Maior, Covilhã, Fundão, Guimarães, Porto) |
+| **Total segments** | 2,885 |
+| **w/ voting event** | 2,516 (87.2%) |
+| **Total spans** | 10,694 |
+| **Train** | 1,803 segments (→ 2,463 after oversampling) |
+| **Dev** | 553 segments |
+| **Test** | 529 segments |
 
 ### Data Format
 
-The Citilink dataset is available in a voting focused format:
+The canonical format is **span-annotated JSONL**. BIO tags are computed automatically at load time — no pre-tokenized files are needed or distributed.
 
-**Span Format** (`data/citilink_spans/`):
 ```json
 {
   "id": "M01_cm_003_2023-02-01_seg020",
   "text": "O Executivo Municipal deliberou por unanimidade aprovar...",
   "spans": [
     {"text": "O Executivo Municipal", "type": "VOTER-FAVOR", "start": 0, "end": 21},
-    {"text": "deliberou", "type": "VOTING", "start": 22, "end": 31}
+    {"text": "deliberou", "type": "VOTING", "start": 22, "end": 31},
+    {"text": "por unanimidade", "type": "COUNTING-UNANIMITY", "start": 32, "end": 47}
   ],
-  "municipality": "M01"
+  "municipality": "M01",
+  "document_id": "M01_cm_003_2023-02-01",
+  "segment_id": "M01_cm_003_2023-02-01_seg020"
 }
 ```
 
-**BIO Format** - A conversion script is used to produce the BIO tags used for the sequence labeling approach(`data/citilink_bio/`):
-```json
-{
-  "id": "M01_cm_003_2023-02-01_seg020",
-  "text": "O Executivo Municipal deliberou por unanimidade aprovar...",
-  "tokens": ["O", "Executivo", "Municipal", "deliberou", "por", "unanimidade", "aprovar", "..."],
-  "labels": ["B-VOTER-FAVOR", "I-VOTER-FAVOR", "I-VOTER-FAVOR", "B-VOTING", "O", "B-COUNTING-UNANIMITY", "O", "..."],
-  "municipality": "M01"
-}
-```
+### Entity Distribution (before oversampling)
+
+| Entity Type | Train | Dev | Test | Total |
+|-------------|-------|-----|------|-------|
+| VOTING | 1,749 | 524 | 489 | 2,762 |
+| SUBJECT | 1,730 | 523 | 486 | 2,739 |
+| VOTER-FAVOR | 1,085 | 336 | 319 | 1,740 |
+| COUNTING-UNANIMITY | 1,008 | 313 | 326 | 1,647 |
+| VOTER-ABSTENTION | 747 | 221 | 135 | 1,103 |
+| COUNTING-MAJORITY | 162 | 58 | 59 | 279 |
+| VOTER-AGAINST | 99 | 60 | 36 | 195 |
+| VOTER-ABSENT | 61 | 24 | 18 | 103 |
+| VOTING-METHOD | 39 | 1 | 5 | 45 |
+| COUNT-BLANK | 39 | 1 | 5 | 45 |
+| COUNT-FAVOR | 32 | 0 | 4 | 36 |
+| COUNT-AGAINST | 2 | 0 | 0 | 2 |
+| **Total** | **6,753** | **2,059** | **1,882** | **10,694** |
 
 ### Directory Structure
 
 ```
 data/
-├── README.md                              # Dataset documentation with download instructions
-├── splits/                                # Split document IDs
-│   ├── train_ids.txt                      # ✅ Train IDs (1,798)
-│   ├── dev_ids.txt                        # ✅ Dev IDs (552)
-│   └── test_ids.txt                       # ✅ Test IDs (529)
+├── split_info.json                        # Document-level split assignments ✅
+├── DATASETS.md                            # Full pipeline documentation ✅
 │
-├── citilink_spans/                        # Span format (DOWNLOAD from RDM)
-│   ├── train.jsonl                        # ⚠️ DOWNLOAD from RDM
-│   ├── dev.jsonl                          # ⚠️ DOWNLOAD from RDM
-│   └── test.jsonl                         # ⚠️ DOWNLOAD from RDM
+├── citilink-dataset/                      # Raw source annotations ✅ (from RDM)
+│   ├── Alandroal.json / Campomaior.json / ... / Porto.json
+│   └── all_municipalities.json
 │
-└── citilink_bio/                          # BIO format (DOWNLOAD from RDM)
-    ├── train.jsonl                        # ⚠️ DOWNLOAD from RDM
-    ├── dev.jsonl                          # ⚠️ DOWNLOAD from RDM
-    └── test.jsonl                         # ⚠️ DOWNLOAD from RDM
+├── citilink-votie/                        # Training-ready dataset ✅ (pre-generated)
+│   ├── train.jsonl                        # 2,463 segments (with oversampling)
+│   ├── dev.jsonl                          # 553 segments
+│   ├── test.jsonl                         # 529 segments
+│   └── generation_summary.json
+│
+└── citilink-votie-lomo-splits/            # LOMO splits (generate locally — 67 MB)
+    └── M01/ … M06/                        # run create_lomo_splits_v6.py
+```
+
+To generate the LOMO splits: `python scripts/dataset_generation/create_lomo_splits_v6.py`
+
+---
+
+## 7. Architecture
+
+### Data Flow
+
+```
+JSONL (span format)
+      │
+      ▼
+src/data/dataset.py          ← auto-detects span format
+      │  span_to_bio.py       ← regex tokenizer + BIO alignment
+      ▼
+Token sequences + BIO labels
+      │
+      ├── [Transformer models]   → src/trainer.py         → models/{xlmr,deberta,bertimbau}_models.py
+      └── [BiLSTM model]         → src/bilstm_trainer.py  → src/models/bilstm_crf.py
+                                                             (FastText embeddings)
+      │
+      ▼
+BIO predictions → seqeval entity-level evaluation
+```
+
+Key implementation details:
+- **Class imbalance**: O-tag loss weight reduced to 0.01 to handle severe class imbalance
+- **Windowing**: Documents >512 tokens are split into 50-token overlapping windows; windows are merged after inference
+- **Base class**: `src/models/base.py` (`BaseVotIEModel`) provides shared weighted loss, BIO validation, and bias initialization
+
+### Model Families
+
+| Model | File | Notes |
+|-------|------|-------|
+| CRF | `src/models/crf.py` | Hand-crafted features, sklearn-crfsuite |
+| BiLSTM+FastText+CRF | `src/models/bilstm_crf.py` | Requires `cc.pt.300.bin` |
+| BERTimbau + Linear/CRF | `src/models/bertimbau_models.py` | Portuguese BERT |
+| mDeBERTa-V3 + Linear/CRF | `src/models/deberta_models.py` | |
+| XLM-RoBERTa + Linear/CRF | `src/models/xlmr_models.py` | Best model ⭐ |
+
+### LLM Extraction Module
+
+`src/llm_extraction/` is self-contained and provider-agnostic:
+- `shared/base_extractor.py` – Base class for all extractors
+- `gemini/extractor.py` – Gemini 2.5 Pro via langextract `GeminiLanguageModel`
+- `gpt/extractor.py` – GPT 5.5 via langextract custom `GptLanguageModel`
+- `amalia/extractor.py` – AMALIA 8B via langextract + vLLM OpenAI-compatible endpoint
+- `amalia/prompts.py` – Shared prompt description (system instructions + taxonomy) used by all three extractors
+- `fixed_examples.py` – Five fixed few-shot examples shared by all extractors (Appendix A.2)
+- `span_alignment.py` – Post-processing to align LLM output spans to input text
+
+All three generative baselines use the langextract library (Goel, 2025) with greedy generation and schema-constrained decoding for deterministic output.
+
+### Dataset Generation Pipeline
+
+For reproducibility, the raw Citilink annotation files can be regenerated from `private/citilink/`:
+
+```bash
+# Full 2-step pipeline
+python scripts/dataset_generation/generate_dataset.py
+
+# Step 1: Convert raw Citilink JSON → span JSONL
+python scripts/dataset_generation/convert_citilink_to_spans.py
+
+# Step 2: Create LOMO splits
+python scripts/dataset_generation/create_lomo_splits.py
+
+# Optional: pre-compute BIO tokens (not required for training)
+python scripts/dataset_generation/convert_spans_to_bio.py
 ```
 
 ---
 
-## Models
+## 8. Evaluation Metrics
 
-### Discriminative Models
+All evaluation uses **entity-level F1** via the `seqeval` library with strict boundary matching.
 
-All discriminative models follow a token classification architecture for BIO tagging:
+### Entity-Level F1
 
-**Traditional Baselines:**
-1. **CRF** – Conditional Random Fields with hand-crafted features
-2. **BiLSTM+FastText** – Bidirectional LSTM with pre-trained FastText embeddings
+An entity is counted as correct only if both its **type** and **exact character span** match the gold annotation. Partial matches are not credited.
 
-**Transformer Baselines:**
+- **Precision**: correct / predicted
+- **Recall**: correct / gold
+- **F1**: harmonic mean of precision and recall
+- **Macro F1**: unweighted average across 11 entity types (COUNT-AGAINST is excluded — zero test instances)
 
-3. **BERTimbau-Large + Linear** – Portuguese BERT with linear classification head
-4. **BERTimbau-Large + CRF** – Portuguese BERT with CRF layer
-5. **DeBERTa-V3-Base + Linear** – DeBERTa V3 with linear head
-6. **DeBERTa-V3-Base + CRF** – DeBERTa V3 with CRF layer
-7. **XLM-RoBERTa-Large + Linear** – Multilingual XLM-R with linear head
-8. **XLM-RoBERTa-Large + CRF** ⭐ – Multilingual XLM-R with CRF layer (Best)
-
-### LLM-Based Extraction
-
-The framework includes LLM-based span extraction using Google's Gemini:
-
-**Strategies:**
-- **Zero-Shot** – No examples, detailed entity definitions in prompt
-- **Few-Shot** – 5 examples selected for entity type coverage
-
-**Few-Shot Example Selection:**
-
-Few-shot examples are automatically selected to maximize entity type diversity:
-- **Selection Algorithm**: Greedy coverage of all 8 entity types
-- **Pool Size**: 500 candidates from training data
-- **Examples**: 5 examples covering all entity types
-- **File Location**: [`src/llm_extraction/few_shot_data/examples_5shot_pool500.json`](src/llm_extraction/few_shot_data/examples_5shot_pool500.json)
+### Computing Metrics
 
 ```python
-# Regenerate few-shot examples
-from src.llm_extraction.few_shot_selector import load_and_format_few_shot_examples
+from src.evaluation.entity_metrics import compute_entity_metrics
 
-examples = load_and_format_few_shot_examples(
-    'data/citilink_spans/train.jsonl',
-    num_examples=5,
-    pool_size=500,
-    save_to_file=True
+metrics = compute_entity_metrics(
+    gold_file="data/citilink-votie/test.jsonl",
+    pred_file="predictions/test_predictions.jsonl"
 )
+print(f"Macro F1: {metrics['macro_f1']:.1f}%")
 ```
 
-**Few-shot examples:** [`src/llm_extraction/few_shot_data/examples_5shot_pool500.json`](src/llm_extraction/few_shot_data/examples_5shot_pool500.json)
-
-**Running LLM Extraction:**
+Or via CLI:
 ```bash
-# Zero-shot extraction
-python scripts/llm_extraction/extract_gemini_spans.py --strategy zero_shot
-
-# Few-shot extraction
-python scripts/llm_extraction/extract_gemini_spans.py --strategy few_shot
-
-# Evaluate LLM results
-python scripts/llm_extraction/evaluate_spans.py \
-  results/llm_extraction/gemini_few_standard.jsonl
+python scripts/evaluate.py predictions/test_predictions.jsonl results/my_experiment_evaluation.json
 ```
 
-### Prompts
+---
 
-The following prompts are used for Gemini-based extraction. For complete implementation details, see [`src/llm_extraction/gemini/prompts.py`](src/llm_extraction/gemini/prompts.py).
+## 9. Experimental Results
 
-#### Zero-Shot Prompt
+### Standard Benchmark (Test Set)
 
-```
-You are an expert Portuguese NLP system extracting semantic spans from municipal meeting minutes.
+Macro-averaged F1 (%). For encoder-CRF models, values are means over seeds 42, 13, 123. All other rows report seed 42 only.
 
-Task: Extract all entity spans from the text and return a JSON object with an "entities" array.
+| Model | Exact Match F1 | Relaxed Match F1 |
+|-------|---------------|-----------------|
+| CRF | 81.0 | 84.1 |
+| BiLSTM-CRF | 69.7 | 74.6 |
+| BERTimbau-Linear | 85.2 | 91.0 |
+| BERTimbau-CRF | 90.5 ±1.5 | 96.2 ±0.8 |
+| DeBERTa-Linear | 89.8 | 98.3 |
+| DeBERTa-CRF | 91.5 ±1.3 | 96.1 ±1.2 |
+| XLM-R-Linear | 85.2 | 91.0 |
+| **XLM-R-CRF** ⭐ | **93.2 ±1.5** | **97.0 ±0.8** |
+| GPT 5.5 (0-shot) | 52.6 | 84.0 |
+| GPT 5.5 (5-shot) | 60.2 | 87.0 |
+| AMALIA 8B (0-shot) | 43.3 | 46.0 |
+| AMALIA 8B (5-shot) | 46.0 | 58.2 |
+| Gemini 2.5 (0-shot) | 58.7 | 87.0 |
+| Gemini 2.5 (5-shot) | **61.3** | **89.3** |
 
-Each entity must have:
-- text: EXACT character span from the input text (do not paraphrase or modify)
-- type: One of [VOTER-FAVOR, VOTER-AGAINST, VOTER-ABSTENTION, VOTER-ABSENT, VOTING, SUBJECT, COUNTING-UNANIMITY, COUNTING-MAJORITY]
+### Cross-Municipality Generalisation (LOMO, Exact Match Macro F1 %)
 
-Entity Type Definitions:
-- VOTER-FAVOR: Person or group voting in favor
-- VOTER-AGAINST: Person or group voting against
-- VOTER-ABSTENTION: Person or group abstaining
-- VOTER-ABSENT: Person or group absent from vote
-- VOTING: Verb indicating voting action (e.g., "deliberou", "aprovou")
-- SUBJECT: Matter being voted on (NOUN PHRASE ONLY, see rules below)
-- COUNTING-UNANIMITY: Expression indicating unanimous decision
-- COUNTING-MAJORITY: Expression indicating majority decision
+Models trained on 5 municipalities, evaluated on the held-out sixth.
 
-CRITICAL SUBJECT EXTRACTION RULES:
-1. Extract the MATTER being voted on (what is being approved/rejected)
-2. Do NOT extract section titles, headings, or numbering (e.g., "2. TÍTULO DO PONTO")
-3. Extract ONLY the noun phrase, WITHOUT action verbs
-4. Remove verbs like "aprovar", "ratificar", "deliberar", "conceder", "autorizar" from the SUBJECT
-5. Extract EXACTLY ONE subject per voting decision
-6. If the subject appears multiple times in different forms, choose the most specific version (with details)
+| Model | M01 | M02 | M03 | M04 | M05 | M06 | Mean |
+|-------|-----|-----|-----|-----|-----|-----|------|
+| BERTimbau-CRF | 56.2 | 44.4 | 54.9 | 46.1 | 51.8 | 33.4 | 47.8 |
+| XLM-R-CRF | 57.8 | 59.1 | 61.4 | 64.5 | 57.0 | 28.2 | 54.7 |
+| DeBERTa-CRF | 57.4 | **73.7** | 62.2 | **70.3** | 59.7 | 31.1 | 59.1 |
+| Gemini 2.5 (5s) | **66.8** | 69.0 | **69.7** | 62.0 | **76.0** | **45.4** | **64.8** |
 
-SUBJECT Examples:
-✓ CORRECT: "alteração orçamental permutativa" (noun phrase only)
-✗ WRONG: "ALTERAÇÃO ORÇAMENTAL PERMUTATIVA" (section title at beginning)
-✗ WRONG: "aprovar a alteração orçamental" (includes verb)
-✓ CORRECT: "transporte de dois alunos para a Escola Profissional de Desenvolvimento Rural de Serpa" (specific with details)
-✗ WRONG: "transporte de alunos" (too generic when specific version exists)
+XLM-R and DeBERTa values are 3-seed means. Full per-entity results are in `results/`.
 
-CRITICAL REQUIREMENTS:
-1. Extract the EXACT text as it appears in the input - character-for-character
-2. Do not paraphrase, summarize, reword, or modify any text
-3. Do not add or remove words
-4. Preserve all articles, prepositions, and punctuation exactly as they appear
-5. Return empty array if no entities found
+Full per-entity F1 breakdown is in `results/discriminative_models/` and `results/llm_extraction/`.
 
-Examples of CORRECT extraction:
-✓ Input: "o Executivo Municipal" → Extract: "o Executivo Municipal"
-✓ Input: "deliberou por unanimidade" → Extract: "deliberou" and "por unanimidade"
+---
 
-Examples of INCORRECT extraction (DO NOT DO THIS):
-✗ Input: "o Executivo Municipal" → Extract: "Executivo Municipal" (missing "o")
-✗ Input: "deliberou por unanimidade" → Extract: "decidiu por unanimidade" (paraphrased)
+## 10. Known Issues
 
-Text:
-{input_text}
+### Current Limitations
 
-Extract entities as JSON:
-```
+1. **LOMO performance degradation**: Cross-municipality F1 drops from 93.2% (in-domain) to 52.8% (LOMO), particularly severe for M06 (Porto), indicating significant domain shift. Gemini few-shot outperforms discriminative models in this cross-domain setting (+12% average).
+   - **Future work**: Domain adaptation, larger municipality-specific fine-tuning data.
 
-#### Few-Shot Prompt
+3. **LLM extraction cost**: Gemini experiments require a Google API key and incur per-token costs. Few-shot extraction processes ~2,879 examples × 5 examples context per call. AMALIA is not yet distributed to the public, so these experiments cannot be reproduced yet.
 
-```
-You are an expert Portuguese NLP system extracting named entities from municipal meeting minutes.
+4. **SUBJECT entity difficulty**: SUBJECT is the hardest entity type across all models (XLM-R+CRF: 78.7% F1 vs 97.8% for VOTER-ABSTENTION), reflecting the challenges of extracting long spans with different structures.
 
-Task: Extract all entity spans from the text and return a JSON object with an "entities" array.
+### Reporting Issues
 
-Each entity must have:
-- text: EXACT character span from the input text (do not paraphrase or modify)
-- type: One of [VOTER-FAVOR, VOTER-AGAINST, VOTER-ABSTENTION, VOTER-ABSENT, VOTING, SUBJECT, COUNTING-UNANIMITY, COUNTING-MAJORITY]
+Please open an issue on GitHub with:
+- Python version and OS
+- Full error traceback
+- Minimal reproducible example
 
-CRITICAL SUBJECT EXTRACTION RULES:
-1. Extract the MATTER being voted on (what is being approved/rejected)
-2. Do NOT extract section titles, headings, or numbering (e.g., "2. TÍTULO DO PONTO")
-3. Extract ONLY the noun phrase, WITHOUT action verbs
-4. Remove verbs like "aprovar", "ratificar", "deliberar", "conceder", "autorizar" from SUBJECT
-5. Extract EXACTLY ONE subject per voting decision
-6. Choose the most specific version when multiple forms exist
+---
 
-CRITICAL: Extract EXACT text as it appears. Do not paraphrase, summarize, or modify any words.
+## 11. License
 
-Here are some examples:
+This project is licensed under **CC-BY-ND 4.0 (Creative Commons Attribution–NoDerivatives 4.0 International)**.
 
-Example 1:
-Text: {example_1_text}
-Output: {example_1_output}
+You are free to:
+- **Share**: Copy and redistribute the material in any medium or format
 
-Example 2:
-Text: {example_2_text}
-Output: {example_2_output}
+Under the following terms:
+- **Attribution**: You must give appropriate credit, provide a link to the license, and indicate if changes were made
+- **No Derivatives**: If you remix, transform, or build upon the material, you may not distribute the modified version
 
-[... 5 examples total ...]
+See the [LICENSE](LICENSE) file for full details.
 
-Now extract from the following text:
-Text: {input_text}
+---
 
-Output:
-```
-
-**Note**: The few-shot examples are dynamically selected from the training data using a greedy algorithm that ensures coverage of all 8 entity types. The 5 examples are loaded from [`src/llm_extraction/few_shot_data/examples_5shot_pool500.json`](src/llm_extraction/few_shot_data/examples_5shot_pool500.json).
+## 12. Resources
 
 ### Pre-trained Models
 
-The best-performing model from the paper is available on Hugging Face:
+- **XLM-RoBERTa + CRF** (best model): [Anonymous3445/XLM-RoBERTa-CRF-VotIE](https://huggingface.co/Anonymous3445/XLM-RoBERTa-CRF-VotIE)
+- **Interactive demo**: [VotIE-demo on Hugging Face Spaces](https://huggingface.co/spaces/Anonymous3445/VotIE-demo)
 
-- **XLM-RoBERTa-Large + CRF** (Best Model): [`Anonymous3445/XLM-RoBERTa-CRF-VotIE`](https://huggingface.co/Anonymous3445/XLM-RoBERTa-CRF-VotIE)
-- **🎯 Interactive Demo**: [VotIE-demo on Hugging Face Spaces](https://huggingface.co/spaces/Anonymous3445/VotIE-demo)
+### Dataset
 
-**Usage:**
-```python
-from transformers import AutoTokenizer, AutoModel
+- **Full Citilink dataset**: [rdm.inesctec.pt/dataset/cs-2025-007](https://rdm.inesctec.pt/dataset/cs-2025-007) — span-annotated JSONL, 2,879 voting segments from 6 municipalities
 
-tokenizer = AutoTokenizer.from_pretrained("Anonymous3445/XLM-RoBERTa-CRF-VotIE", trust_remote_code=True)
-model = AutoModel.from_pretrained("Anonymous3445/XLM-RoBERTa-CRF-VotIE", trust_remote_code=True)
-```
+### External Resources
 
----
-
-## Experimental Results
-
-### Main Results (Test Set)
-
-All experimental results are available in `results/`. The tables below summarize the main findings.
-
-**Entity-Level Performance (Macro-Averaged F1 Score):**
-
-| Model | Precision | Recall | F1 |
-|-------|-----------|--------|-----|
-| CRF | 84.7% | 72.7% | 75.1% |
-| BiLSTM+FastText | 74.3% | 68.3% | 70.2% |
-| BERTimbau+Linear | 82.0% | 93.0% | 87.0% |
-| DeBERTa+Linear | 86.7% | 94.9% | 90.4% |
-| DeBERTa+CRF | 89.4% | 91.6% | 90.4% |
-| XLM-R+Linear | 78.4% | 94.0% | 84.9% |
-| **XLM-R+CRF** ⭐ | **91.0%** | **95.6%** | **93.2%** |
-| Gemini (Zero-Shot) | 55.6% | 50.0% | 52.3% |
-| Gemini (Few-Shot) | 62.7% | 65.8% | 64.1% |
-
-
-**Note**: All metrics are macro-averaged across entity types using strict boundary matching (seqeval).
-
-### Per-Entity Type Performance
-
-The following tables show detailed F1 scores for each entity type across all models:
-
-#### VOTER-FAVOR
-
-| Model | Precision | Recall | F1 |
-|-------|-----------|--------|-----|
-| CRF | 91.7% | 92.3% | 92.0% |
-| BiLSTM+FastText | 91.1% | 92.7% | 91.9% |
-| BERTimbau+Linear | 89.2% | 96.7% | 92.8% |
-| DeBERTa+Linear | 91.0% | 97.3% | 94.0% |
-| DeBERTa+CRF | 93.9% | 97.0% | 95.4% |
-| XLM-R+Linear | 91.6% | 98.3% | 94.9% |
-| **XLM-R+CRF** | **93.8%** | **96.3%** | **95.1%** |
-| Gemini (Zero-Shot) | 80.3% | 65.3% | 72.1% |
-| Gemini (Few-Shot) | 84.2% | 97.7% | 90.4% |
-
-#### VOTER-AGAINST
-
-| Model | Precision | Recall | F1 |
-|-------|-----------|--------|-----|
-| CRF | 63.6% | 19.4% | 29.8% |
-| BiLSTM+FastText | 94.4% | 47.2% | 63.0% |
-| BERTimbau+Linear | 85.7% | 100.0% | 92.3% |
-| DeBERTa+Linear | 100.0% | 100.0% | 100.0% |
-| DeBERTa+CRF | 90.0% | 100.0% | 94.7% |
-| XLM-R+Linear | 72.3% | 94.4% | 81.9% |
-| **XLM-R+CRF** | **92.3%** | **100.0%** | **96.0%** |
-| Gemini (Zero-Shot) | 0.0% | 0.0% | 0.0% |
-| Gemini (Few-Shot) | 32.6% | 38.9% | 35.4% |
-
-#### VOTER-ABSTENTION
-
-| Model | Precision | Recall | F1 |
-|-------|-----------|--------|-----|
-| CRF | 75.3% | 94.0% | 83.6% |
-| BiLSTM+FastText | 70.7% | 83.5% | 76.6% |
-| BERTimbau+Linear | 92.9% | 97.7% | 95.2% |
-| DeBERTa+Linear | 96.3% | 97.7% | 97.0% |
-| DeBERTa+CRF | 96.2% | 96.2% | 96.2% |
-| XLM-R+Linear | 93.7% | 100.0% | 96.7% |
-| **XLM-R+CRF** | **95.7%** | **100.0%** | **97.8%** |
-| Gemini (Zero-Shot) | 37.9% | 35.3% | 36.6% |
-| Gemini (Few-Shot) | 56.6% | 64.7% | 60.4% |
-
-#### VOTER-ABSENT
-
-| Model | Precision | Recall | F1 |
-|-------|-----------|--------|-----|
-| CRF | 83.3% | 27.8% | 41.7% |
-| BiLSTM+FastText | 0.0% | 0.0% | 0.0% |
-| BERTimbau+Linear | 50.0% | 72.2% | 59.1% |
-| DeBERTa+Linear | 60.0% | 83.3% | 69.8% |
-| DeBERTa+CRF | 75.0% | 66.7% | 70.6% |
-| XLM-R+Linear | 37.8% | 77.8% | 50.9% |
-| **XLM-R+CRF** | **88.9%** | **88.9%** | **88.9%** |
-| Gemini (Zero-Shot) | 40.0% | 22.2% | 28.6% |
-| Gemini (Few-Shot) | 68.8% | 61.1% | 64.7% |
-
-#### VOTING
-
-| Model | Precision | Recall | F1 |
-|-------|-----------|--------|-----|
-| CRF | 95.4% | 98.1% | 96.7% |
-| BiLSTM+FastText | 95.4% | 97.9% | 96.6% |
-| BERTimbau+Linear | 93.1% | 98.5% | 95.7% |
-| DeBERTa+Linear | 94.7% | 98.5% | 96.5% |
-| DeBERTa+CRF | 95.4% | 97.9% | 96.6% |
-| XLM-R+Linear | 93.9% | 98.9% | 96.4% |
-| **XLM-R+CRF** | **96.0%** | **97.9%** | **96.9%** |
-| Gemini (Zero-Shot) | 72.8% | 77.9% | 75.3% |
-| Gemini (Few-Shot) | 91.5% | 94.4% | 92.9% |
-
-#### SUBJECT
-
-| Model | Precision | Recall | F1 |
-|-------|-----------|--------|-----|
-| CRF | 76.1% | 53.8% | 63.0% |
-| BiLSTM+FastText | 52.6% | 45.7% | 48.9% |
-| BERTimbau+Linear | 65.2% | 82.1% | 72.7% |
-| DeBERTa+Linear | 68.9% | 85.5% | 76.3% |
-| DeBERTa+CRF | 77.7% | 79.5% | 78.6% |
-| XLM-R+Linear | 64.4% | 82.9% | 72.5% |
-| **XLM-R+CRF** | **74.1%** | **83.8%** | **78.7%** |
-| Gemini (Zero-Shot) | 20.6% | 21.4% | 21.0% |
-| Gemini (Few-Shot) | 38.0% | 44.3% | 40.9% |
-
-#### COUNTING-UNANIMITY
-
-| Model | Precision | Recall | F1 |
-|-------|-----------|--------|-----|
-| CRF | 93.4% | 98.0% | 95.7% |
-| BiLSTM+FastText | 93.8% | 93.8% | 93.8% |
-| BERTimbau+Linear | 92.6% | 98.4% | 95.4% |
-| DeBERTa+Linear | 92.1% | 99.7% | 95.7% |
-| DeBERTa+CRF | 91.6% | 97.0% | 94.3% |
-| XLM-R+Linear | 93.3% | 100.0% | 96.5% |
-| **XLM-R+CRF** | **93.1%** | **98.0%** | **95.5%** |
-| Gemini (Zero-Shot) | 94.7% | 98.0% | 96.3% |
-| Gemini (Few-Shot) | 94.6% | 98.0% | 96.3% |
-
-#### COUNTING-MAJORITY
-
-| Model | Precision | Recall | F1 |
-|-------|-----------|--------|-----|
-| CRF | 98.4% | 98.4% | 98.4% |
-| BiLSTM+FastText | 96.4% | 85.5% | 90.6% |
-| BERTimbau+Linear | 87.1% | 98.4% | 92.4% |
-| DeBERTa+Linear | 90.9% | 96.8% | 93.7% |
-| DeBERTa+CRF | 95.3% | 98.4% | 96.8% |
-| XLM-R+Linear | 80.5% | 100.0% | 89.2% |
-| **XLM-R+CRF** | **93.9%** | **100.0%** | **96.9%** |
-| Gemini (Zero-Shot) | 97.6% | 96.8% | 97.2% |
-| Gemini (Few-Shot) | 98.3% | 93.5% | 95.9% |
-
-### Leave-One-Municipality-Out (LOMO) Evaluation
-
-To evaluate cross-municipality generalization, we perform LOMO experiments where models are trained on 5 municipalities and tested on the held-out municipality.
-
-**LOMO Configuration:**
-- **Training**: Data from 5 municipalities
-- **Testing**: Data from 1 held-out municipality
-- **Model**: DeBERTa-CRF
-
-**LOMO Results (Macro-Averaged Entity F1):**
-
-| Held-Out Municipality | Test Size | Precision | Recall | F1 Score |
-|-----------------------|-----------|-----------|--------|----------|
-| M01 | 503 | 45.6% | 47.7% | 46.5% |
-| M02 | 396 | 60.1% | 72.1% | 65.2% |
-| M03 | 719 | 63.2% | 63.2% | 62.4% |
-| M04 | 235 | 59.2% | 68.5% | 61.3% |
-| M05 | 554 | 63.9% | 73.3% | 64.1% |
-| M06 | 472 | 24.0% | 14.2% | 17.5% |
-| **Average** | - | **52.6%** | **56.5%** | **52.8%** |
-
-**Running LOMO Experiments:**
-```bash
-# Run all LOMO experiments
-python scripts/run_municipality_experiments.py
-
-# Run single municipality
-python scripts/run_pipeline.py \
-  --config configs/municipality_experiments/deberta_crf_M01.yaml \
-  --name lomo_M01
-```
-
-**LLM Cross-Municipality Results (Macro-Averaged Entity F1):**
-
-| Held-Out | Test Size | Precision | Recall | F1 Score |
-|----------|-----------|-----------|--------|----------|
-| M01 | 503 | 72.1% | 64.2% | 66.8% |
-| M02 | 396 | 60.0% | 81.2% | 69.0% |
-| M03 | 719 | 70.6% | 69.0% | 69.7% |
-| M04 | 235 | 61.9% | 62.2% | 62.0% |
-| M05 | 554 | 73.9% | 80.4% | 76.0% |
-| M06 | 472 | 46.1% | 44.8% | 45.4% |
-| **Average** | - | **64.1%** | **67.0%** | **64.8%** |
-
-Results are available in `results/discriminative_models/deberta_crf/municipality_experiments/` and `results/llm_extraction/cross_municipality/`.
-
-**Note**: LOMO results show significant performance degradation compared to in-domain evaluation (93.2% → 52.8% for DeBERTa-CRF), indicating domain shift challenges across municipalities. Interestingly, Gemini Few-Shot (64.8%) outperforms DeBERTa-CRF in the cross-municipality setting.
+- **FacebookAI/xlm-roberta-base** and **xlm-roberta-large**: [Hugging Face](https://huggingface.co/FacebookAI)
+- **microsoft/deberta-v3-base**: [Hugging Face](https://huggingface.co/microsoft/deberta-v3-base)
+- **neuralmind/bert-large-portuguese-cased** (BERTimbau): [Hugging Face](https://huggingface.co/neuralmind/bert-large-portuguese-cased)
+- **Portuguese FastText embeddings** (`cc.pt.300.bin`): [fasttext.cc](https://fasttext.cc/docs/en/crawl-vectors.html)
 
 ---
 
-## Repository Structure
+## 13. Acknowledgments
 
-```
-citilink/
-├── configs/                               # Model configuration files
-│   ├── crf.yaml
-│   ├── bilstm_fasttext.yaml
-│   ├── bert_linear.yaml
-│   ├── bert_crf.yaml
-│   ├── deberta_linear.yaml
-│   ├── deberta_crf.yaml
-│   ├── xlmr_linear.yaml
-│   ├── xlmr_crf.yaml                      # Best model config ⭐
-│   └── municipality_experiments/          # LOMO experiment configs
-│       ├── deberta_crf_M01.yaml
-│       └── ... (M01-M06)
-│
-├── data/                                  # Dataset directory
-│   ├── README.md                          # Download instructions
-│   ├── sample_data.jsonl                  # 30 sample examples ✅
-│   ├── citilink_spans/                    # Span format (download from RDM)
-│   │   ├── *_ids.txt                      # Document IDs ✅
-│   │   └── *.jsonl                        # Data files (download required)
-│   └── citilink_bio/                      # BIO format (download from RDM)
-│       ├── *_ids.txt                      # Document IDs ✅
-│       └── *.jsonl                        # Data files (download required)
-│
-├── results/                               # Experimental results
-│   ├── discriminative_models/             # Transformer/CRF results
-│   ├── llm_extraction/                    # Gemini extraction results
-│   │   ├── gemini_zero_standard.jsonl
-│   │   ├── gemini_few_standard.jsonl
-│   │   └── cross_municipality/            # LOMO results
-│   └── error_analysis/                    # Error classification
-│
-├── scripts/                               # Executable scripts
-│   ├── train.py                           # Unified training script
-│   ├── predict.py                         # Generate predictions
-│   ├── evaluate.py                        # Evaluation metrics
-│   ├── run_pipeline.py                    # End-to-end pipeline
-│   ├── validate_experiments.py            # Dry-run validation
-│   ├── quick_start.py                     # Quick demo script
-│   ├── run_all_experiments.sh             # Run all experiments
-│   ├── run_municipality_experiments.py    # LOMO experiments
-│   ├── error_classification.py            # Error analysis
-│   └── llm_extraction/                    # LLM extraction scripts
-│       ├── extract_gemini_spans.py
-│       ├── evaluate_spans.py
-│       ├── run_cross_municipality.py      # LLM LOMO experiments
-│       └── analyze_errors.py
-│
-├── src/                                   # Source code
-│   ├── models/                            # Model implementations
-│   │   ├── base.py                        # Base model interface
-│   │   ├── crf.py                         # Traditional CRF
-│   │   ├── bilstm_crf.py                  # BiLSTM+FastText+CRF
-│   │   ├── bertimbau_models.py            # BERTimbau models
-│   │   ├── deberta_models.py              # DeBERTa models
-│   │   └── xlmr_models.py                 # XLM-RoBERTa models
-│   ├── data/                              # Data loading and processing
-│   │   ├── dataset.py                     # Dataset utilities
-│   │   ├── span_to_bio.py                 # Format conversion
-│   │   └── postprocessing.py              # Output postprocessing
-│   ├── evaluation/                        # Evaluation metrics
-│   │   └── entity_metrics.py              # Entity-level (seqeval)
-│   ├── llm_extraction/                    # LLM extraction module
-│   │   ├── gemini/                        # Gemini extractor
-│   │   │   ├── extractor.py
-│   │   │   ├── prompts.py                 # Zero/few-shot prompts
-│   │   │   └── config.py
-│   │   ├── few_shot_data/                 # Few-shot examples
-│   │   │   ├── examples_5shot_pool500.json
-│   │   │   ├── metadata_5shot_pool500.json
-│   │   │   └── README.md
-│   │   ├── few_shot_selector.py           # Example selection
-│   │   ├── span_alignment.py              # Post-processing alignment
-│   │   └── shared/                        # Shared utilities
-│   ├── trainer.py                         # Transformer training loop
-│   └── bilstm_trainer.py                  # BiLSTM training loop
-│
-├── models/                                # Trained models (NOT tracked)
-├── predictions/                           # Generated predictions (NOT tracked)
-├── evaluation/                            # Evaluation outputs (NOT tracked)
-├── requirements.txt                       # Python dependencies
-├── README.md                              # This file
-└── LICENSE                                # License file (CC-BY-ND 4.0)
-```
-
+- The [seqeval](https://github.com/chakki-works/seqeval) project for sequence labeling evaluation
+- [Hugging Face](https://huggingface.co/) for the Transformers library and model/demo hosting
+- [Neuralmind](https://neuralmind.ai/) for BERTimbau pre-trained models
+- Google for Gemini API access
+- INESCTEC for dataset hosting via RDM
 
 ---
 
-## Reproducibility
-
-### Fixed Random Seeds
-
-All experiments use fixed random seeds for reproducibility:
-- PyTorch seed: 42
-- NumPy seed: 42
-- Python random seed: 42
-- CUDA deterministic mode: enabled
-
-### Reproducing Published Results
-
-> **📥 Dataset Required**: Training pipelines require the full dataset from [RDM](https://rdm.inesctec.pt/dataset/cs-2025-007). You can:
-> - Download the **full dataset** from RDM and extract to `data/` directory
-> - Test the **pre-trained model** from [HuggingFace](https://huggingface.co/Anonymous3445/XLM-RoBERTa-CRF-VotIE)
-> - Try the **[🎯 Interactive Demo](https://huggingface.co/spaces/Anonymous3445/VotIE-demo)**
-
-**Option 1: Validate Setup (No Training)**
-```bash
-# Check all configs compile
-python scripts/validate_experiments.py --smoke-test
-```
-
-**Option 2: Full Reproduction** (requires full dataset download from RDM)
-```bash
-# Run all experiments
-bash scripts/run_all_experiments.sh paper_reproduction
-
-# Run LOMO experiments
-python scripts/run_municipality_experiments.py
-```
-
----
-
-## Citation
+## 14. Citation
 
 If you use this code or dataset, please cite:
 
 ```bibtex
-@inproceedings{citilink2026,
-  title={VotIE: Voting Information Extraction from Meeting Minutes},
-  author={Anonymous},
-  booktitle={Proceedings of ACL 2026},
-  year={2026}
+@inproceedings{votie2026emnlp,
+  title     = {VotIE: Information Extraction from Meeting Minutes},
+  author    = {Anonymous},
+  booktitle = {Proceedings of EMNLP 2026},
+  year      = {2026}
 }
 ```
 
 ---
 
-## License
+## Appendix: Repository Structure
 
-This project is licensed under **CC-BY-ND 4.0 (Creative Commons Attribution–NoDerivatives 4.0 International)**.
-
-You are free to:
-- **Share:** Copy and redistribute the material in any medium or format
-
-Under the following terms:
-- **Attribution:** You must give appropriate credit
-- **No Derivatives:** If you remix, transform, or build upon the material, you may not distribute the modified version
-
-For details, see the `LICENSE` file.
-
+```
+citilink/
+├── configs/                               # YAML model configurations
+│   ├── crf.yaml
+│   ├── bilstm_fasttext.yaml
+│   ├── bert_linear.yaml  / bert_crf.yaml
+│   ├── deberta_linear.yaml / deberta_crf.yaml
+│   ├── xlmr_linear.yaml  / xlmr_crf.yaml  
+│   └── municipality_experiments/
+│       └── xlmr_crf_M01.yaml … xlmr_crf_M06.yaml
+│
+├── data/
+│   ├── citilink-dataset/                  # Raw source annotations 
+│   ├── citilink-votie/                    # Training-ready dataset 
+│   │   ├── train.jsonl / dev.jsonl / test.jsonl
+│   │   └── generation_summary.json
+│   ├── citilink-votie-lomo-splits/        # LOMO splits (generate locally)
+│   └── split_info.json                    # Document-level split assignments 
+│
+├── scripts/
+│   ├── dataset_generation/                # Data pipeline
+│   │   ├── convert_new_citilink_to_spans.py   # Raw → intermediate span JSONL
+│   │   ├── generate_v6_multi_vote_aware.py    # → citilink-votie/ (with oversampling)
+│   │   ├── create_lomo_splits_v6.py           # → citilink-votie-lomo-splits/
+│   │   └── convert_spans_to_bio.py            # [Optional] pre-tokenize BIO
+│   ├── train.py                           # Unified training
+│   ├── predict.py                         # Inference
+│   ├── evaluate.py                        # Evaluation metrics
+│   ├── run_pipeline.py                    # train → predict → evaluate
+│   ├── run_standard_benchmark.sh          # Run all model configs
+│   ├── run_municipality_experiments.py    # LOMO experiments
+│   ├── aggregate_seeds.py                 # Multi-seed result aggregation
+│   ├── statistical_tests.py              # Significance testing
+│   ├── error_classification.py            # Error analysis (§6)
+│   ├── quick_start.py                     # Demo script
+│   └── llm_extraction/                    # LLM scripts
+│       ├── extract_gemini_spans.py        # Gemini 2.5 Pro extraction
+│       ├── extract_gpt_spans.py           # GPT 5.5 extraction
+│       ├── extract_amalia_spans.py        # AMALIA 8B extraction
+│       ├── evaluate_spans.py              # Evaluate any LLM predictions
+│       └── run_cross_municipality.py      # LOMO for Gemini
+│
+├── src/
+│   ├── models/                            # Model implementations
+│   │   ├── base.py                        # Shared base class
+│   │   ├── crf.py / bilstm_crf.py
+│   │   ├── bertimbau_models.py
+│   │   ├── deberta_models.py
+│   │   └── xlmr_models.py
+│   ├── data/
+│   │   ├── dataset.py                     # Data loading + auto span→BIO conversion
+│   │   ├── span_to_bio.py                 # Regex tokenizer + BIO alignment
+│   │   └── postprocessing.py
+│   ├── evaluation/
+│   │   └── entity_metrics.py
+│   ├── llm_extraction/                    # LLM extraction module
+│   │   ├── gemini/                        # GeminiSpanExtractor
+│   │   ├── gpt/                           # GptSpanExtractor + GptLanguageModel provider
+│   │   ├── amalia/                        # AmaliaSpanExtractor + vllm_openai.py + prompts.py
+│   │   ├── shared/                        # base_extractor.py, data_utils.py, evaluation.py
+│   │   ├── fixed_examples.py             # Fixed few-shot examples shared by all extractors
+│   │   └── span_alignment.py             # Post-processing span alignment
+│   ├── trainer.py                         # Transformer training loop
+│   └── bilstm_trainer.py                  # BiLSTM training loop
+│
+├── results/                               # All experimental results (tracked)
+│   ├── discriminative_models/
+│   │   └── {model}/
+│   │       └── seeds/                     # Predictions + evaluations per seed
+│   │           ├── seed_s42_predictions.jsonl    # Deucalion run (canonical)
+│   │           ├── seed_s42_evaluation.json
+│   │           ├── seed_s13_predictions.jsonl    # bert_crf, deberta_crf, xlmr_crf only
+│   │           ├── seed_s13_evaluation.json
+│   │           ├── seed_s123_predictions.jsonl
+│   │           └── seed_s123_evaluation.json
+│   ├── lomo/
+│   │   ├── bert_crf/    M{01-06}_{predictions.jsonl,evaluation.json}
+│   │   ├── deberta_crf/ M{01-06} × {seed_s42,seed_s13,seed_s123} × {predictions,evaluation}
+│   │   └── xlmr_crf/    M{01-06} × available seeds × {predictions,evaluation}
+│   ├── llm_extraction/
+│   │   ├── gemini/      {zero,few}_shot.jsonl + _evaluation.json
+│   │   │   └── lomo/    M{01-06}.jsonl + M{01-06}_evaluation.json
+│   │   ├── gpt5.5/      {zero,few}_shot.jsonl + _evaluation.json
+│   │   └── amalia/      {zero,few}_shot.jsonl + _evaluation.json
+│   ├── seed_aggregate_summary.json        # Aggregated multi-seed results
+│   ├── statistical_tests.json             # Bootstrap significance tests
+│   └── error_classification_{report,results}.{md,json}
+│
+├── evaluation/                            # Runtime output dir (gitignored)
+├── models/                                # Trained model checkpoints (gitignored)
+├── requirements.txt
+├── README.md
+└── LICENSE
+```
 
 ---
 
-## Acknowledgments
-
-- The [seqeval](https://github.com/chakki-works/seqeval) project for sequence evaluation metrics
-- [Hugging Face](https://huggingface.co/) for the Transformers library and model hosting
-- [Neuralmind](https://neuralmind.ai/) for BERTimbau pre-trained models
-- Google for providing access to the Gemini API
-
----
-
-**Last Updated**: January 2026
+**Last Updated**: February 2026

@@ -61,61 +61,92 @@ def save_jsonl(data: List[Dict[str, Any]], file_path: str) -> None:
     logger.info(f"Saved {len(data)} examples to {file_path}")
 
 
-def convert_bio_to_spans(tokens: List[str], labels: List[str]) -> List[Dict[str, Any]]:
+def convert_bio_to_spans(
+    tokens: List[str],
+    labels: List[str],
+    token_offsets: List[List[int]] = None,
+    text: str = None,
+) -> List[Dict[str, Any]]:
     """
     Convert BIO-tagged tokens to span format.
+
+    When *token_offsets* are provided, character positions are taken
+    from the original tokenization rather than approximated via
+    cumulative ``len(token) + 1``.
 
     Args:
         tokens: List of tokens
         labels: List of BIO labels
+        token_offsets: Optional ``[[start, end], ...]`` character
+            positions in the original text, one per token.
+        text: Optional original text for extracting span text via
+            ``text[start:end]``.
 
     Returns:
         List of span dictionaries with text, type, start, end
     """
+    use_offsets = (
+        token_offsets is not None
+        and len(token_offsets) == len(tokens)
+    )
+
     spans = []
     current_span = None
-    current_text = []
-    char_offset = 0
+    current_tokens = []
+    char_offset = 0  # only used in legacy fallback
 
-    for token, label in zip(tokens, labels):
+    for i, (token, label) in enumerate(zip(tokens, labels)):
+        if use_offsets:
+            tok_start, tok_end = token_offsets[i]
+        else:
+            tok_start = char_offset
+            tok_end = char_offset + len(token)
+
         if label.startswith('B-'):
-            # Save previous span if exists
             if current_span is not None:
-                current_span['text'] = ' '.join(current_text)
-                current_span['end'] = char_offset - 1  # Remove trailing space
+                _finish_bio_span(current_span, current_tokens, text, use_offsets)
                 spans.append(current_span)
 
-            # Start new span
-            entity_type = label[2:]  # Remove 'B-' prefix
+            entity_type = label[2:]
             current_span = {
                 'type': entity_type,
-                'start': char_offset
+                'start': tok_start,
+                'end': tok_end,
             }
-            current_text = [token]
+            current_tokens = [token]
 
         elif label.startswith('I-') and current_span is not None:
-            # Continue current span
-            current_text.append(token)
+            current_span['end'] = tok_end
+            current_tokens.append(token)
 
-        else:  # O tag or I- without B-
-            # Save previous span if exists
+        else:
             if current_span is not None:
-                current_span['text'] = ' '.join(current_text)
-                current_span['end'] = char_offset - 1
+                _finish_bio_span(current_span, current_tokens, text, use_offsets)
                 spans.append(current_span)
                 current_span = None
-                current_text = []
+                current_tokens = []
 
-        # Update character offset (token + space)
-        char_offset += len(token) + 1
+        if not use_offsets:
+            char_offset += len(token) + 1
 
-    # Save final span if exists
     if current_span is not None:
-        current_span['text'] = ' '.join(current_text)
-        current_span['end'] = char_offset - 1
+        _finish_bio_span(current_span, current_tokens, text, use_offsets)
         spans.append(current_span)
 
     return spans
+
+
+def _finish_bio_span(
+    span: Dict[str, Any],
+    tokens: List[str],
+    text: str = None,
+    use_offsets: bool = False,
+) -> None:
+    """Set the ``text`` field on a span being finalized."""
+    if use_offsets and text:
+        span['text'] = text[span['start']:span['end']]
+    else:
+        span['text'] = ' '.join(tokens)
 
 
 def load_citilink_data(file_path: str, limit: Optional[int] = None) -> List[Dict[str, Any]]:
@@ -137,7 +168,12 @@ def load_citilink_data(file_path: str, limit: Optional[int] = None) -> List[Dict
     # Convert BIO labels to spans for each example
     for example in data:
         if 'tokens' in example and 'labels' in example:
-            example['spans'] = convert_bio_to_spans(example['tokens'], example['labels'])
+            example['spans'] = convert_bio_to_spans(
+                example['tokens'],
+                example['labels'],
+                token_offsets=example.get('token_offsets'),
+                text=example.get('text'),
+            )
 
     return data
 

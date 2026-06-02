@@ -73,7 +73,8 @@ class VoteExample:
     tokens: List[str]
     labels: List[str]
     original_text: str
-    
+    token_offsets: Optional[List[List[int]]] = None  # [[start, end], ...] char offsets in original text
+
     def __len__(self):
         return len(self.tokens)
 
@@ -324,6 +325,7 @@ def jsonl_to_examples_with_dynamic_windowing(
         original_text = item.get('text', '')
         tokens = item.get('tokens', [])
         tags = item.get('labels', [])
+        token_offsets = item.get('token_offsets', None)
         
         # Validation
         if len(tokens) != len(tags):
@@ -346,28 +348,37 @@ def jsonl_to_examples_with_dynamic_windowing(
                 overlap_tokens=overlap_tokens,
                 example_id=doc_id
             )
-            
+
             windowing_stats['total_windows_created'] += len(windows)
             windowing_stats['max_windows_per_segment'] = max(
-                windowing_stats['max_windows_per_segment'], 
+                windowing_stats['max_windows_per_segment'],
                 len(windows)
             )
-            
+
             if len(windows) == 1:
                 windowing_stats['single_window_segments'] += 1
             else:
                 windowing_stats['multi_window_segments'] += 1
-            
+
+            # Build token index ranges for each window so we can slice token_offsets
+            window_ranges = _compute_window_ranges(tokens, windows, overlap_tokens)
+
             # Create examples for each window
             for window_idx, (window_tokens, window_labels) in enumerate(windows):
                 window_doc_id = f"{doc_id}_w{window_idx}" if len(windows) > 1 else doc_id
-                window_text = " ".join(window_tokens)
-                
+
+                # Slice token_offsets for this window
+                window_offsets = None
+                if token_offsets is not None and window_idx < len(window_ranges):
+                    start_i, end_i = window_ranges[window_idx]
+                    window_offsets = token_offsets[start_i:end_i]
+
                 examples.append(VoteExample(
                     doc_id=window_doc_id,
                     tokens=window_tokens,
                     labels=window_labels,
-                    original_text=window_text
+                    original_text=original_text,
+                    token_offsets=window_offsets,
                 ))
         else:
             # Traditional mode - treat as pre-windowed data
@@ -375,7 +386,8 @@ def jsonl_to_examples_with_dynamic_windowing(
                 doc_id=doc_id,
                 tokens=tokens,
                 labels=tags,
-                original_text=original_text
+                original_text=original_text,
+                token_offsets=token_offsets,
             ))
             windowing_stats['single_window_segments'] += 1
             windowing_stats['total_windows_created'] += 1
@@ -396,6 +408,27 @@ def jsonl_to_examples_with_dynamic_windowing(
             logger.info(f"  Segments requiring windowing: {windowing_rate:.1f}%")
     
     return examples
+
+def _compute_window_ranges(
+    tokens: List[str],
+    windows: List[Tuple[List[str], List[str]]],
+    overlap_tokens: int,
+) -> List[Tuple[int, int]]:
+    """
+    Compute the (start_idx, end_idx) slice in the original token list
+    that corresponds to each window produced by create_dynamic_windows.
+
+    Mirrors the sliding-window logic: step = window_size - overlap.
+    """
+    ranges = []
+    start_idx = 0
+    for window_tokens, _ in windows:
+        end_idx = start_idx + len(window_tokens)
+        ranges.append((start_idx, end_idx))
+        step_size = max(len(window_tokens) - overlap_tokens, 1)
+        start_idx += step_size
+    return ranges
+
 
 def create_label_mapping(examples: List[VoteExample]) -> Tuple[Dict[str, int], Dict[int, str]]:
     """Create label to ID mapping."""
@@ -732,6 +765,184 @@ def create_dynamic_windows(
                 logger.error(f"Window {i} exceeds max length: {len(w_subwords)} > {effective_max_length}")
 
     return windows
+
+
+def load_jsonl_span_format(file_path: Path) -> List[Dict[str, Any]]:
+    """Load span-format JSONL preserving raw ``text`` and ``spans`` fields.
+
+    Companion loader for the offset-based pipeline. Unlike ``load_jsonl_file``
+    (which auto-converts span format to BIO via the regex pre-tokenizer), this
+    keeps the raw text intact so the model's native tokenizer can run directly
+    over it via ``return_offsets_mapping=True``.
+    """
+    examples: List[Dict[str, Any]] = []
+    with open(file_path, 'r', encoding='utf-8') as f:
+        for line_no, line in enumerate(f, start=1):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                ex = json.loads(line)
+            except json.JSONDecodeError as e:
+                logger.warning(f"Invalid JSON in {file_path} at line {line_no}: {e}")
+                continue
+            if 'text' not in ex:
+                logger.warning(f"Skipping example at line {line_no}: no 'text' field")
+                continue
+            if 'spans' not in ex:
+                ex['spans'] = []
+            examples.append(ex)
+    logger.info(f"Loaded {len(examples)} span-format examples from {file_path}")
+    return examples
+
+
+def convert_span_examples_to_offset_features(
+    examples: List[Dict[str, Any]],
+    tokenizer: AutoTokenizer,
+    label_to_id: Dict[str, int],
+    max_length: int = 512,
+    overlap_subwords: int = 50,
+) -> List[VoteFeatures]:
+    """Build ``VoteFeatures`` directly from raw text + char-offset spans.
+
+    Per training example: tokenize raw text with ``return_offsets_mapping``,
+    assign B/I/O labels per subword via char-offset overlap, window if needed,
+    and emit one ``VoteFeatures`` per window. Special tokens and padding get
+    ``label=-100`` so they are ignored by the loss.
+
+    The output ``VoteFeatures`` dataclass is byte-compatible with the legacy
+    word-based path: same fields, same shapes. The ``orig_token_indices``
+    field is repurposed to hold per-position char offsets (encoded as a single
+    int packing start*1e9+end), since downstream code only checks ``-1`` for
+    special positions.
+    """
+    from .span_to_bio import create_subword_windows
+
+    features: List[VoteFeatures] = []
+    o_id = label_to_id.get('O', 0)
+
+    for ex in examples:
+        text = ex.get('text', '')
+        spans = ex.get('spans', [])
+        doc_id = ex.get('id', 'unknown')
+        if not text:
+            continue
+
+        windows = create_subword_windows(
+            text=text,
+            spans=spans,
+            tokenizer=tokenizer,
+            max_length=max_length,
+            overlap_subwords=overlap_subwords,
+        )
+        for w_idx, w in enumerate(windows):
+            # Map BIO label strings → ids; special positions / padding → -100
+            label_ids: List[int] = []
+            for label_str, mask_flag in zip(w['subword_labels'], w['subtoken_mask']):
+                if not mask_flag:
+                    label_ids.append(-100)
+                    continue
+                if label_str in label_to_id:
+                    label_ids.append(label_to_id[label_str])
+                else:
+                    logger.warning(f"Unknown label '{label_str}' in {doc_id} window {w_idx}; using O")
+                    label_ids.append(o_id)
+
+            # orig_token_indices is repurposed to hold per-subword char ranges
+            # (kept here as -1 since downstream code only branches on -1 vs not).
+            orig_token_indices = [-1 if not m else 0 for m in w['subtoken_mask']]
+
+            example_id = f"{doc_id}_w{w_idx}" if len(windows) > 1 else doc_id
+            features.append(VoteFeatures(
+                input_ids=torch.tensor(w['input_ids'], dtype=torch.long),
+                attention_mask=torch.tensor(w['attention_mask'], dtype=torch.long),
+                labels=torch.tensor(label_ids, dtype=torch.long),
+                subtoken_mask=torch.tensor(w['subtoken_mask'], dtype=torch.bool),
+                example_id=example_id,
+                orig_token_indices=orig_token_indices,
+            ))
+
+    return features
+
+
+def collect_label_set_from_spans(examples: List[Dict[str, Any]]) -> Tuple[Dict[str, int], Dict[int, str]]:
+    """Build label_to_id / id_to_label from span-format examples.
+
+    BIO labels are derived: every span ``label`` produces both ``B-label`` and
+    ``I-label``. ``O`` is reserved as id 0.
+    """
+    label_set: set = set()
+    for ex in examples:
+        for s in ex.get('spans', []):
+            label_set.add(f"B-{s['label']}")
+            label_set.add(f"I-{s['label']}")
+    sorted_labels = ['O'] + sorted(label_set)
+    label_to_id = {lab: i for i, lab in enumerate(sorted_labels)}
+    id_to_label = {i: lab for lab, i in label_to_id.items()}
+    logger.info(f"Built offset-mode label mapping with {len(sorted_labels)} labels")
+    return label_to_id, id_to_label
+
+
+def load_ner_dataset_offset_aligned(
+    data_dir: Path,
+    train_file: str,
+    dev_file: str,
+    test_file: str,
+    tokenizer_name: str,
+    max_length: int = 512,
+    overlap_subwords: int = 50,
+    override_label_to_id: Optional[Dict[str, int]] = None,
+) -> Tuple[VotIEDataset, VotIEDataset, VotIEDataset, Dict[str, int], Dict[int, str], AutoTokenizer]:
+    """Offset-aligned dataset loader (modern path).
+
+    Reads span-format JSONL directly. The model's native tokenizer is the
+    ground truth for word boundaries; char-offset overlap drives B/I/O
+    assignment. No regex pre-tokenizer, no train-inference gap.
+
+    When ``override_label_to_id`` is provided (e.g. when resuming from a
+    checkpoint), that mapping is used instead of one derived from this
+    dataset. This is required when fine-tuning on a small subset that
+    doesn't cover every label the checkpoint was trained on — otherwise
+    the model would be built with a smaller classifier head and the
+    state-dict load would fail with a size mismatch.
+    """
+    logger.info(f"Loading NER dataset with offset-aligned tokenization")
+    logger.info(f"  max_length={max_length}  overlap_subwords={overlap_subwords}")
+    tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
+
+    train_examples = load_jsonl_span_format(data_dir / train_file)
+    dev_examples = load_jsonl_span_format(data_dir / dev_file)
+    test_examples = load_jsonl_span_format(data_dir / test_file)
+
+    if override_label_to_id is not None:
+        label_to_id = dict(override_label_to_id)
+        id_to_label = {idx: lab for lab, idx in label_to_id.items()}
+        logger.info(
+            f"Using provided label mapping ({len(label_to_id)} labels) — "
+            f"data-derived labels ignored"
+        )
+    else:
+        label_to_id, id_to_label = collect_label_set_from_spans(
+            train_examples + dev_examples + test_examples
+        )
+
+    logger.info("Building features (offset alignment + subword windowing)...")
+    train_features = convert_span_examples_to_offset_features(
+        train_examples, tokenizer, label_to_id, max_length, overlap_subwords)
+    dev_features = convert_span_examples_to_offset_features(
+        dev_examples, tokenizer, label_to_id, max_length, overlap_subwords)
+    test_features = convert_span_examples_to_offset_features(
+        test_examples, tokenizer, label_to_id, max_length, overlap_subwords)
+
+    train_dataset = VotIEDataset(train_features)
+    dev_dataset = VotIEDataset(dev_features)
+    test_dataset = VotIEDataset(test_features)
+
+    logger.info(f"  Train: {len(train_features)} feature windows from {len(train_examples)} examples")
+    logger.info(f"  Dev:   {len(dev_features)} feature windows from {len(dev_examples)} examples")
+    logger.info(f"  Test:  {len(test_features)} feature windows from {len(test_examples)} examples")
+
+    return train_dataset, dev_dataset, test_dataset, label_to_id, id_to_label, tokenizer
 
 
 def load_ner_dataset_with_dynamic_windowing(

@@ -190,7 +190,13 @@ class VotIETrainer:
         save_only_best_model: bool = True,
         no_save_models: bool = False,
         dataloader_num_workers: int = 0,
-        pin_memory: bool = True
+        pin_memory: bool = True,
+
+        # Checkpoint resumption parameters
+        resume_from_checkpoint: Optional[Union[str, Path]] = None,
+        reset_optimizer: bool = False,
+        reset_scheduler: bool = False,
+        reset_epochs: bool = True
     ) -> None:
         # Validate inputs with comprehensive error messages
         self._validate_initialization_parameters(
@@ -240,12 +246,19 @@ class VotIETrainer:
         # Model saving configuration
         self.save_only_best_model = save_only_best_model
         self.no_save_models = no_save_models
-        
+
+        # Checkpoint resumption configuration
+        self.resume_from_checkpoint = Path(resume_from_checkpoint) if resume_from_checkpoint else None
+        self.reset_optimizer = reset_optimizer
+        self.reset_scheduler = reset_scheduler
+        self.reset_epochs = reset_epochs
+
         # Training state management
         self.global_step = 0
         self.best_eval_score = 0.0
         self.patience_counter = 0
         self.best_model_checkpoint: Optional[Path] = None
+        self.prev_best_epoch_dir: Optional[Path] = None  # Track previous best epoch dir for cleanup
         self.training_interrupted = False
         self.oom_recovery_count = 0
         
@@ -259,8 +272,14 @@ class VotIETrainer:
             self.scaler = None
             
         
-        # Model initialization with error handling
+        # Model initialization with error handling.
+        # Force FP32 across all parameters: some HF artifacts (notably
+        # microsoft/mdeberta-v3-base) ship embedding weights in FP16 while
+        # newly-initialized classifier/CRF heads default to FP32, which
+        # produces "mat1 and mat2 must have the same dtype" at the first
+        # linear pass. .float() is a no-op on already-FP32 weights.
         try:
+            self.model.float()
             self.model.to(self.device)
             self._log_model_info()
         except Exception as e:
@@ -437,6 +456,57 @@ class VotIETrainer:
         except Exception as e:
             logger.warning(f"Failed to setup device {device}: {e}, falling back to CPU")
             return torch.device("cpu")
+
+    def _load_checkpoint(self, checkpoint_path: Path) -> None:
+        """
+        Load model, optimizer, and scheduler state from checkpoint.
+
+        Args:
+            checkpoint_path: Path to checkpoint.pt file
+
+        Raises:
+            FileNotFoundError: If checkpoint doesn't exist
+            RuntimeError: If checkpoint loading fails
+        """
+        if not checkpoint_path.exists():
+            raise FileNotFoundError(f"Checkpoint not found: {checkpoint_path}")
+
+        logger.info(f"📥 Loading checkpoint from {checkpoint_path}")
+
+        try:
+            checkpoint = torch.load(checkpoint_path, map_location=self.device, weights_only=False)
+
+            # Always load model state
+            self.model.load_state_dict(checkpoint['model_state_dict'])
+            logger.info("  ✅ Model state loaded")
+
+            # Optionally load optimizer state
+            if not self.reset_optimizer and 'optimizer_state_dict' in checkpoint:
+                self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+                logger.info("  ✅ Optimizer state loaded (continuing)")
+            else:
+                logger.info("  🔄 Optimizer reset (fresh start)")
+
+            # Optionally load scheduler state
+            if not self.reset_scheduler and 'scheduler_state_dict' in checkpoint and checkpoint['scheduler_state_dict']:
+                if self.scheduler is None:
+                    logger.warning("  ⚠️  Scheduler state in checkpoint but scheduler not initialized yet")
+                else:
+                    self.scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+                    logger.info("  ✅ Scheduler state loaded")
+            else:
+                logger.info("  🔄 Scheduler will be reinitialized")
+
+            # Track checkpoint metadata
+            if not self.reset_epochs:
+                self.global_step = checkpoint.get('global_step', 0)
+                logger.info(f"  📊 Resuming from global step: {self.global_step}")
+
+            previous_score = checkpoint.get('best_eval_score', 0.0)
+            logger.info(f"  📊 Previous best score: {previous_score:.4f}")
+
+        except Exception as e:
+            raise RuntimeError(f"Failed to load checkpoint: {e}") from e
 
     def _log_gpu_memory_status(self, context: str) -> None:
         """Log current GPU memory usage for CUDA or MPS."""
@@ -889,7 +959,11 @@ Load this model using the Vote NER framework or convert to standard HuggingFace 
         # Calculate total training steps
         total_steps = len(train_dataloader) * self.num_train_epochs
         self.scheduler = self._setup_scheduler(total_steps)
-        
+
+        # Load checkpoint if resuming
+        if self.resume_from_checkpoint:
+            self._load_checkpoint(self.resume_from_checkpoint)
+
         # Training history
         training_history = {
             'train_loss': [],
@@ -938,10 +1012,20 @@ Load this model using the Vote NER framework or convert to standard HuggingFace 
                 self.patience_counter += 1
                 logger.info(f"No improvement. Patience: {self.patience_counter}/{self.patience}")
             
-            # Save model 
+            # Save model
             if not self.save_only_best_model or is_best:
                 epoch_dir = self.output_dir / f"epoch_{epoch + 1}"
+
+                # Delete previous best epoch dir before saving new one to save disk space
+                if self.save_only_best_model and is_best and self.prev_best_epoch_dir:
+                    if self.prev_best_epoch_dir.exists():
+                        shutil.rmtree(self.prev_best_epoch_dir)
+                        logger.info(f"🗑️  Deleted previous best checkpoint: {self.prev_best_epoch_dir.name}")
+
                 self.save_model(epoch_dir, is_best=is_best)
+
+                if is_best:
+                    self.prev_best_epoch_dir = epoch_dir
 
             elif is_best:
                 # For save_only_best_model=True, just track the best checkpoint path
@@ -1001,13 +1085,27 @@ Load this model using the Vote NER framework or convert to standard HuggingFace 
             self._cleanup_checkpoints()
         else:
             self._save_huggingface_format(final_model_dir)
-            
+
             # Verify the best model was saved before cleanup
             if not (final_model_dir / "model.safetensors").exists():
                 logger.error("❌ Best model was not saved properly - skipping checkpoint cleanup")
             else:
                 logger.info(f"✅ Best model saved successfully to {final_model_dir}")
-                # Clean up checkpoint directories to save space
+
+                # Save raw PyTorch checkpoint for fine-tuning resumption
+                best_ckpt_dir = self.output_dir / 'best_model'
+                best_ckpt_dir.mkdir(parents=True, exist_ok=True)
+                best_ckpt_path = best_ckpt_dir / 'checkpoint.pt'
+                torch.save({
+                    'model_state_dict': self.model.state_dict(),
+                    'optimizer_state_dict': self.optimizer.state_dict(),
+                    'scheduler_state_dict': self.scheduler.state_dict() if self.scheduler else None,
+                    'best_eval_score': self.best_eval_score,
+                    'global_step': self.global_step,
+                }, best_ckpt_path)
+                logger.info(f"✅ Raw checkpoint saved for fine-tuning: {best_ckpt_path}")
+
+                # Clean up epoch checkpoint directories to save space
                 self._cleanup_checkpoints()
 
         # Save final results with comprehensive metadata

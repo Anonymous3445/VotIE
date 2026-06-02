@@ -1,0 +1,286 @@
+{
+  "description": "citilink_spans_v6: v5 (SUB-SUBJECT merge + voting-only filter + minority-class oversampling) plus per-segment structural metadata (is_multi_vote, subject_span_lengths) and segment-level multi-vote oversampling. Schema is a strict superset of v5.",
+  "rationale": "Multi-vote segments (~7-8.6% of corpus) are under-represented in training relative to their difficulty: span-level F1 is comparable between single-vote and multi-vote segments but event-level assembly fails disproportionately on multi-vote. v6 oversamples multi-vote segments at the dataset level (same mechanism as the existing minority-label oversample inherited from v4/v5) without any model-architecture change.",
+  "source": "data/citilink_spans_v2",
+  "transformations": [
+    "SUB-SUBJECT boundary normalization (strip leading article)",
+    "SUB-SUBJECT label -> SUBJECT (train/dev/test main files)",
+    "Voting-only filter: spans=[] when source has no VOTING anchor",
+    "Minority-class oversampling x4 (train only, seed=42)",
+    "Multi-vote segment oversampling x4 (train only, seed=42)",
+    "Per-segment metadata: is_multi_vote, subject_span_lengths"
+  ],
+  "gold_references": {
+    "dev": "dev_gold_with_sub_subjects.jsonl",
+    "test": "test_gold_with_sub_subjects.jsonl"
+  },
+  "oversampling": {
+    "minority_factor": 4,
+    "minority_labels": [
+      "COUNT-AGAINST",
+      "COUNT-BLANK",
+      "COUNT-FAVOR",
+      "VOTING-METHOD"
+    ],
+    "multi_vote_factor": 4,
+    "multi_vote_definition": ">=2 distinct event_ids among VOTING spans",
+    "seed": 42,
+    "shuffle": "deterministic via random.Random(seed) after all oversample appends",
+    "note": "A segment that is both minority and multi-vote receives both oversample factors (multiplied independently)."
+  },
+  "schema_additions_over_v5": {
+    "is_multi_vote": "bool — >=2 distinct event_ids among VOTING spans",
+    "subject_span_lengths": "list[int] — whitespace-token count per SUBJECT span (post-merge)"
+  },
+  "subject_length_bins": [
+    "0-5",
+    "5-10",
+    "10-20",
+    "20-40",
+    "40-+"
+  ],
+  "split_stats": {
+    "train": {
+      "segments_in": 1803,
+      "segments_out": 2463,
+      "voting_segments": 1574,
+      "non_voting_segments_kept": 229,
+      "voting_fraction": 0.8729894620077648,
+      "spans_total_before_filter": 6982,
+      "spans_total_after_filter": 11893,
+      "sub_subject_normalizations": 8,
+      "sub_subject_relabels": 157,
+      "minority_segments_orig": 21,
+      "oversample_copies": 84,
+      "multi_vote_segments_orig": 144,
+      "multi_vote_oversample_copies": 576,
+      "multi_vote_fraction": 0.09148665819567979,
+      "entity_counts_after": {
+        "VOTER-FAVOR": 1085,
+        "VOTING": 1749,
+        "COUNTING-UNANIMITY": 1008,
+        "SUBJECT": 1730,
+        "COUNTING-MAJORITY": 162,
+        "VOTER-ABSTENTION": 747,
+        "VOTER-ABSENT": 61,
+        "VOTER-AGAINST": 99,
+        "VOTING-METHOD": 39,
+        "COUNT-FAVOR": 32,
+        "COUNT-BLANK": 39,
+        "COUNT-AGAINST": 2
+      },
+      "per_municipality": {
+        "M02": {
+          "segments": 245,
+          "voting": 196,
+          "non_voting": 49,
+          "entities": 855,
+          "multi_vote": 13
+        },
+        "M06": {
+          "segments": 272,
+          "voting": 266,
+          "non_voting": 6,
+          "entities": 1103,
+          "multi_vote": 3
+        },
+        "M01": {
+          "segments": 315,
+          "voting": 256,
+          "non_voting": 59,
+          "entities": 1079,
+          "multi_vote": 0
+        },
+        "M03": {
+          "segments": 473,
+          "voting": 401,
+          "non_voting": 72,
+          "entities": 2009,
+          "multi_vote": 123
+        },
+        "M04": {
+          "segments": 147,
+          "voting": 146,
+          "non_voting": 1,
+          "entities": 623,
+          "multi_vote": 0
+        },
+        "M05": {
+          "segments": 351,
+          "voting": 309,
+          "non_voting": 42,
+          "entities": 1084,
+          "multi_vote": 5
+        }
+      },
+      "subject_length_histogram": {
+        "0-5": 113,
+        "10-20": 820,
+        "20-40": 418,
+        "5-10": 358,
+        "40+": 21
+      }
+    },
+    "dev": {
+      "segments_in": 553,
+      "segments_out": 553,
+      "voting_segments": 481,
+      "non_voting_segments_kept": 72,
+      "voting_fraction": 0.8698010849909584,
+      "spans_total_before_filter": 2133,
+      "spans_total_after_filter": 2059,
+      "sub_subject_normalizations": 5,
+      "sub_subject_relabels": 42,
+      "minority_segments_orig": 1,
+      "oversample_copies": 0,
+      "multi_vote_segments_orig": 42,
+      "multi_vote_oversample_copies": 0,
+      "multi_vote_fraction": 0.08731808731808732,
+      "entity_counts_after": {
+        "VOTER-FAVOR": 336,
+        "VOTING": 524,
+        "COUNTING-UNANIMITY": 313,
+        "SUBJECT": 523,
+        "COUNTING-MAJORITY": 57,
+        "VOTER-ABSTENTION": 221,
+        "VOTER-ABSENT": 23,
+        "VOTER-AGAINST": 60,
+        "VOTING-METHOD": 1,
+        "COUNT-BLANK": 1
+      },
+      "per_municipality": {
+        "M02": {
+          "segments": 79,
+          "voting": 71,
+          "non_voting": 8,
+          "entities": 329,
+          "multi_vote": 10
+        },
+        "M06": {
+          "segments": 93,
+          "voting": 92,
+          "non_voting": 1,
+          "entities": 357,
+          "multi_vote": 0
+        },
+        "M01": {
+          "segments": 96,
+          "voting": 75,
+          "non_voting": 21,
+          "entities": 309,
+          "multi_vote": 0
+        },
+        "M03": {
+          "segments": 144,
+          "voting": 118,
+          "non_voting": 26,
+          "entities": 587,
+          "multi_vote": 31
+        },
+        "M04": {
+          "segments": 38,
+          "voting": 38,
+          "non_voting": 0,
+          "entities": 152,
+          "multi_vote": 0
+        },
+        "M05": {
+          "segments": 103,
+          "voting": 87,
+          "non_voting": 16,
+          "entities": 325,
+          "multi_vote": 1
+        }
+      },
+      "subject_length_histogram": {
+        "20-40": 151,
+        "5-10": 107,
+        "10-20": 241,
+        "40+": 5,
+        "0-5": 19
+      }
+    },
+    "test": {
+      "segments_in": 529,
+      "segments_out": 529,
+      "voting_segments": 461,
+      "non_voting_segments_kept": 68,
+      "voting_fraction": 0.8714555765595463,
+      "spans_total_before_filter": 1950,
+      "spans_total_after_filter": 1882,
+      "sub_subject_normalizations": 6,
+      "sub_subject_relabels": 25,
+      "minority_segments_orig": 5,
+      "oversample_copies": 0,
+      "multi_vote_segments_orig": 25,
+      "multi_vote_oversample_copies": 0,
+      "multi_vote_fraction": 0.05422993492407809,
+      "entity_counts_after": {
+        "VOTER-FAVOR": 319,
+        "VOTING": 489,
+        "COUNTING-UNANIMITY": 326,
+        "SUBJECT": 486,
+        "COUNTING-MAJORITY": 59,
+        "VOTER-ABSTENTION": 135,
+        "VOTER-AGAINST": 36,
+        "VOTING-METHOD": 5,
+        "COUNT-FAVOR": 4,
+        "COUNT-BLANK": 5,
+        "VOTER-ABSENT": 18
+      },
+      "per_municipality": {
+        "M02": {
+          "segments": 74,
+          "voting": 63,
+          "non_voting": 11,
+          "entities": 277,
+          "multi_vote": 6
+        },
+        "M06": {
+          "segments": 107,
+          "voting": 103,
+          "non_voting": 4,
+          "entities": 381,
+          "multi_vote": 0
+        },
+        "M01": {
+          "segments": 93,
+          "voting": 73,
+          "non_voting": 20,
+          "entities": 326,
+          "multi_vote": 1
+        },
+        "M03": {
+          "segments": 103,
+          "voting": 82,
+          "non_voting": 21,
+          "entities": 364,
+          "multi_vote": 18
+        },
+        "M04": {
+          "segments": 50,
+          "voting": 50,
+          "non_voting": 0,
+          "entities": 210,
+          "multi_vote": 0
+        },
+        "M05": {
+          "segments": 102,
+          "voting": 90,
+          "non_voting": 12,
+          "entities": 324,
+          "multi_vote": 0
+        }
+      },
+      "subject_length_histogram": {
+        "20-40": 170,
+        "5-10": 60,
+        "10-20": 221,
+        "0-5": 24,
+        "40+": 11
+      }
+    }
+  },
+  "generated_at": "2026-05-11T12:49:28.246459",
+  "script": "generate_v6_multi_vote_aware.py"
+}

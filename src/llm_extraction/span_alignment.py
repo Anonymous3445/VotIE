@@ -63,7 +63,7 @@ def find_span_in_text(
     suggested_start: Optional[int] = None,
     window_size: int = 100,
     voting_positions: Optional[List[Tuple[int, int]]] = None,
-    max_distance: int = 500
+    max_distance: int = 500,
 ) -> Optional[Tuple[int, int]]:
     """
     Find the exact position of a span in the source text.
@@ -113,8 +113,19 @@ def find_span_in_text(
             except ValueError:
                 pass
 
-        # No match found
-        logger.debug(f"Could not find span in text: '{span_text[:50]}...'")
+        # Case-insensitive fallback (handles LLM case normalisation vs ALL-CAPS source)
+        source_lower = source_text.lower()
+        span_lower = span_text.lower()
+        occurrences_ci = find_all_occurrences(source_lower, span_lower)
+        if occurrences_ci:
+            logger.debug(
+                f"Case-insensitive match for '{span_text[:50]}' "
+                f"({len(occurrences_ci)} occurrence(s))"
+            )
+            occurrences = occurrences_ci
+
+    if not occurrences:
+        logger.debug(f"Could not find span in text: '{span_text[:50]}'")
         return None
 
     # If only one occurrence, return it
@@ -232,22 +243,25 @@ def align_span(
         return None
 
     start, end = result
+    extracted = source_text[start:end]
 
-    # Verify exact match if strict
-    if strict:
-        extracted = source_text[start:end]
-        if extracted != span_entity.text:
+    if extracted != span_entity.text:
+        if strict and extracted.lower() != span_entity.text.lower():
+            # Genuine mismatch — not just a case difference
             logger.warning(
                 f"Non-verbatim match for '{span_entity.text}': found '{extracted}'"
             )
             return None
+        # Case-insensitive match: normalise entity text to verbatim source text
+        logger.debug(
+            f"Case normalised: '{span_entity.text}' → '{extracted}'"
+        )
 
-    # Create aligned span
     return SpanEntity(
-        text=span_entity.text,
+        text=extracted,   # always use the verbatim source slice
         type=span_entity.type,
         start=start,
-        end=end
+        end=end,
     )
 
 

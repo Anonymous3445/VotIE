@@ -9,7 +9,7 @@ Usage:
     from scripts.evaluate import evaluate
     evaluate(
         predictions_path='predictions/test_predictions.jsonl',
-        output_path='evaluation/results.json',
+        output_path='results/evaluation.json',
         relaxed_threshold=0.1  # Optional: for ±10% boundary matching
     )
 """
@@ -32,6 +32,59 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+
+def _spans_to_bio_via_offsets(
+    offsets: List[List[int]], gold_spans: List[Dict[str, Any]]
+) -> List[str]:
+    """Convert gold spans (char-level) to BIO labels aligned to subword offsets."""
+    labels = ['O'] * len(offsets)
+    for span in sorted(gold_spans, key=lambda s: s['start']):
+        span_type = span.get('type') or span.get('label')
+        if not span_type:
+            continue
+        span_start, span_end = span['start'], span['end']
+        first_in_span = True
+        for i, (sw_start, sw_end) in enumerate(offsets):
+            if sw_end <= span_start or sw_start >= span_end:
+                continue
+            if labels[i] != 'O':
+                continue
+            labels[i] = f'B-{span_type}' if first_in_span else f'I-{span_type}'
+            first_in_span = False
+    return labels
+
+
+def _normalize_to_token_format(pred: Dict[str, Any]) -> Dict[str, Any]:
+    """Normalize offset-aligned predictions to the legacy tokens/pred_labels format.
+
+    The offset-aligned pipeline (transformer models) writes subword_offsets +
+    subword_pred_labels. Legacy format (CRF/BiLSTM) writes tokens + pred_labels.
+    This function unifies both so the rest of the evaluator stays unchanged.
+    """
+    if 'tokens' in pred and 'pred_labels' in pred:
+        return pred  # already legacy format
+
+    offsets = pred.get('subword_offsets', [])
+    pred_labels = pred.get('subword_pred_labels', [])
+    text = pred.get('text', '')
+
+    tokens = [text[s:e] for s, e in offsets] if text else [''] * len(offsets)
+
+    normalized: Dict[str, Any] = {
+        'id': pred['id'],
+        'tokens': tokens,
+        'pred_labels': pred_labels,
+        'token_offsets': offsets,
+        'text': text,
+    }
+
+    if 'gold_spans' in pred and pred['gold_spans']:
+        normalized['gold_labels'] = _spans_to_bio_via_offsets(offsets, pred['gold_spans'])
+    elif 'gold_labels' in pred:
+        normalized['gold_labels'] = pred['gold_labels']
+
+    return normalized
 
 
 def load_predictions(predictions_path: str) -> List[Dict[str, Any]]:
@@ -68,12 +121,20 @@ def load_predictions(predictions_path: str) -> List[Dict[str, Any]]:
                 except json.JSONDecodeError as e:
                     raise ValueError(f"Invalid JSON on line {line_num}: {e}")
 
-    # Validate all predictions have required fields
-    required_fields = ['id', 'tokens', 'pred_labels']
+    # Validate: every prediction must have an id and at least one label format
     for i, pred in enumerate(predictions, 1):
-        for field in required_fields:
-            if field not in pred:
-                raise ValueError(f"Prediction {i} missing required field '{field}'")
+        if 'id' not in pred:
+            raise ValueError(f"Prediction {i} missing required field 'id'")
+        has_legacy = 'tokens' in pred and 'pred_labels' in pred
+        has_offset = 'subword_offsets' in pred and 'subword_pred_labels' in pred
+        if not has_legacy and not has_offset:
+            raise ValueError(
+                f"Prediction {i} must have either ('tokens', 'pred_labels') "
+                f"or ('subword_offsets', 'subword_pred_labels')"
+            )
+
+    # Normalize offset-aligned format to legacy token/label format
+    predictions = [_normalize_to_token_format(p) for p in predictions]
 
     logger.info(f"✓ Loaded {len(predictions)} predictions from {predictions_path}")
     return predictions
@@ -100,59 +161,117 @@ def extract_labels(predictions: List[Dict[str, Any]]):
     return pred_labels_list, gold_labels_list, tokens_list
 
 
-def bio_to_spans(tokens: List[str], labels: List[str]) -> List[Dict[str, Any]]:
+def bio_to_spans(
+    tokens: List[str],
+    labels: List[str],
+    token_offsets: List[List[int]] = None,
+    text: str = None,
+) -> List[Dict[str, Any]]:
     """
     Convert BIO labels to span entities with character positions.
 
+    When ``token_offsets`` (and optionally ``text``) are provided, span
+    boundaries are taken directly from the original character offsets
+    produced during tokenization.  This avoids the lossy assumption that
+    every token is separated by a single space, and yields span text
+    that faithfully matches the source document (preserving punctuation
+    adjacency, newlines, etc.).
+
+    When offsets are *not* available the function falls back to the
+    legacy heuristic (``char_pos += len(token) + 1``) so that existing
+    prediction files without offsets continue to work.
+
     Args:
-        tokens: List of tokens
-        labels: List of BIO labels
+        tokens: List of tokens.
+        labels: List of BIO labels (same length as *tokens*).
+        token_offsets: Optional list of ``[start, end)`` character
+            positions in the original text, one per token.
+        text: Optional original text.  Used together with
+            *token_offsets* to extract span text via
+            ``text[start:end]`` instead of joining tokens with spaces.
 
     Returns:
-        List of span dictionaries with 'text', 'type', 'start', 'end'
+        List of span dicts with keys ``text``, ``type``, ``start``,
+        ``end``, ``tokens``.
     """
+    use_offsets = (
+        token_offsets is not None
+        and len(token_offsets) == len(tokens)
+    )
+
     spans = []
     current_entity = None
-    char_pos = 0
+    char_pos = 0  # only used in legacy fallback
 
     for i, (token, label) in enumerate(zip(tokens, labels)):
+        if use_offsets:
+            tok_start, tok_end = token_offsets[i]
+        else:
+            tok_start = char_pos
+            tok_end = char_pos + len(token)
+
         if label.startswith('B-'):
-            # Save previous entity if exists
             if current_entity:
+                _finalize_span(current_entity, text, use_offsets)
                 spans.append(current_entity)
 
-            # Start new entity
             entity_type = label[2:]
             current_entity = {
-                'text': token,
                 'type': entity_type,
-                'start': char_pos,
-                'end': char_pos + len(token),
-                'tokens': [token]
+                'start': tok_start,
+                'end': tok_end,
+                'tokens': [token],
+                '_first_idx': i,
             }
 
         elif label.startswith('I-') and current_entity:
-            # Continue current entity
             entity_type = label[2:]
             if entity_type == current_entity['type']:
-                current_entity['text'] += ' ' + token
-                current_entity['end'] = char_pos + len(token)
+                current_entity['end'] = tok_end
                 current_entity['tokens'].append(token)
 
         elif label == 'O':
-            # Save previous entity if exists
             if current_entity:
+                _finalize_span(current_entity, text, use_offsets)
                 spans.append(current_entity)
                 current_entity = None
 
-        # Update character position (token + space)
-        char_pos += len(token) + 1
+        if not use_offsets:
+            char_pos += len(token) + 1
 
-    # Save last entity if exists
     if current_entity:
+        _finalize_span(current_entity, text, use_offsets)
         spans.append(current_entity)
 
     return spans
+
+
+def _finalize_span(
+    span: Dict[str, Any],
+    text: str = None,
+    use_offsets: bool = False,
+) -> None:
+    """Set the ``text`` field of a span and clean up internal keys.
+
+    For offset-based input (subword-level), the SentencePiece ``▁`` boundary
+    encodes the leading space into the next subword's offset, so a recovered
+    span's start/end may straddle adjacent whitespace. Trim those edges so
+    the recovered text matches the human-meaningful word boundaries that
+    annotators use.
+    """
+    if use_offsets and text:
+        s, e = span['start'], span['end']
+        # Trim leading/trailing whitespace from the recovered char range.
+        while s < e and text[s].isspace():
+            s += 1
+        while e > s and text[e - 1].isspace():
+            e -= 1
+        span['start'] = s
+        span['end'] = e
+        span['text'] = text[s:e]
+    else:
+        span['text'] = ' '.join(span['tokens'])
+    span.pop('_first_idx', None)
 
 
 def relaxed_span_match(pred_span: Dict[str, Any], gold_span: Dict[str, Any]) -> bool:

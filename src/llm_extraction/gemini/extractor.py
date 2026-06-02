@@ -1,100 +1,80 @@
 """
-Gemini-based span extractor using response_json_schema.
+Gemini-based span extractor using langextract with GeminiLanguageModel.
+
+Mirrors the AmaliaSpanExtractor flow but wired to Gemini via langextract,
+enabling a fair comparison of langextract outputs across providers.
 """
 
 import time
 import logging
-import json
-from typing import List, Optional
+from typing import Optional
 
-try:
-    from google import genai
-    from google.genai import types
-except ImportError:
-    raise ImportError(
-        "google-genai is required for Gemini extractor. "
-        "Install with: pip install google-genai"
-    )
+import langextract as lx
+from langextract.providers.gemini import GeminiLanguageModel
+from langextract.prompt_validation import PromptValidationLevel
 
 from ..shared.base_extractor import BaseSpanExtractor
-from ..schemas import SpanEntity, SpanExtractionResult
+from ..schemas import SpanEntity, ENTITY_TYPES
 from ..span_alignment import align_extraction_result
-from .config import GeminiConfig, DEFAULT_CONFIG
-from .prompts import build_zero_shot_prompt, build_few_shot_prompt
+from ..amalia.prompts import get_prompt_description
+from ..fixed_examples import get_fixed_examples
+from .config import GeminiConfig
 
 
 logger = logging.getLogger(__name__)
 
 
 class GeminiSpanExtractor(BaseSpanExtractor):
-    """Gemini-based span extractor with structured output."""
+    """Gemini-based span extractor via langextract."""
 
     def __init__(
         self,
         config: Optional[GeminiConfig] = None,
-        strategy: str = "zero_shot"
+        strategy: str = "zero_shot",
+        num_examples: int = 4,
     ):
         """
-        Initialize Gemini span extractor.
-
         Args:
-            config: Gemini configuration (uses DEFAULT_CONFIG if None)
-            strategy: Extraction strategy ("zero_shot" or "few_shot")
+            config: Gemini configuration
+            strategy: "zero_shot" or "few_shot"
+            num_examples: Number of fixed few-shot examples to use (max 4)
         """
-        self.config = config or DEFAULT_CONFIG
+        self.config = config or GeminiConfig()
 
-        # Initialize parent
         super().__init__(model_id=self.config.model_id, strategy=strategy)
 
-        # Create Gemini client (Vertex AI or AI Studio)
-        if self.config.use_vertex_ai:
-            logger.info(f"Using Vertex AI with project={self.config.project_id}, location={self.config.location}")
-            self.client = genai.Client(
-                vertexai=True,
-                project=self.config.project_id,
-                location=self.config.location
-            )
-        else:
-            logger.info(f"Using AI Studio with API key")
-            self.client = genai.Client(api_key=self.config.api_key)
+        self.prompt_description = get_prompt_description()
+        # langextract 1.1.1 requires at least one example unconditionally.
+        # For zero_shot we use 1 example as the minimum required scaffold.
+        self.lx_examples = get_fixed_examples(num_examples if strategy == "few_shot" else 1)
 
-        logger.info(f"Initialized GeminiSpanExtractor with {self.config}")
+        # response_mime_type forces JSON output at the API level; without it,
+        # GeminiLanguageModel only sets this when a gemini_schema is attached,
+        # which can silently produce empty responses when schema constraints fail.
+        self._lm = GeminiLanguageModel(
+            model_id=self.config.model_id,
+            api_key=self.config.api_key,
+            temperature=self.config.temperature,
+            response_mime_type="application/json",
+        )
 
-    def _get_json_schema(self) -> dict:
-        """Get JSON schema for response validation (text-only, no positions)."""
-        return {
-            "type": "object",
-            "properties": {
-                "entities": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "text": {"type": "string"},
-                            "type": {"type": "string"}
-                        },
-                        "required": ["text", "type"]
-                    }
-                }
-            },
-            "required": ["entities"]
-        }
+        logger.info(
+            f"Initialized GeminiSpanExtractor with {self.config}, "
+            f"strategy={strategy}, examples={len(self.lx_examples)}"
+        )
 
-    def _build_prompt(self, text: str, examples: Optional[List[dict]] = None) -> str:
-        """Build prompt for Gemini."""
-        if self.strategy == "few_shot" and examples:
-            return build_few_shot_prompt(text, examples)
-        else:
-            return build_zero_shot_prompt(text)
+    def _build_prompt(self, text: str, examples=None) -> str:
+        """Not used directly — langextract handles prompt construction."""
+        return self.prompt_description
 
     def extract(
         self,
         text: str,
         document_id: str,
-        align_spans: bool = True
-    ) -> SpanExtractionResult:
+        align_spans: bool = True,
+    ):
         """
-        Extract spans from text using Gemini.
+        Extract spans from text using Gemini via langextract.
 
         Args:
             text: Source text to extract from
@@ -107,37 +87,40 @@ class GeminiSpanExtractor(BaseSpanExtractor):
         start_time = time.time()
 
         try:
-            # Build prompt
-            if self.strategy == "few_shot" and self.few_shot_examples:
-                prompt = self._build_prompt(text, self.few_shot_examples)
-            else:
-                prompt = self._build_prompt(text)
+            logger.info(f"Extracting from {document_id} ({len(text)} chars, strategy={self.strategy})")
 
-            logger.debug(f"Extracting from document {document_id} with {self.strategy} strategy")
-
-            # Call Gemini API with retry logic (returns response and API time)
-            response, api_time = self._call_with_retry(prompt)
-
-            # Parse response
-            entities = self._parse_response(response.text)
-
-            # Create result
-            processing_time = time.time() - start_time
-            result = self._create_result(
-                document_id=document_id,
-                text=text,
-                entities=entities,
-                processing_time=processing_time,
-                api_time=api_time,
-                raw_response=response.text
+            annotated_doc = lx.extract(
+                text_or_documents=text,
+                prompt_description=self.prompt_description,
+                examples=self.lx_examples,
+                model=self._lm,
+                max_char_buffer=self.config.max_char_buffer,
+                fence_output=False,
+                use_schema_constraints=False,
+                show_progress=False,
+                max_workers=1,
+                extraction_passes=1,
+                prompt_validation_level=PromptValidationLevel.OFF,
             )
 
-            # Align spans if requested
+            processing_time = time.time() - start_time
+            result = self._convert_result(
+                annotated_doc, document_id, text, processing_time
+            )
+
+            n_raw = len(annotated_doc.extractions) if annotated_doc.extractions else 0
+            logger.info(
+                f"  langextract returned {n_raw} extractions, "
+                f"{len(result.entities)} valid entities ({processing_time:.1f}s)"
+            )
+
             if align_spans:
-                result, alignment_stats = align_extraction_result(result, strict=True)
-                logger.debug(
-                    f"Aligned {alignment_stats['aligned_spans']}/{alignment_stats['total_spans']} spans "
-                    f"(fidelity={alignment_stats['alignment_rate']:.2%})"
+                result, alignment_stats = align_extraction_result(
+                    result, strict=True
+                )
+                logger.info(
+                    f"  Aligned {alignment_stats['aligned_spans']}/{alignment_stats['total_spans']} spans "
+                    f"(fidelity={alignment_stats['alignment_rate']:.0%})"
                 )
 
             return result
@@ -150,120 +133,31 @@ class GeminiSpanExtractor(BaseSpanExtractor):
                 text=text,
                 entities=[],
                 processing_time=processing_time,
-                error=str(e)
+                error=str(e),
             )
 
-    def _call_with_retry(self, prompt: str) -> tuple:
-        """
-        Call Gemini API with retry logic for quota errors.
-
-        Args:
-            prompt: Input prompt
-
-        Returns:
-            Tuple of (response object, api_time in seconds)
-
-        Raises:
-            Exception: If all retries fail
-        """
-        api_start = time.time()
-
-        for attempt in range(self.config.max_retries):
-            try:
-                # Use new google-genai API
-                call_start = time.time()
-                response = self.client.models.generate_content(
-                    model=self.config.model_id,
-                    contents=prompt,
-                    config=types.GenerateContentConfig(
-                        response_mime_type="application/json",
-                        response_schema=self._get_json_schema(),
-                        temperature=self.config.temperature,
-                        max_output_tokens=self.config.max_tokens
-                    )
-                )
-                call_time = time.time() - call_start
-                total_api_time = time.time() - api_start
-
-                logger.debug(f"API call completed in {call_time:.2f}s (total with retries: {total_api_time:.2f}s)")
-                return response, total_api_time
-
-            except Exception as e:
-                error_msg = str(e).lower()
-
-                # Check if it's a quota/rate limit error
-                if "quota" in error_msg or "rate" in error_msg or "429" in error_msg:
-                    if attempt < self.config.max_retries - 1:
-                        logger.warning(
-                            f"Quota/rate limit error (attempt {attempt + 1}/{self.config.max_retries}). "
-                            f"Retrying in {self.config.retry_delay}s..."
-                        )
-                        time.sleep(self.config.retry_delay)
-                        continue
-                    else:
-                        logger.error(f"Max retries reached for quota error")
-                        raise
-
-                # For other errors, raise immediately
-                raise
-
-        raise Exception("Failed after all retry attempts")
-
-    def _parse_response(self, response_text: str) -> List[SpanEntity]:
-        """
-        Parse Gemini JSON response into span entities (without positions).
-
-        Args:
-            response_text: JSON response from Gemini
-
-        Returns:
-            List of SpanEntity objects (start/end will be None, filled by alignment)
-        """
-        try:
-            # Parse JSON
-            data = json.loads(response_text)
-
-            # Extract entities (no positions from LLM)
-            entities = []
-            for entity_dict in data.get("entities", []):
-                entity = SpanEntity(
-                    text=entity_dict["text"],
-                    type=entity_dict["type"],
-                    start=None,  # Will be filled by alignment module
-                    end=None     # Will be filled by alignment module
-                )
-                entities.append(entity)
-
-            logger.debug(f"Parsed {len(entities)} entities from response (positions will be aligned)")
-            return entities
-
-        except (json.JSONDecodeError, KeyError, ValueError) as e:
-            logger.error(f"Error parsing response: {e}")
-            logger.error(f"Response text (first 500 chars): {response_text[:500]}")
-            logger.debug(f"Full response text: {response_text}")
-
-            # Try to salvage partial JSON
-            try:
-                # Sometimes Gemini returns valid JSON with extra text - try to extract it
-                # Look for the first { and last }
-                start_idx = response_text.find('{')
-                end_idx = response_text.rfind('}')
-                if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
-                    cleaned = response_text[start_idx:end_idx+1]
-                    logger.warning("Attempting to parse cleaned JSON...")
-                    data = json.loads(cleaned)
-                    entities = []
-                    for entity_dict in data.get("entities", []):
-                        entity = SpanEntity(
-                            text=entity_dict["text"],
-                            type=entity_dict["type"],
+    def _convert_result(self, annotated_doc, document_id, text, processing_time):
+        """Convert langextract AnnotatedDocument to SpanExtractionResult."""
+        entities = []
+        if annotated_doc.extractions:
+            for extraction in annotated_doc.extractions:
+                entity_type = extraction.extraction_class
+                entity_text = extraction.extraction_text
+                if entity_type in ENTITY_TYPES and entity_text:
+                    entities.append(
+                        SpanEntity(
+                            text=entity_text,
+                            type=entity_type,
                             start=None,
-                            end=None
+                            end=None,
                         )
-                        entities.append(entity)
-                    logger.warning(f"Successfully recovered {len(entities)} entities from malformed response")
-                    return entities
-            except Exception as recovery_error:
-                logger.debug(f"Recovery attempt failed: {recovery_error}")
+                    )
 
-            return []
+        logger.info(f"  Converted {len(entities)} entities from langextract result")
+
+        return self._create_result(
+            document_id=document_id,
+            text=text,
+            entities=entities,
+            processing_time=processing_time,
+        )

@@ -9,7 +9,7 @@ model:
 
 data:
   # Dataset paths - modify these for different experiments (cross-municipality, multilingual, etc.)
-  data_dir: "data/citilink_spans"
+  data_dir: "data/citilink-votie"
   train_file: "train.jsonl"
   dev_file: "dev.jsonl"
   test_file: "test.jsonl"

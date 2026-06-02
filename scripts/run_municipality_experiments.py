@@ -71,8 +71,8 @@ def train_model(municipality: str, experiment_name: str) -> bool:
 def generate_predictions(municipality: str, experiment_name: str, device: str = "cuda") -> bool:
     """Generate predictions for a specific municipality."""
     model_path = f"models/deberta_crf/{experiment_name}"
-    test_data_path = f"data/citilink_spans_municipality_splits/{municipality}/test.jsonl"
-    output_path = f"municipality_experiments/predictions/{municipality}_predictions.jsonl"
+    test_data_path = f"data/citilink-votie-lomo-splits/{municipality}/test.jsonl"
+    output_path = f"results/lomo/deberta_crf/{municipality}_predictions.jsonl"
 
     cmd = [
         sys.executable,
@@ -88,8 +88,8 @@ def generate_predictions(municipality: str, experiment_name: str, device: str = 
 
 def evaluate_predictions(municipality: str) -> bool:
     """Evaluate predictions for a specific municipality."""
-    predictions_path = f"municipality_experiments/predictions/{municipality}_predictions.jsonl"
-    output_path = f"municipality_experiments/evaluation/{municipality}_results.json"
+    predictions_path = f"results/lomo/deberta_crf/{municipality}_predictions.jsonl"
+    output_path = f"results/lomo/deberta_crf/{municipality}_evaluation.json"
 
     cmd = [
         sys.executable,
@@ -103,7 +103,7 @@ def evaluate_predictions(municipality: str) -> bool:
 
 def load_evaluation_results(municipality: str) -> Dict[str, Any]:
     """Load evaluation results for a municipality."""
-    results_file = Path(f"municipality_experiments/evaluation/{municipality}_results.json")
+    results_file = Path(f"results/lomo/deberta_crf/{municipality}_evaluation.json")
 
     if not results_file.exists():
         print(f"Warning: Results file not found for {municipality}: {results_file}")
@@ -259,8 +259,7 @@ def main():
     print("=" * 80)
 
     # Create output directories
-    Path("municipality_experiments/predictions").mkdir(parents=True, exist_ok=True)
-    Path("municipality_experiments/evaluation").mkdir(parents=True, exist_ok=True)
+    Path("results/lomo/deberta_crf").mkdir(parents=True, exist_ok=True)
 
     # Process each municipality
     success_count = 0
@@ -315,7 +314,7 @@ def main():
 
             if aggregated:
                 # Save aggregated results
-                output_file = Path("municipality_experiments/aggregated_results.json")
+                output_file = Path("results/lomo/deberta_crf/aggregated_results.json")
                 with open(output_file, 'w', encoding='utf-8') as f:
                     json.dump(aggregated, f, indent=2, ensure_ascii=False)
 

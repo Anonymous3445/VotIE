@@ -82,11 +82,14 @@ def relaxed_span_match(pred_entity: SpanEntity, gold_entity: SpanEntity) -> bool
     Returns:
         True if type matches and spans overlap
     """
-    # Type must match exactly
     if pred_entity.type != gold_entity.type:
         return False
 
-    # Check for overlap: pred_start < gold_end AND pred_end > gold_start
+    # Guard against unaligned spans (None positions)
+    if any(v is None for v in (pred_entity.start, pred_entity.end,
+                                gold_entity.start, gold_entity.end)):
+        return False
+
     return pred_entity.start < gold_entity.end and pred_entity.end > gold_entity.start
 
 

@@ -6,13 +6,13 @@ This script chains training → prediction → evaluation for a complete ML pipe
 with proper separation of concerns.
 
 Usage:
-    python scripts/run_pipeline.py --config configs/main_experiment/bert_crf.yaml --name my_experiment
+    python scripts/run_pipeline.py --config configs/xlmr_crf.yaml --name my_experiment
     
     # Skip training if model already exists
-    python scripts/run_pipeline.py --config configs/main_experiment/bert_crf.yaml --name my_experiment --predict-only
+    python scripts/run_pipeline.py --config configs/xlmr_crf.yaml --name my_experiment --predict-only
     
     # Skip training and prediction if predictions already exist
-    python scripts/run_pipeline.py --config configs/main_experiment/bert_crf.yaml --name my_experiment --evaluate-only
+    python scripts/run_pipeline.py --config configs/xlmr_crf.yaml --name my_experiment --evaluate-only
 """
 
 import argparse
@@ -82,6 +82,8 @@ def run_evaluation(predictions_file: Path, results_file: Path) -> dict:
     print(f"✅ Evaluation results saved to: {results_file}")
     return results
 
+
+
 def main():
     parser = argparse.ArgumentParser(description='Run complete ML pipeline: train → predict → evaluate')
     parser.add_argument('--config', required=True, help='Path to config YAML file')
@@ -108,16 +110,14 @@ def main():
     
     # Set up paths following the repository structure
     model_dir = Path("models") / baseline_name / experiment_name
-    predictions_dir = Path("predictions")
-    evaluation_dir = Path("evaluation")
+    run_dir = Path("results") / "discriminative_models" / baseline_name / experiment_name
 
     # Create output directories
-    predictions_dir.mkdir(parents=True, exist_ok=True)
-    evaluation_dir.mkdir(parents=True, exist_ok=True)
+    run_dir.mkdir(parents=True, exist_ok=True)
 
     test_data_path = Path(data_config['data_dir']) / data_config['test_file']
-    predictions_file = predictions_dir / f"{baseline_name}_{experiment_name}.jsonl"
-    results_file = evaluation_dir / f"{baseline_name}_{experiment_name}.json"
+    predictions_file = run_dir / "predictions.jsonl"
+    results_file = run_dir / "evaluation.json"
     
     print(f"🎯 Running pipeline for {baseline_name} experiment '{experiment_name}'")
     print(f"   Config: {args.config}")
@@ -167,22 +167,22 @@ def main():
                 sys.exit(1)
         
         results = run_evaluation(predictions_file, results_file)
-        
+
         # Pipeline summary
         pipeline_time = (datetime.now() - pipeline_start).total_seconds()
-        
+
         print("\n" + "="*80)
-        print("🎉 PIPELINE COMPLETED SUCCESSFULLY")
+        print("PIPELINE COMPLETED SUCCESSFULLY")
         print("="*80)
-        print(f"📁 Model: {model_dir}")
-        print(f"🔮 Predictions: {predictions_file}")
-        print(f"📊 Results: {results_file}")
-        print(f"⏱️  Total time: {pipeline_time:.2f}s")
+        print(f"Model: {model_dir}")
+        print(f"Predictions: {predictions_file}")
+        print(f"Results: {results_file}")
+        print(f"Total time: {pipeline_time:.2f}s")
         entity_f1 = results.get('entity_level_metrics', {}).get('entity_f1', 0.0)
-        print(f"🎯 Test Entity F1: {entity_f1:.4f}")
+        print(f"Test Entity F1: {entity_f1:.4f}")
 
         # Save pipeline metadata
-        metadata_file = model_dir / "pipeline_metadata.json"
+        metadata_file = run_dir / "pipeline_metadata.json"
         pipeline_metadata = {
             'experiment_name': experiment_name,
             'baseline_name': baseline_name,
@@ -192,9 +192,9 @@ def main():
             'files': {
                 'model_dir': str(model_dir),
                 'predictions': str(predictions_file),
-                'evaluation': str(results_file)
+                'evaluation': str(results_file),
             },
-            'final_results': results
+            'final_results': results,
         }
 
         with open(metadata_file, 'w') as f:

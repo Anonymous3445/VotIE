@@ -10,11 +10,11 @@ model:
   use_char_cnn: true       # Use character-level CNN
 
 data:
-  data_dir: "data/citilink_bio"
+  data_dir: "data/citilink-votie"
   train_file: "train.jsonl"
   dev_file: "dev.jsonl"
   test_file: "test.jsonl"
-  # Note: BiLSTM requires pre-tokenized data with 'tokens' and 'labels' fields
+  # Span format is auto-converted to BIO at load time (src/data/span_to_bio.py)
   # For cross-municipality experiments:
   # data_dir: "data/publication_datasets/ner_datasets/cross_municipality/sao_paulo"
   # For multilingual experiments:
@@ -26,7 +26,7 @@ training:
   learning_rate: 0.0005
   weight_decay: 1e-4       # L2 regularization strength  
   patience: 2              # Early stopping patience
-  device: 2        
+  device: 0
   apply_bio_validation: true  # Apply BIO tag validation
   seed: 42  # Random seed for reproducibility
 

@@ -17,12 +17,18 @@ class SpanEntity(BaseModel):
     """
 
     text: str = Field(description="Exact character span from the input text (do not paraphrase)")
-    type: str = Field(description="Entity type: VOTER-FAVOR, VOTER-AGAINST, VOTER-ABSTENTION, VOTER-ABSENT, VOTING, SUBJECT, COUNTING-UNANIMITY, or COUNTING-MAJORITY")
+    type: str = Field(
+        description=(
+            "Entity type: VOTER-FAVOR, VOTER-AGAINST, VOTER-ABSTENTION, VOTER-ABSENT, "
+            "VOTING, SUBJECT, COUNTING-UNANIMITY, COUNTING-MAJORITY, "
+            "COUNT-FAVOR, COUNT-BLANK, or VOTING-METHOD"
+        )
+    )
     start: Optional[int] = Field(default=None, description="Character position (0-indexed, inclusive) - filled by alignment post-processing")
     end: Optional[int] = Field(default=None, description="Character position (exclusive) - filled by alignment post-processing")
 
     class Config:
-        # Customize JSON schema to exclude start/end fields AND constrain type to enum
+        # Customize JSON schema to expose only text/type to the LLM with enum constraint
         json_schema_extra = {
             "properties": {
                 "text": {
@@ -39,7 +45,10 @@ class SpanEntity(BaseModel):
                         "VOTING",
                         "SUBJECT",
                         "COUNTING-UNANIMITY",
-                        "COUNTING-MAJORITY"
+                        "COUNTING-MAJORITY",
+                        "COUNT-FAVOR",
+                        "COUNT-BLANK",
+                        "VOTING-METHOD",
                     ],
                     "description": "Entity type (must be one of the allowed values)"
                 }
@@ -108,7 +117,7 @@ class SpanExtractionResult(BaseModel):
         }
 
 
-# Valid entity types for VotIE task
+# Valid entity types for VotIE task (aligned with citilink-votie annotation scheme)
 ENTITY_TYPES = [
     "VOTER-FAVOR",
     "VOTER-AGAINST",
@@ -117,7 +126,10 @@ ENTITY_TYPES = [
     "VOTING",
     "SUBJECT",
     "COUNTING-UNANIMITY",
-    "COUNTING-MAJORITY"
+    "COUNTING-MAJORITY",
+    "COUNT-FAVOR",
+    "COUNT-BLANK",
+    "VOTING-METHOD",
 ]
 
 

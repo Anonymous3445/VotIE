@@ -193,8 +193,218 @@ def convert_span_to_bio(
     output = example.copy()
     output['tokens'] = tokens
     output['labels'] = bio_tags
+    # Preserve real character offsets for faithful text reconstruction.
+    # Each entry is [start, end) in the original text, so
+    # text[start:end] == token for every token.
+    output['token_offsets'] = [[start, end] for _, start, end in tokens_with_offsets]
 
     return output
+
+
+def convert_text_to_subword_features(
+    text: str,
+    spans: List[Dict[str, Any]],
+    tokenizer,
+    max_length: int = 512,
+    add_special_tokens: bool = True,
+) -> Dict[str, Any]:
+    """Tokenize raw text directly and assign BIO labels per subword by char-offset overlap.
+
+    This is the offset-based alignment path that replaces the regex+per-word
+    tokenization legacy. The model is fed the same subwords clients see at
+    inference, so there is no train-inference tokenization gap.
+
+    Conventions:
+      * Special tokens ([CLS], [SEP], padding) get label='O' here but are
+        masked to -100 in the label IDs (see ``subtoken_mask`` flag).
+      * For each gold span, the FIRST overlapping non-special subword gets
+        ``B-LABEL``; subsequent overlapping subwords get ``I-LABEL``.
+      * Subwords overlapping no span get ``O``.
+      * If a subword overlaps multiple spans, the EARLIEST-starting span
+        wins (deterministic; gold spans should not cross-overlap).
+
+    Args:
+        text: Original text.
+        spans: List of span dicts with ``start``, ``end``, ``label``.
+        tokenizer: HuggingFace fast tokenizer (must support ``return_offsets_mapping``).
+        max_length: Max sequence length including special tokens.
+        add_special_tokens: Whether the tokenizer adds [CLS]/[SEP].
+
+    Returns:
+        ``{"subword_labels", "subword_offsets", "input_ids", "attention_mask",
+           "subtoken_mask", "is_special"}`` — all aligned to the subword sequence.
+        ``subtoken_mask[i] == True`` iff position i is a real (non-special,
+        non-padding) subword whose label should contribute to loss/metrics.
+    """
+    encoding = tokenizer(
+        text,
+        return_offsets_mapping=True,
+        truncation=True,
+        max_length=max_length,
+        add_special_tokens=add_special_tokens,
+        return_attention_mask=True,
+    )
+    input_ids = encoding["input_ids"]
+    attention_mask = encoding["attention_mask"]
+    offsets = encoding["offset_mapping"]
+
+    n = len(input_ids)
+    sw_labels: List[str] = ["O"] * n
+    is_special: List[bool] = [False] * n
+
+    # Identify special-token positions. Fast tokenizers report (0, 0) for [CLS],
+    # [SEP], padding, and any other special token. ``sequence_ids`` is the
+    # robust signal but isn't available on all tokenizers, so use offsets +
+    # ``special_tokens_mask`` if present.
+    if "special_tokens_mask" in encoding:
+        special_mask = encoding["special_tokens_mask"]
+        for i, m in enumerate(special_mask):
+            if m == 1:
+                is_special[i] = True
+    else:
+        for i, (s, e) in enumerate(offsets):
+            if s == 0 and e == 0:
+                is_special[i] = True
+
+    sorted_spans = sorted(spans, key=lambda s: (s["start"], s["end"]))
+    for span in sorted_spans:
+        sp_start, sp_end = span["start"], span["end"]
+        sp_label = span["label"]
+        first_match = True
+        for i, (sub_start, sub_end) in enumerate(offsets):
+            if is_special[i]:
+                continue
+            # Half-open overlap: subword and span overlap iff
+            # sub_start < sp_end AND sub_end > sp_start.
+            if sub_start < sp_end and sub_end > sp_start:
+                # Don't overwrite an existing entity label from an earlier
+                # span (deterministic: earliest-start wins).
+                if sw_labels[i] != "O":
+                    continue
+                sw_labels[i] = f"B-{sp_label}" if first_match else f"I-{sp_label}"
+                first_match = False
+
+    subtoken_mask = [(not sp) and (am == 1) for sp, am in zip(is_special, attention_mask)]
+
+    return {
+        "subword_labels": sw_labels,
+        "subword_offsets": [list(o) for o in offsets],
+        "input_ids": input_ids,
+        "attention_mask": attention_mask,
+        "subtoken_mask": subtoken_mask,
+        "is_special": is_special,
+    }
+
+
+def create_subword_windows(
+    text: str,
+    spans: List[Dict[str, Any]],
+    tokenizer,
+    max_length: int = 512,
+    overlap_subwords: int = 50,
+) -> List[Dict[str, Any]]:
+    """Produce one or more subword-level feature dicts covering ``text``.
+
+    Tokenizes the full text *without* special tokens to get a complete subword
+    sequence, then slices it into windows of ``max_length - 2`` (room for
+    [CLS]/[SEP]) with ``overlap_subwords`` of overlap. Each window is a
+    standalone feature dict with B/I/O labels assigned from the gold spans
+    via char-offset overlap.
+
+    Why this is safer than the legacy word-level windowing:
+      * No regex pre-tokenizer dependency.
+      * Window boundaries are at subword boundaries — the model never sees
+        partial tokens.
+      * Char-offset alignment is exact, so labels can never drift.
+
+    Returns a list of feature dicts. For text fitting in one window, the list
+    has length 1.
+    """
+    if not text:
+        return []
+
+    full = tokenizer(
+        text,
+        return_offsets_mapping=True,
+        truncation=False,
+        add_special_tokens=False,
+    )
+    full_ids = full["input_ids"]
+    full_offsets = [list(o) for o in full["offset_mapping"]]
+    n = len(full_ids)
+
+    if n == 0:
+        return []
+
+    cls_id = tokenizer.cls_token_id
+    sep_id = tokenizer.sep_token_id
+    pad_id = tokenizer.pad_token_id if tokenizer.pad_token_id is not None else 0
+    inner_max = max_length - 2  # leave room for [CLS] and [SEP]
+    if inner_max <= 0:
+        raise ValueError(f"max_length={max_length} too small for special tokens")
+
+    if n <= inner_max:
+        starts = [0]
+    else:
+        step = max(inner_max - overlap_subwords, 1)
+        starts = list(range(0, n, step))
+        # Drop trailing windows fully covered by the previous one
+        starts = [s for s in starts if s + inner_max < n + step]
+        if starts[-1] + inner_max < n:
+            starts.append(n - inner_max)
+        starts = sorted(set(starts))
+
+    sorted_spans = sorted(spans, key=lambda s: (s["start"], s["end"]))
+
+    windows: List[Dict[str, Any]] = []
+    for w_start in starts:
+        w_end = min(w_start + inner_max, n)
+        win_ids = full_ids[w_start:w_end]
+        win_offs = full_offsets[w_start:w_end]
+
+        # Wrap with [CLS]/[SEP]
+        input_ids = [cls_id] + win_ids + [sep_id]
+        offsets = [[0, 0]] + win_offs + [[0, 0]]
+        is_special = [True] + [False] * len(win_ids) + [True]
+
+        # Pad to max_length
+        pad_len = max_length - len(input_ids)
+        if pad_len > 0:
+            input_ids = input_ids + [pad_id] * pad_len
+            offsets = offsets + [[0, 0]] * pad_len
+            is_special = is_special + [True] * pad_len  # padding counts as special
+        attention_mask = [0 if sp and i >= 1 + len(win_ids) + 1 else 1
+                          for i, sp in enumerate(is_special)]
+        # The above sets attention=1 for [CLS]/non-special/[SEP], 0 for padding.
+
+        # Build labels per subword via offset overlap
+        sw_labels = ["O"] * len(input_ids)
+        for span in sorted_spans:
+            sp_start, sp_end = span["start"], span["end"]
+            sp_label = span["label"]
+            first_match = True
+            for i, (sub_s, sub_e) in enumerate(offsets):
+                if is_special[i]:
+                    continue
+                if sub_s < sp_end and sub_e > sp_start:
+                    if sw_labels[i] != "O":
+                        continue
+                    sw_labels[i] = f"B-{sp_label}" if first_match else f"I-{sp_label}"
+                    first_match = False
+
+        subtoken_mask = [(not sp) and (am == 1) for sp, am in zip(is_special, attention_mask)]
+
+        windows.append({
+            "subword_labels": sw_labels,
+            "subword_offsets": offsets,
+            "input_ids": input_ids,
+            "attention_mask": attention_mask,
+            "subtoken_mask": subtoken_mask,
+            "is_special": is_special,
+            "window_subword_range": [w_start, w_end],
+        })
+
+    return windows
 
 
 def convert_dataset_span_to_bio(
