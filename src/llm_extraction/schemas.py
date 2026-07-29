@@ -6,7 +6,7 @@ where LLMs generate JSON with exact spans from source text.
 """
 
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 
 class SpanEntity(BaseModel):
@@ -92,6 +92,14 @@ class SpanExtractionResult(BaseModel):
     api_time: Optional[float] = Field(default=None, description="API/generation time in seconds (just the LLM call)")
     error: Optional[str] = Field(default=None, description="Error message if extraction failed")
     raw_response: Optional[str] = Field(default=None, description="Raw LLM response for debugging")
+    diagnostics: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description=(
+            "Per-document extraction diagnostics recorded before alignment filtering: "
+            "raw generation counts, spans dropped for unknown type or failed re-alignment, "
+            "and token usage. Required to report span-discard rate and API cost."
+        ),
+    )
 
     @property
     def success(self) -> bool:

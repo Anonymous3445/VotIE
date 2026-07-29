@@ -1,0 +1,1034 @@
+\documentclass[11pt]{article}
+
+% Change "review" to "final" to generate the final (sometimes called camera-ready) version.
+% Change to "preprint" to generate a non-anonymous version with page numbers.
+\usepackage[review]{acl}
+
+% Standard package includes
+\usepackage{times}
+\usepackage{latexsym}
+
+% For proper rendering and hyphenation of words containing Latin characters (including in bib files)
+\usepackage[T1]{fontenc}
+% For Vietnamese characters
+% \usepackage[T5]{fontenc}
+% See https://www.latex-project.org/help/documentation/encguide.pdf for other character sets
+
+% This assumes your files are encoded as UTF8
+\usepackage[utf8]{inputenc}
+
+% This is not strictly necessary, and may be commented out,
+% but it will improve the layout of the manuscript,
+% and will typically save some space.
+\usepackage{microtype}
+
+% This is also not strictly necessary, and may be commented out.
+% However, it will improve the aesthetics of text in
+% the typewriter font.
+\usepackage{inconsolata}
+
+%Including images in your LaTeX document requires adding
+%additional package(s)
+
+\usepackage{tikz}
+\usetikzlibrary{positioning} % for the 'right=2cm of ...' syntax
+\usepackage{amsmath, amssymb} % Math symbols
+\usepackage{hyperref}         % Clickable links
+\usepackage{booktabs}         % Nice tables
+\usepackage{multirow}         % Multi-row tables
+\usepackage{titlesec}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{float}
+\usepackage{makecell}
+\usepackage{placeins} 
+
+
+\usepackage{graphicx}
+
+% If the title and author information does not fit in the area allocated, uncomment the following
+%
+%\setlength\titlebox{<dim>}
+%
+% and set <dim> to something 5cm or larger.
+
+\title{VotIE: Information Extraction from Meeting Minutes}
+
+% Author information can be set in various styles:
+% For several authors from the same institution:
+% \author{Author 1 \and ... \and Author n \\
+%         Address line \\ ... \\ Address line}
+% if the names do not fit well on one line use
+%         Author 1 \\ {\bf Author 2} \\ ... \\ {\bf Author n} \\
+% For authors from different institutions:
+ \author{José Pedro Evans \\ Address line \\   \\ Address line \And
+          \And  Luís Filipe Cunha \And
+         Author n \\ Address line \\ ... \\ Address line}
+
+% To start a separate ``row'' of authors use \AND, as in
+% \author{Author 1 \\ Address line \\  ... \\ Address line
+%         \AND
+%         Author 2 \\ Address line \\ ... \\ Address line \And
+%         Author 3 \\ Address line \\ ... \\ Address line}
+
+\begin{comment}
+\author{First Author \\
+  Affiliation / Address line 1 \\
+  Affiliation / Address line 2 \\
+  Affiliation / Address line 3 \\
+  \texttt{email@domain} \\\And
+  Second Author \\
+  Affiliation / Address line 1 \\
+  Affiliation / Address line 2 \\
+  Affiliation / Address line 3 \\
+  \texttt{email@domain} \\}
+\end{comment}
+%\author{
+%  \textbf{First Author\textsuperscript{1}},
+%  \textbf{Second Author\textsuperscript{1,2}},
+%  \textbf{Third T. Author\textsuperscript{1}},
+%  \textbf{Fourth Author\textsuperscript{1}},
+%\\
+%  \textbf{Fifth Author\textsuperscript{1,2}},
+%  \textbf{Sixth Author\textsuperscript{1}},
+%  \textbf{Seventh Author\textsuperscript{1}},
+%  \textbf{Eighth Author \textsuperscript{1,2,3,4}},
+%\\
+%  \textbf{Ninth Author\textsuperscript{1}},
+%  \textbf{Tenth Author\textsuperscript{1}},
+%  \textbf{Eleventh E. Author\textsuperscript{1,2,3,4,5}},
+%  \textbf{Twelfth Author\textsuperscript{1}},
+%\\
+%  \textbf{Thirteenth Author\textsuperscript{3}},
+%  \textbf{Fourteenth F. Author\textsuperscript{2,4}},
+%  \textbf{Fifteenth Author\textsuperscript{1}},
+%  \textbf{Sixteenth Author\textsuperscript{1}},
+%\\
+%  \textbf{Seventeenth S. Author\textsuperscript{4,5}},
+%  \textbf{Eighteenth Author\textsuperscript{3,4}},
+%  \textbf{Nineteenth N. Author\textsuperscript{2,5}},
+%  \textbf{Twentieth Author\textsuperscript{1}}
+%\\
+%\\
+%  \textsuperscript{1}Affiliation 1,
+%  \textsuperscript{2}Affiliation 2,
+%  \textsuperscript{3}Affiliation 3,
+%  \textsuperscript{4}Affiliation 4,
+%  \textsuperscript{5}Affiliation 5
+%\\
+%  \small{
+%    \textbf{Correspondence:} \href{mailto:email@domain}{email@domain}
+%  }
+%}
+\setlength\titlebox{3cm} 
+
+\begin{document}
+\maketitle
+
+
+\begin{abstract}
+% Municipal meeting minutes contain deliberations, decisions, and votes of councilors. They are key sources for transparency and data-driven policy analysis. However, their unstructured and heterogeneous nature makes it difficult to retrieve and extract voting information. In this paper, we introduce Voting Information Extraction (VotIE), a novel task designed to automatically identify and structure the core elements of voting events in city council minutes, namely, the voters, their votes, the subjects under deliberation, and the voting outcomes. We formalize VotIE as a two-stage task pipeline that combines span-level extraction with event-level construction. The first stage approaches span extraction as a sequence labeling task to capture fine-grained textual spans corresponding to each voting element. The second assembles these spans into coherent, structured event representations. We then benchmark different approaches: feature-based baselines, BiLSTM-CRF models, transformer encoders, and generative large language models. Performance is evaluated on a newly introduced dataset of Portuguese city council minutes annotated for sequence labeling of voting-related entities. Results show that DeBERTa-CRF achieves the best performance: 93.0\% span-level macro F1 and 88.3\% complete voting-event F1, outperforming both classical and generative baselines. By formalizing this task and releasing the annotated data and a fine-tuned model for VotIE, we provide a foundation for large-scale, automatic analysis of civic decision-making records.
+
+% Municipal meeting minutes contain deliberations, decisions, and votes of councilors. They are key sources for transparency and data-driven policy analysis. However, their unstructured and heterogeneous nature make automated information extraction challenging. In this paper, we address the challenge of extracting structured voting information from these administrative records.
+
+Municipal meeting minutes record key decisions in local democratic processes. Unlike parliamentary proceedings, which typically adhere to standardized formats, they encode voting outcomes in highly heterogeneous, free-form narrative text that varies widely across municipalities, posing significant challenges for automated extraction. In this paper, we introduce VotIE (Voting Information Extraction), a new information extraction task aimed at span-level extraction of voting-event arguments in narrative deliberative records, and establish the first benchmark for this task using municipal minutes, building on the CitiLink-Minutes corpus.
+Our experiments yield two key findings. First, under standard in-domain evaluation, fine-tuned encoders, specifically the multilingual XLM-R-CRF, achieve the strongest performance, reaching 93.2\% exact-match macro F1, outperforming generative approaches. Second, in a cross-municipality setting that evaluates transfer to unseen administrative contexts, DeBERTa-CRF generalises best among encoders.  In this setting, Gemini demonstrates greater robustness, with significantly smaller declines in performance. Despite this generalization advantage, the high computational cost of generative models currently constrains their practicality. As a result, lightweight fine-tuned encoders remain a more practical option for large-scale, real-world deployment. To support reproducible research in administrative NLP, we publicly release our benchmark, trained models, and evaluation framework.
+
+
+\end{abstract}
+
+\section{Introduction}
+
+Natural Language Processing (NLP) has substantially advanced information extraction in governmental and administrative texts. However, most existing work focuses on document types with clear and standardized structures, such as legal documents \cite{LeNER-BR, ulyssesner} or parliamentary records \cite{Erjavec2023-parlamentary-ner}, where entities and decisions are explicitly marked and consistently formatted. In contrast, municipal council minutes record local decision-making in a highly variable, narrative form, which differs markedly across municipalities. Voting outcomes and policy decisions are often embedded in lengthy procedural descriptions and deliberations, without explicit boundaries or standardized templates. This heterogeneity poses significant challenges for automatic processing and large-scale analysis of local voting behavior \cite{Citizen_Participation_and_Machine_Learning,council_data_project}.
+
+% To address this gap, we introduce Voting Information Extraction (VotIE), a task aimed at automatically identifying and structuring voting events. To tackle these challenges,  VotIE is defined as a two-stage task pipeline. First, a \textit{span-level extraction} identifies textual spans corresponding to the elements of a voting event. Second, a \textit{entity construction} assembles these spans into structured voting event representations.
+
+% We evaluate our approach on a new dataset of Portuguese municipal council minutes, comprising 2,879 annotated segments from 120 meetings across six municipalities. Our experiments compare feature-based models, BiLSTM-CRF, transformer-based architectures, and generative approaches. Results demonstrate that DeBERTa-CRF architecture achieves the best performance, with 93\% macro F1-score on the span-extraction stage and 88.3\% in complete event extraction. 
+
+% Our work makes four contributions. First, we formally define VotIE, a novel two-stage task for extracting voting events that combines span-level extraction and entity-level construction. Second, we develop a dedicated model for the span extraction stage, fine-tuned on Portuguese municipal minutes, and release it publicly to foster reproducibility and future research \footnote{\url{https://huggingface.co/Anonymous3445/DeBERTa-CRF-VotIE}}.
+% Third, we introduce a new annotated dataset \footnote{\url{https://github.com/Anonymous3445/VotIE}} of Portuguese municipal council minutes, covering multiple municipalities, to support research on structured information extraction and entity representation in long, semi-structured documents.
+
+To address these challenges, we introduce VotIE (Voting Information Extraction), a task for extracting voting-event arguments from narrative deliberative records. VotIE formulates extraction as an event-argument identification problem: given a text segment describing a voting procedure, the task is to identify spans corresponding to voting event arguments, including the subject under deliberation, participants, and their respective stances (in favor, against, abstention, or absent), and vote counts. Building on this task formulation, we focus on defining the task and characterizing its difficulty. To this end, we introduce a benchmark built on the CitiLink-Minutes corpus \cite{CitiLinkMinutes2026}, and use it to systematically evaluate feature-based models, fine-tuned Transformer encoders, and generative Large Language Models (LLMs), allowing us to characterize task difficulty and generalization behavior. Crucially, our experimental design extends beyond standard in-domain evaluation by explicitly assessing cross-municipality generalization, measuring model robustness to variation in local administrative writing styles.
+
+% We benchmark our approach using the annotated corpus of Portuguese municipal minutes introduced by Anonymous et al. (2025), which comprises 2,879 segments from 120 meetings across six municipalities. Using these annotations, we conduct a comprehensive evaluation of feature-based models, fine-tuned Transformer encoders, and generative Large Language Models (LLMs). Crucially, our experimental design extends beyond standard in-domain testing to rigorously assess cross-municipality generalization—evaluating how well extraction models adapt to the distinct writing styles of different local clerks.
+
+% Results demonstrate that while the DeBERTa-CRF architecture achieves state-of-the-art in-domain performance (93.0% macro F1), we observe a significant "generalization gap" when transferring models to unseen municipalities. Furthermore, our analysis reveals that while generative LLMs possess strong reasoning capabilities, they struggle with the precise boundary alignment required for legal transparency, frequently paraphrasing or hallucinating constraints compared to fine-tuned encoders.
+
+% Our results demonstrate that fine-tuned encoders, most notably XLM-R-CRF, achieve state-of-the-art performance on seen municipalities reaching 93.2\% exact-match macro F1. However, this strong in-domain performance does not transfer reliably to unseen municipalities, revealing a substantial generalization gap. In contrast, while generative LLMs underperform in the standard benchmark setting, they exhibit superior robustness under cross-municipality transfer, with smaller performance degradation. %However, the high computational costs and inference times associated with them make the lightweight fine-tuned models a preferred choice, mainly when considering practical applicability where real-time systems have limited computational power and require real-time inference time. 
+
+% The main contributions of this work are as follows:
+% \begin{itemize}
+%     \item We formalize VotIE as a task for extracting structured voting events from narrative deliberative records and establish the first benchmark with standardized evaluation protocols, including cross-municipality generalization tests that quantify robustness to administrative writing-style variation
+%     \item We provide a comprehensive set of baselines spanning both discriminative and generative extraction paradigms.
+%     \item We publicly release our benchmark splits, a fine-tuned model on all six municipalities, training code, evaluation scripts, and an interactive web demonstration to support reproducible research and future work in administrative NLP. \footnote{\url{https://huggingface.co/Anonymous3445/XLM-RoBERTa-CRF-VotIE}} \footnote{\url{https://huggingface.co/spaces/Anonymous3445/VotIE-demo}}
+% \end{itemize}
+
+Our contributions are: (i) We formalize VotIE as a structured event-argument extraction task for deliberative voting procedures and establish the first benchmark with standardized evaluation protocols, including cross-municipality generalization tests that quantify robustness to administrative writing-style variation; (ii) we provide a comprehensive set of baselines spanning both discriminative and generative extraction paradigms; (iii) we publicly release our benchmark splits, a fine-tuned model on all six municipalities\footnote{\url{https://huggingface.co/Anonymous3445/XLM-RoBERTa-CRF-VotIE}}, training and evaluation code \footnote{\url{https://github.com/Anonymous3445/VotIE}}, and an interactive web demonstration. \footnote{\url{https://huggingface.co/spaces/Anonymous3445/VotIE-demo}}
+
+\section{Related Work}
+
+Previous research has explored information extraction from administrative texts, particularly legal documents and parliamentary proceedings, yet the structured extraction of voting events from municipal council minutes has received little attention. In legal corpora, such as UlyssesNER-Br \cite{ulyssesner} and LeNER-Br \cite{LeNER-BR}, methods have primarily targeted general entity types (e.g., persons, organizations, legislation) rather than complex event structures. Feature-based approaches have also been applied to Portuguese municipal minutes for specific entities, such as subsidies \cite{portuguese-municipal-minutes-2010}. However, these methods did not target voting events, relying on a narrow subsidy schema without voter roles, voting evidence, or counting expressions, and used traditional, context-independent features rather than modern context-aware embeddings.
+
+Research on parliamentary and meetings corpora has focused on tasks such as topic modeling \cite{Erjavec2023-parlamentary-ner}, summarization \cite{hu-etal-2023-meetingbank,2022-elitr}, or decision detection \cite{AMI_meeting_corpus}. In contrast to both parliamentary records, where votes are structured, and conversational meeting transcripts, where decisions are implicit, municipal council minutes often present formal voting events embedded within narrative prose. 
+ 
+% Existing methods, including sequence labeling approaches, are limited in their ability to extract explicit voting elements, whereas generative Large Language Models (LLMs) which have demonstrated promise for zero-shot Information Extraction \cite{wadhwa-etal-2023-revisiting}, have yet to be systematically applied to administrative records. 
+
+However, this setting has not been explicitly addressed as a structured information extraction task. Sequence labeling approaches for recovering event arguments often offer strong in-domain performance, but may struggle to generalize across municipalities with distinct administrative writing styles, whereas Generative Large Language Models (LLMs), which have demonstrated promise for zero-shot Information Extraction \cite{wadhwa-etal-2023-revisiting, xu_large_2024}, have yet to be systematically applied to administrative records.
+
+%Our VotIE benchmark addresses these gaps by providing a framework for evaluating fine-grained span extraction, supporting cross-municipality generalization tests and enabling direct comparison of generative and discriminative approaches under comparable metrics.
+
+% In contrast to both parliamentary records, where votes are structured, and conversational meeting transcripts, where decisions are implicit, municipal council minutes often present formal voting events embedded within narrative prose. %However, existing methods, including sequence labeling approaches, are not designed to capture these explicit voting elements, such as the subjects under deliberation, participants, and their respective votes, or the outcomes.
+
+% The VotIE task is specifically designed for extracting structured voting information from municipal council minutes. It comprises two complementary subtasks, span-level extraction and event-level construction, supported by comprehensive annotations that enable the automatic identification of voting participants, their votes, deliberated subjects, and voting outcomes.
+
+
+%Explain better why was this the prefered formulation over relation extraction, event extraction, etc 
+% \section{VotIE task}
+
+% The \textbf{Voting Information Extraction (VotIE)} task is formalized as a fine-grained sequence labeling problem. Let a meeting minutes document be represented as a sequence of text segments $D = \{x_1, \dots, x_n\}$, where each segment consists of tokens $x = (w_1, \dots, w_L)$. The objective is to map $x$ to a sequence of tags $Y = (y_1, \dots, y_L)$ using BIO encoding, as illustrated in Figure~\ref{fig:votie_pipeline}.
+
+% We define the set of semantic target types $\mathcal{T}$ as follows: \textbf{Subject ($S$)} denotes the span describing the matter under deliberation (e.g., ``Approval of...''); \textbf{Vote Expression ($V$)} indicates the decision action (e.g., ``approved''); \textbf{Counting ($C$)} describes vote aggregation (e.g., ``unanimously''); and \textbf{Voter Roles ($R$)} represent participants specifically based on their stance $\{\textit{Voter-Favor}, \textit{Voter-Against}, \textit{Voter-Abstention}, \textit{Voter-Absent}\}$.
+
+% Formally, the model must identify the set of spans $\mathcal{M} = \{(s_j, e_j, t_j) \mid 1 \le s_j \le e_j \le L, t_j \in \mathcal{T}\}$ capturing the boundaries of voting elements. Unlike standard Named Entity Recognition (NER) which targets rigid designators, VotIE requires identifying long-form syntactic spans and context-dependent relational roles embedded within narrative prose.
+
+\section{VotIE Task Definition}
+
+% We formalize the VotIE task as the extraction of structured voting events from narrative records of deliberative decision-making.Given a document represented as a sequence of tokens $\mathbf{X} = (w_1, \dots, w_n)$, the goal is to extract the set of all voting-related spans $\mathcal{S} = \{(s_j, e_j, t_j)\}$, where $s_j$ and $e_j$ are the start and end character offsets, and $t_j$ is the argument type. Unlike standard named entity recognition, which identifies mentions of categorical entities (e.g., persons, organizations, locations) \cite{conll2003}, VotIE focused on role-specific event arguments that together represent a structured voting event, as illustrated in Figure \ref{fig:votie_task}. Although operationalized as span extraction, the task is conceptually closer to event extraction: spans are semantically interdependent, frequently compositional, and jointly define a structured voting outcome. Event Extraction (EE), where systems identify event triggers and their associated arguments within structured schemas \cite{doddington2004ace,ebner-etal-2020-multisentence,wang2023mavenarg}. However, unlike canonical EE benchmarks such as ACE or RAMS, which focus primarily on discrete news events (e.g., attacks, transactions, personnel changes), voting procedures in municipal minutes are expressed through long-form procedural language, diffuse boundaries, and municipality-specific administrative conventions. We therefore operationalize the problem as span-level event-argument extraction
+
+% VotIE adopts the trigger-and-arguments structure of Event Extraction (EE) \cite{doddington-etal-2004-automatic,ebner-etal-2020-multi,wang-etal-2024-maven}, where each voting decision is identified through a trigger (the deliberation verb) and a set of role-specific arguments (subject, voters, stance, and counts), that jointly define a structured voting event. Formally, given a document $\mathbf{X} = (w_1, \dots, w_n)$, the goal is to extract the set $\mathcal{S} = \{(s_j, e_j, t_j)\}$ of all voting-related spans, where $s_j, e_j$ are character offsets and $t_j$ is the argument type (Figure~\ref{fig:votie_task}). Unlike canonical EE benchmarks such as ACE or RAMS, which target discrete news events with short, lexicalised arguments, voting procedures in municipal minutes are expressed through long-form procedural language, diffuse boundaries, and municipality-specific administrative conventions. We therefore operationalize VotIE as span-level event-argument extraction.
+
+VotIE adopts the argument-role vocabulary of Event Extraction (EE) \cite{doddington-etal-2004-automatic,ebner-etal-2020-multi,wang-etal-2024-maven}, but operationalizes the problem as span-level event-argument identification rather than full event reconstruction. Each voting decision involves role-specific arguments, that jointly define a structured voting event. However, instead of explicitly reconstructing event graphs or argument links, the task focuses on identifying the textual spans corresponding to voting-event arguments. Formally, given a document $\mathbf{X} = (w_1, \dots, w_n)$, the goal is to extract the set $\mathcal{S} = \{(s_j, e_j, t_j)\}$ of all voting-related spans, where $s_j, e_j$ are character offsets and $t_j$ is the argument type. In contrast to canonical EE benchmarks such as ACE and RAMS, where arguments are often short and lexically localized around discrete event mentions, VotIE arguments tend to be long, procedural, and semantically coupled. Figure~\ref{fig:votie_task} illustrates the coupling that motivates the schema: outcome gains procedural meaning only in relation to the accompanying Voter-Abstention and Voter-Against spans that define who falls outside the majority, requiring joint interpretation of procedural voting language rather than recognition of isolated lexical mentions.
+
+\begin{figure}[ht!] 
+\small
+\fboxsep=2pt
+
+\noindent
+\colorbox{blue!15}{Approval of recognition of five tourist accommodations}.
+\colorbox{green!15}{Approved} \colorbox{cyan!15}{by majority}, with one 
+abstention from the \colorbox{orange!15}{CDU councilor} and one vote against 
+from the \colorbox{purple!15}{BE councilor}.
+
+\medskip
+
+% Legend adjustments: scriptsize, centering, and reduced spacing
+{\scriptsize\centering\noindent
+\colorbox{blue!15}{\rule{0pt}{1ex}\rule{1ex}{0pt}}~SUBJ\hspace{2pt}
+\colorbox{green!15}{\rule{0pt}{1ex}\rule{1ex}{0pt}}~VOTING\hspace{2pt}
+\colorbox{cyan!15}{\rule{0pt}{1ex}\rule{1ex}{0pt}}~COUNT-MAJ\hspace{2pt}
+\colorbox{orange!15}{\rule{0pt}{1ex}\rule{1ex}{0pt}}~VOTER-ABS\hspace{2pt}
+\colorbox{purple!15}{\rule{0pt}{1ex}\rule{1ex}{0pt}}~VOTER-AGST
+}
+\caption{The VotIE task: extracting structured voting event arguments from narrative municipal minutes.}
+\label{fig:votie_task}
+\end{figure}
+
+
+\paragraph{Schema Definition:} Our extraction schema $\mathcal{T}$ defines five categories of voting event arguments, comprising twelve argument types. \textbf{Subject} captures the matter under deliberation (e.g., "Budget approval"). \textbf{Voter Roles} identify participants according to their voting stance, with four subtypes: favor, against, abstention, and absent. \textbf{Voting Evidence} marks the decision action (e.g., "approved", "deliberated"), while \textbf{Counting Expressions} denote vote aggregation (e.g., "unanimously", "by majority") and explicit numeric tallies typically used in secret ballots (e.g. "3 votes in favor/against/blank"). Finally, \textbf{Voting Method} identifies the procedural modality of the vote (e.g., "secret ballot"). 
+
+  % \paragraph{Distinguishing Characteristics.} VotIE diverges from standard
+  % named entity recognition along four dimensions.
+  % \textbf{(i)} Core arguments such as \textsc{Subject} are long, procedural
+  % descriptions (mean 15.8 words, max 80; Appendix~\ref{app:dataset:lengths})
+  % rather than lexicalised entity mentions.
+  % \textbf{(ii)} Voting arguments exhibit implicit structural dependencies:
+  % voter roles, vote counts, and outcomes jointly characterise a single
+  % decision event, so individual spans are not semantically self-contained.
+  % \textbf{(iii)} Spans intentionally overlap in meaning --- for example,
+  % named voters can be embedded within majority expressions --- making
+  % boundaries less categorical than in canonical NER benchmarks.
+  % \textbf{(iv)} Municipal minutes display substantial stylistic variation
+  % across jurisdictions, increasing sensitivity to discourse-level phrasing
+  % and motivating the cross-municipality evaluation in \S\ref{sec:results}.
+
+%  complete voting event includes at least one subject span and one voting span, optionally augmented with voter and count spans. Assembling these spans, however, falls outside the scope of this paper and is left for future work.
+
+% While our extraction targets individual spans, their collective assembly enables reasoning over complete vote outcomes. 
+
+
+
+
+% \paragraph{Task Challenges:} VotIE presents three distinctive challenges. First, exact boundary preservation is required: unlike summarization tasks that permit semantic paraphrasing, extracted spans serve as legal evidence in transparency audits and policy analysis. Second, extreme span heterogeneity challenges fixed-length representations: subjects range from 3-token phrases to 50+ token descriptions, while voter mentions vary from individual names to complex appositive constructions. Third, cross-municipality style variation creates a domain adaptation challenge: each municipality employs distinct procedural conventions (e.g., "Aprovado por unanimidade" vs. "Deliberado favoravelmente sem votos contra"), requiring models to learn generalizable semantic patterns rather than municipality-specific templates.
+
+%Seccção dedicada a explicar mais exemplos concretos to problema e analisar as dificuldades linguísticas que daí decorrem
+
+% What makes this task hard linguistically?
+% Portuguese-specific phenomena
+% Error analysis with linguistic explanations - FOR OTHER SECTION
+% Cross-domain linguistic variation
+
+\section{Experimental Setup}
+\label{sec:experimental_setup}
+
+
+% \paragraph{\textbf{Annotated Dataset.}}
+% The CitiLink dataset \cite{citilink2025} comprises of 120 meeting minutes from six municipalities (M01--M06), divided into 2,879 annotated segments, each corresponding to a distinct subject of discussion.
+
+
+% The corpus contains 991,516 tokens and 10,212 entity mentions, distributed across eight entity types: Voting (27.24\%), Subject (23.13\%), Voter-Favor (16.97\%), Counting-Unanimity (16.15\%), Voter-Abstention (10.72\%), Counting-Majority (2.96\%), Voter-Against (1.82\%), and Voter-Absent (1.01\%). Annotations were produced by expert linguists following a dedicated annotation manual. All personal identifiers (names, addresses, contact details) were systematically anonymized using placeholder tokens (e.g., ``***'') to protect individual privacy. The dataset and additional details, such as the annotation guidelines, are available on the project's GitHub repository. We employ a 70/15/15 train/development/test split, stratified by both entity type distribution and municipality to ensure balanced representation across all categories and data sources. 
+
+
+% Citar o repositorio do dataset 
+% Fazer o filtro sobre os que apenas têm 1 assunto
+
+% 1. Dataset Quality (CRITICAL)
+
+% Inter-annotator agreement (Cohen's κ)
+% Annotation guidelines (detailed, publicly available)
+% Dataset statistics (comprehensive)
+% Annotation examples with edge cases
+% Language-specific considerations
+
+% Questoes:
+%     - Inter annotator agreement podemos apresentar apenas sobre as anotações de votação? Como fazer isto sem explicar que a anotacao original foi baseada em entities + relations? 
+
+% 2. LLMs. Fazer experiencias com o GPT/LLAMa, sobretudo LLMs mais piquenos. Esclarecer a forma de avaliação event/span. Garantir que a coisa faz sentido. 
+
+\paragraph{Annotated Dataset:} We use the CitiLink-Minutes corpus \cite{CitiLinkMinutes2026}, which comprises 120 anonymized municipal meeting minutes (2021-2024) from six Portuguese municipalities. Annotation procedure, IAA (Cohen's $\kappa$=0.91 on the voting layer), and full corpus statistics are reported in the source paper, and voting layer statistics are reproduced in Appendix~\ref{app:dataset}. For the standard benchmark, we used a stratified 70/15/15 chronological split, allocating the oldest documents to the training set and the most recent to the test set, balanced for entity-type representation. For cross-municipality evaluation, we perform leave-one-municipality-out (LOMO) experiments. Splits, prompts (Appendix~\ref{app:appendix_prompts}), and training/evaluation code are released at our repository. 
+
+\paragraph{Extraction Paradigms:} We investigate two distinct computational  approaches to extract $\mathcal{S}$ from input $X$. In the \textbf{Sequence Labeling} paradigm, we employ standard BIO encoding, mapping input tokens $X$ to a label sequence $Y$ via encoder representations $H$. The model maximizes $P(Y|X)$ using either a linear classifier or a Conditional Random Field to capture transition dependencies ~\cite{Lafferty2001}. Spans are reconstructed by aggregating contiguous tags. In the \textbf{Generative Extraction} paradigm, the task is formulated as text-to-structure generation, where the model estimates $P(\mathbf{Z} | \mathbf{X})$, and $\mathbf{Z}$ is a structured JSON object. Each predicted span specifies the exact character substring from $X$ and a type drawn from a closed label set. Generated strings are then aligned back to the source $X$ to recover the start and end indices $(s, e)$, using proximity-based disambiguation when multiple occurrences exist. Spans that cannot be exactly re-aligned to $\mathbf{X}$ are discarded rather than treated as predictions. We intentionally require deterministic character-level re-alignment to preserve traceability and avoid heuristic ambiguity introduced by approximate matching
+
+% \textbf{Sequence Labeling} frames extraction as token classification. Following standard practice~\cite{tjong2003introduction}, we apply BIO encoding to $\mathcal{T}$, yielding label set $\mathcal{L} = \{\text{B-}t, \text{I-}t \mid t \in \mathcal{T}\} \cup \{\text{O}\}$. Given input sequence $X = (w_1, \ldots, w_n)$, a pretrained encoder produces contextualized representations $H = (h_1, \ldots, h_n)$, and the model learns parameters $\theta$ to predict conditional distribution $P(Y \mid X; \theta)$ over label sequences $Y = (y_1, \dots, y_n)$ where $y_i \in \mathcal{L}$. Inference computes optimal sequence $Y^* = \arg\max_{Y} P(Y \mid X; \theta)$ using Viterbi decoding for CRF-based models~\cite{Lafferty2001} or greedy decoding otherwise. Extracted spans $\mathcal{S} = \{(s_j, e_j, t_j)\}$ are obtained by merging consecutive tokens with matching entity types.
+
+\paragraph{Evaluation Metrics.} We report macro-averaged entity-level precision, recall, and F1. Our primary metric uses exact match following CoNLL conventions \cite{tjong2003introduction}, which requires both identical boundaries and type agreement. We also compute partial match F1 following SemEval-2013 conventions \cite{segura-bedmar-etal-2013-semeval}, which requires type agreement and boundary overlap, to ensure legal traceability. For discriminative models, BIO predictions are converted to spans and evaluated using seqeval library \cite{seqeval}, while for generative models, character offsets are recovered via exact substring matching \cite{wang2023gptner}. Macro averages are taken over the 11 entity types present in the test set, Count-Against appears in the schema but has zero test instances (Appendix~\ref{app:dataset}) and is therefore excluded from evaluation.
+
+\paragraph{Training Setup:} We evaluate eight architectures across two paradigms, as listed in Appendix \ref{app:computational_budget}, Table~\ref{tab:model_details}. Training follows standard practices for sequence labeling, without any hyperparameter tuning \cite{Bert-CRF-Souza}: AdamW optimization (learning rate \(5 \times 10^{-5}\)), class-weighted cross-entropy loss, maximum 10 epochs with early stopping (patience 3), and 512-tokens sliding windows with 50-token overlap. Invalid BIO transitions are corrected post-decoding. For generative extraction, we test Gemini 2.5 Pro via API \cite{gemini25}, GPT 5.5 via API \cite{openai_gpt55}, and the AMALIA model (8B) \cite{simplicio-etal-2026-amalia}, an European Portuguese open-source LLM. All the models were tested in both zero-shot and few-shot (5 examples) configurations, employing schema-constrained decoding and chunking using the langextract library \cite{Goel_LangExtract_2025}, and greedy decoding to ensure deterministic generation. Our goal was not to maximize LLM performance through complex prompting strategies, but to compare paradigms under a controlled extraction setup.
+
+
+\section{Results and Discussion}
+\label{sec:results}
+
+\paragraph{Standard Benchmark Performance.}
+Table~\ref{tab:main_results_compact} reports performance on the test set, averaged over three seeds for the three encoder-CRF models. The multilingual \textbf{XLM-R-CRF} achieves the highest Exact Match Macro F1 with 93.2\% ${\pm 1.5}$, ahead of DeBERTa-CRF (91.5${\pm 1.3}$) and BERTimbau-CRF (90.5${\pm 1.5}$). A paired segment-level bootstrap (1{,}000 iterations, pooled over seeds) confirms XLM-R-CRF significantly outperforms BERTimbau-CRF ($p{=}0.018$) but not DeBERTa-CRF ($p{=}0.19$). The three encoder-CRFs form a single statistical tier on Relaxed Match criteria. The effect of the CRF layer is architecture-dependent: it provides a 8.0-point F1 gain for XLM-R and 13.0 for BERTimbau, whereas for DeBERTa it primarily balances precision and recall. A substantial 32 point gap separates the best encoder from the top-performing generative model, which decreases to 8 points under Relaxed Match criteria. This disparity suggests that while LLMs are effective at identifying relevant semantic regions, they struggle to match the strict token-level boundaries required for legal traceability. Details regarding the pipeline computational costs can be found in Appendix \ref{app:computational_budget}.
+
+\begin{table}[ht!]
+\centering
+\caption{Macro averaged results of all baselines on the standard benchmark. For the three encoder-CRF models, P/R/F1 report the mean over three seeds (42, 13, 123), in \%. All other rows report the results from seed 42.}
+\label{tab:main_results_compact}
+\footnotesize
+\setlength{\tabcolsep}{0pt}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}} l ccc c ccc @{}}
+\toprule
+& \multicolumn{3}{c}{\textbf{Exact Match}} && \multicolumn{3}{c}{\textbf{Relaxed Match}} \\
+\cmidrule{2-4} \cmidrule{6-8}
+\textbf{Model} & \textbf{P} & \textbf{R} & \textbf{F1} && \textbf{P} & \textbf{R} & \textbf{F1} \\
+\midrule
+DeBERTa-CRF      & 89.0 & 94.8 & 91.5${\pm 1.3}$ && 96.0 & 96.8 & 96.1${\pm 1.2}$ \\
+DeBERTa-Lin.     & 86.0 & 94.5 & 89.8 && 91.4 & 98.3 & 94.6 \\
+XLM-R-CRF        & \textbf{91.8} & \textbf{95.0} & \textbf{93.2${\pm 1.5}$} && \textbf{96.7} & 97.5 & \textbf{97.0${\pm 0.8}$} \\
+XLM-R-Lin.       & 79.4 & 94.6 & 85.2 && 86.0 & \textbf{98.9} & 91.0 \\
+BERTimbau-CRF    & 88.5 & 93.1 & 90.5${\pm 1.5}$ && 96.6 & 96.2 & 96.2${\pm 0.8}$ \\
+BERTimbau-Lin.   & 70.3 & 91.0 & 77.5 && 77.6 & 97.9 & 84.9 \\
+BiLSTM-CRF        & 71.7 & 68.4 & 69.7 && 79.3 & 70.8 & 74.6 \\
+CRF              & 84.9 & 79.0 & 81.0 && 88.2 & 81.9 & 84.1 \\
+\midrule
+GPT (5s)         & 59.7 & 61.2 & 60.2 && 86.5 & 89.0 & 87.0 \\
+GPT (0s)         & 53.5 & 52.8 & 52.6 && 86.2 & 83.9 & 84.0 \\
+AMALIA (5s)      & 37.7 & 41.1 & 34.3 && 47.3 & 58.2 & 46.0 \\
+AMALIA (0s)      & 32.5 & 23.9 & 26.5 && 50.8 & 41.4 & 43.3 \\
+Gemini-2.5 (5s)  & \textbf{61.3} & \textbf{62.1} & \textbf{61.3} && \textbf{89.0} & \textbf{90.8} & \textbf{89.3} \\
+Gemini-2.5 (0s)  & 58.3 & 60.1 & 58.7 && 86.8 & 89.3 & 87.0 \\
+\bottomrule
+\end{tabular*}
+\end{table}
+    
+    % \begin{table*}[t]
+% \centering
+% \caption{Per-entity type F1 scores (exact match, macro-averaged) across all models.}
+% \label{tab:per_entity_metrics}
+% \footnotesize
+% \setlength{\tabcolsep}{3pt}
+% \begin{tabular}{l cccccccc c}
+% \toprule
+% \textbf{Model} & \textbf{V-FAV} & \textbf{V-AGA} & \textbf{V-ABS} & \textbf{V-ABT} & \textbf{VOT} & \textbf{SUBJ} & \textbf{C-UNA} & \textbf{C-MAJ} & \textbf{Avg} \\
+% \midrule
+% \multicolumn{10}{l}{\textit{Discriminative Models}} \\
+% XLM-R-CRF        & 95.1 & \textbf{96.0} & 88.9 & \textbf{97.8} & 96.9 & 78.7 & 95.5 & \textbf{96.9} & \textbf{93.2} \\
+% DeBERTa-CRF      & 95.4 & 94.7 & 70.6 & 96.2 & \textbf{96.6} & \textbf{78.6} & 94.3 & 96.8 & 90.4 \\
+% DeBERTa-Lin.     & 94.0 & \textbf{100.0} & 69.8 & 97.0 & 96.5 & 76.3 & 95.7 & 93.7 & 90.4 \\
+% BERTimbau-CRF    & 92.0 & 62.9 & 0.0 & 76.6 & 96.6 & 48.9 & \textbf{93.8} & 90.6 & 70.2 \\
+% BiLSTM-CRF        & 91.9 & 63.0 & 0.0 & 76.6 & 96.6 & 48.9 & 93.8 & 90.6 & 70.2 \\
+% CRF              & 92.0 & 29.8 & 41.7 & 83.6 & 96.7 & 63.0 & 95.7 & 98.4 & 75.1 \\
+% \midrule
+% \multicolumn{10}{l}{\textit{Generative Models}} \\
+% Gemini-2.5 (5s)  & \textbf{90.4} & 35.4 & \textbf{64.7} & 60.4 & 92.9 & 40.9 & 96.3 & 95.9 & 64.1 \\
+% Gemini-2.5 (0s)  & 72.1 & 0.0 & 28.6 & 36.6 & 75.3 & 21.0 & 90.1 & 94.1 & 52.3 \\
+% \bottomrule
+% \end{tabular}
+
+\noindent\textbf{Cross-Municipality Generalization.}
+% To quantify the heterogeneity of municipal proceedings that motivates our cross-municipality evaluation (LOMO), we computed pairwise cosine similarity between all 120 documents under two views: TF-IDF unigrams/bigrams (lexical) and multilingual sentence BERT embeddings (semantic) \cite{reimers-2019-sentence-bert}. Lexically, intra-municipality similarity outweighs inter-municipality similarity (0.26 vs. 0.09, Cohen’s d=5.13). Semantically, the same direction holds, but with a much smaller gap (0.63 vs. 0.49, d=1.05). This disparity indicates that municipalities discuss overlapping topics in different surface forms.
+
+Municipal meeting minutes overlap in topic coverage but diverge in surface form, which motivates our LOMO protocol. Cross-municipality variation is primarily lexical, with pairwise TF-IDF similarity being about three times higher within than across municipalities (Cohen's $d{=}5.1$), while multilingual sentence-BERT embeddings \cite{reimers-2019-sentence-bert} show a much smaller gap ($d{=}1.0$). Table~\ref{tab:cross_muni} reports macro F1 scores on held-out municipalities. DeBERTa-CRF generalises best among encoders, with a drop of 35\% relative to the standard benchmark, and significantly outperforms XLM-R-CRF on M02, M04, and M06 (paired bootstrap, $p<0.05$). These results highlight a clear trade-off between in-domain performance and generalization. The fine-tuned encoders struggle on unseen writing styles, particularly in M06, suggesting overfitting to specific phrasing patterns present in the training data. In contrast, Gemini exhibits superior cross-municipality robustness, consistently outperforming the encoders on held-out municipalities. This suggests that the LLM relies less heavily on municipality-specific lexical patterns, making it a more reliable choice for deployment in regions with no available training data.
+
+\begin{table}[ht!]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{0pt}
+\caption{Cross-municipality (LOMO) macro F1 (\%). XLM-R/DeBERTa are 3-seed means.}
+\label{tab:cross_muni}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}} l ccccccc @{}}
+\toprule
+\textbf{Model} & \textbf{M01} & \textbf{M02} & \textbf{M03} & \textbf{M04} & \textbf{M05} & \textbf{M06} & \textbf{Mean} \\
+\midrule
+\multicolumn{8}{c}{\textbf{Exact Match}} \\
+\midrule
+BERTimbau  & 56.2 & 44.4 & 54.9 & 46.1 & 51.8 & 33.4 & 47.8 \\
+XLM-R      & 57.8 & 59.1 & 61.4 & 64.5 & 57.0 & 28.2 & 54.7 \\
+DeBERTa    & 57.4 & \textbf{73.7} & 62.2 & \textbf{70.3} & 59.7 & 31.1 & 59.1 \\
+Gemini     & \textbf{66.8} & 69.0 & \textbf{69.7} & 62.0 & \textbf{76.0} & \textbf{45.4} & \textbf{64.8} \\
+\midrule
+\multicolumn{8}{c}{\textbf{Relaxed Match}} \\
+\midrule
+BERTimbau  & 72.8 & 60.7 & 64.3 & 50.3 & 63.1 & 42.1 & 58.9 \\
+XLM-R      & 74.7 & 71.6 & 67.0 & 73.6 & 69.4 & 37.5 & 65.6 \\
+DeBERTa    & 74.6 & \textbf{79.4} & 69.8 & 77.1 & 69.1 & 42.2 & 68.7 \\
+Gemini     & \textbf{80.5} & 77.9 & \textbf{80.7} & \textbf{94.8} & \textbf{85.8} & \textbf{63.6} & \textbf{80.6} \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+\section{Error Analysis}
+\label{sec:error_analysis}
+
+% Table~\ref{tab:error_classification} categorizes errors into Missing (MIS), Spurious (SPU), Boundary (BND), and Type (TYP). Among the models, XLM-R-CRF is the most robust, yielding the lowest total error count and a relatively balanced distribution across error types. DeBERTa-CRF exhibits a conservative bias, minimizing spurious predictions (14\%) but suffering from higher missing rates (53\%). In contrast, the generative model shows the opposite pattern: with high segment-level recall but substantial over-generation, resulting in 32\% of its errors being spurious. Boundary errors remain a consistent challenge across all architectures, primarily due to the length and syntactic complexity of Subject spans.
+
+Table~\ref{tab:error_classification} categorizes errors into Missing (MIS), Spurious (SPU), Boundary (BND), and Type (TYP). Among encoders, BERTimbau-CRF yields the lowest absolute error count but the lowest macro F1, as it underperforms on rare types; DeBERTa-CRF and XLM-R-CRF make more boundary errors yet achieve higher macro F1. Gemini exhibits the opposite pattern, high segment-level recall but substantial over-generation, resulting in 32\% of its errors being spurious. Boundary errors remain a consistent challenge across all architectures, primarily due to the length and syntactic complexity of Subject spans (Appendix~\ref{appendix:per-entity}).
+
+\begin{table}[ht!]
+\centering
+\footnotesize
+\caption{Error classification analysis in the standard benchmark under exact match criteria.}
+\label{tab:error_classification}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+\textbf{Model} & \textbf{Total} & \textbf{MIS} & \textbf{SPU} & \textbf{BND} & \textbf{TYP} \\
+\midrule
+BERTimbau-CRF & \textbf{186}$_{\pm 8}$  & 46$_{\pm 8}$          & \textbf{40}$_{\pm 11}$ & \textbf{96}$_{\pm 4}$  & 4$_{\pm 1}$          \\
+DeBERTa-CRF   & 219$_{\pm 11}$          & \textbf{35}$_{\pm 3}$ & 47$_{\pm 10}$          & 133$_{\pm 6}$          & 3$_{\pm 2}$          \\
+XLM-R-CRF     & 247$_{\pm 16}$          & 45$_{\pm 4}$          & 48$_{\pm 16}$          & 152$_{\pm 3}$          & \textbf{2}$_{\pm 2}$ \\
+Gemini (5s)   & 1010                    & 222                   & 319                    & 437                    & 32                   \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\section{Conclusion}
+\label{sec:conclusion}
+We introduced VotIE, a novel task and benchmark for extracting voting-event arguments from deliberative records, with baselines spanning discriminative and generative paradigms. Two findings stand out. First, fine-tuned encoders remain superior for precise span extraction, with XLM-R-CRF achieving the strongest results (93.2${\pm 1.5}$\% F1), significantly outperforming few-shot LLMs. Second, while these encoders perform well in-domain, they degrade on unseen municipalities, whereas Gemini demonstrates superior stability, making it better suited for low-resource settings. Although generative models offer superior adaptability, their high inference costs makes discriminative encoders the more practical choice for large-scale applications where annotated data is available.
+
+\section{Limitations}
+\label{sec:limitations}
+
+ % \paragraph{Task Formulation Limitations:} Our formulation intentionally prioritises robust event-argument identification as a first benchmarking step towards full deliberative event reconstruction. Our current approach treats all voting arguments within a segment as a single event structure. However, meeting minutes occasionally describe multiple distinct votes within the same segment. For example, a motion and an amendment voted on continuously. In such cases, a sequence labeling approach may successfully identify all event arguments but cannot explicitly link each VOTER span to its corresponding SUBJECT span. The same limitation applies to our generative pipeline. Although the prompt explicitly instructs the model to extract entities independently for every voting event in a multi-vote segment (Appendix~\ref{app:appendix_prompts}, Example~4), the langextract output schema only records \texttt{(class, text)} pairs. The multi-vote example encourages the extraction of repeated triggers (e.g., two \texttt{VOTING:"deliberou"} spans), but the resulting predictions are a flat span list with no structural event grouping. Future work should explore Relation Extraction (RE) or Event Extraction paradigms to handle overlapping or interrelated events more accurately.
+
+\paragraph{Task Formulation Limitations.} Our formulation intentionally prioritises robust event-argument identification as a first benchmarking step towards full deliberative event reconstruction. VotIE is formulated with an event-argument schema, but the benchmark evaluates flat span identification only: we do not score argument-to-trigger binding, role attachment, or event grouping. The research challenge VotIE isolates is the identification of these arguments themselves (long, procedurally embedded, semantically coupled, and stylistically heterogeneous across municipalities), rather than the downstream assembly of correctly identified arguments into events, which becomes a well-defined attachment problem. This separation is benign for the 95.3\% of test segments that contain at most one voting trigger, where the attachment of arguments to the single trigger is implicit. For the remaining 4.7\% of multi-vote segments (motions paired with amendments, or composite procedural blocks), the models may identify every argument correctly yet cannot disambiguate which Voter span attaches to which Subject span. Therefore, full event assembly lies outside our current evaluation and is the natural next step. We expect Relation Extraction or full Event Extraction paradigms with explicit argument-role binding to be the appropriate formalism, and we leave this, together with the construction of multi-event gold attachments to future work.  
+ 
+\paragraph{Coreference Resolution:} Our evaluation focuses on segment-level extraction, treating each segment in isolation, which ignores cross-segment context and, importantly, coreference. In administrative texts, voters are frequently referred to by role (e.g., "the Councilor") or pronominal references rather than proper names, often relying on earlier context or external records. Consequently, while models can detect mentions of voters, they do not resolve these mentions to specific individuals in a knowledge base. Integrating coreference resolution is therefore a necessary next step to support detailed analysis of individual voting behavior.
+
+% \paragraph{Baselines and Experiments:} Our generative AI experiments prioritized an efficient and easily-deployable model (Gemini 2.5 Pro) reflecting the resource constraints typical of local government setting. While larger state-of-the-art models (e.g., GPT-5, Claude 4.7, or Llama 4.0) might yield superior performance, their computational cost and latency currently limit scalability for processing decades of municipal recods across thousands of municipalities.
+
+\paragraph{Dataset limitations:}A key observation of our experiments was that the Leave-One-Municipality-Out (LOMO) experiments (Table \ref{tab:cross_muni}) reveal performance degradation when models encounter new municipalities. Although encoder models remain robust, variation in writing style and lexical choices introduce domain shifts that these models cannot fully overcome. Addressing this may require larger, geographically diverse datasets or unsupervised domain adaptation techniques to improve generalization. Moreover, the secret-ballot minority classes contain a very low number of annotated examples (Count-*, Voting-Method) carry single-digit test support, with Count-Against absent entirely from the test split. Per-type F1 on these categories is therefore noisy at best and unmeasurable at worst. Reliable assessment of secret-ballot extraction requires targeted annotation of additional minutes containing such procedures
+
+\paragraph{Language:} Finally, this study focuses exclusively on Portuguese municipal records. While the VotIE schema (Subject, Voter, Stance, Count) is theoretically language-agnostic, the syntactic and stylistic patterns of administrative Portuguese differ significantly from other languages. Further research is needed to assess whether the architectural trends observed here, specifically the superior performance of fine-tuned encoders over LLMs, generalize to other linguistic contexts.
+
+%Future work may investigate fuzzy span alignment strategies for semantically tolerant evaluation.
+
+\section{Ethical Considerations}
+\label{sec:ethical}
+
+\paragraph{Intended Use and Misuse Potential:} The primary goal of VotIE is to enhance transparency in local governance by making unstructured data more accessible. However, applying automated information extraction to public administrative records carries a risk of unintended misinformation. As noted in our Error Analysis section \ref{sec:error_analysis}, neither fine-tuned encoders nor generative LLMs achieve perfect accuracy, with the latter showing a pronounced tendency towards spurious generation. In a real-world civic technology context, extraction errors that misattribute a vote or stance to a political actor could misrepresent their public position, potentially damaging their reputation and distorting public perception. Consequently, we emphasize that systems built on VotIE should be deployed as human-in-the-loop support tools for journalists and civil society organizations, rather than fully autonomous authorities on legislative truth. Their purpose is to assist in navigating voluminous records, not to replace official, legally binding minutes.
+
+\paragraph{Privacy and Data Usage:} The dataset used in this work comprises public municipal records, which are, by law, open to the public. However, to mitigate potential harm to private citizens occasionally mentioned in these proceedings (e.g., petitioners), we relied on the anonymized version of the CitiLink-Minutes corpus, in which all personal identifiers were manually removed prior to model training.
+
+\paragraph{Usage of AI:} In accordance with conference policy, we state that AI assistants were used to enhance clarity and readability, improving language flow and presentation. Moreover, code assistance systems were used to write some subroutines. All scientific claims, experimental designs, and data analyses are the original work of the authors.
+
+
+\appendix
+
+% \section{Appendix A - Annotation Guidelines}
+% \label{sec:appendix_a}
+% The following annotation guidelines were the ones followed by the CitiLink-Minutes \cite{CitiLinkMinutes2025} authors, to annotate the the voting events on the documents. 
+
+% \subsection{Entity Structures}
+
+% \subsubsection{Voting Evidence}
+% \textbf{Definition:} A linguistic expression indicating that a formal decision was made by means of a vote, including majority, unanimous, or other forms of deliberation that mark the outcome of the decision made by the institutional entity exercising the right to vote. The annotation of the vote allows for the textual identification of the moment in which the formal decision of the municipal executive is expressed, regardless of whether the voters are linguistically represented in the text.
+
+% \vspace{0.5em}
+% \noindent\textbf{Markable:} Main verb, nominal, or participial expression indicating that a vote took place.
+
+% \vspace{0.5em}
+% \noindent\textbf{Special case \#1: Voting by secret ballot} \\
+% In cases of voting by secret ballot, annotators must: mark the expression ``secret ballot'' as a markable and identify it with the label \texttt{voting\_method}. Annotators must also mark the number of votes in favor, against, or blank as a markable, with the label \texttt{tally}. The tally should be linked to voting evidence through the existing link structures of \texttt{in\_favor}, \texttt{against}, or \texttt{blank}.
+
+% \vspace{0.5em}
+% \noindent\textbf{Special case \#2: No vote associated with the subject} \\
+% In cases where there is no vote associated with the subject, annotators must annotate ``vote'' (\textit{PT: votação}) and ``ratification'' (\textit{PT: ratificação}) as markables of \texttt{voting\_evidence} and, accordingly, establish the corresponding links.
+
+
+% \subsubsection{Voter}
+% \textbf{Definition:} The institutional entity that exercises the right to vote in a given City Council deliberation.
+
+% \vspace{0.5em}
+% \noindent\textbf{Markable:} Corresponds to the complete noun phrase, including determiners/quantifiers and noun complements (in the form of prepositional phrases). In cases where the voter is NOT linguistically expressed in the text of the resolution, an empty markable should be inserted (SHIFT + mouse click in INCEpTION) immediately to the right of the corresponding vote markable.
+
+% \vspace{0.5em}
+% \noindent\textbf{Annotation case:} If the voter is not explicitly provided for the subsubject, annotators must NOT annotate it. In such cases, after annotating the subsubject markable and writing its corresponding theme, annotators must:
+% \begin{enumerate}
+%     \item Establish an \texttt{object\_of\_vote\_link} between the voting evidence and the subsubject; and
+%     \item Establish a \texttt{related\_to\_link} between the subsubject and its higher-level subject.
+% \end{enumerate}
+
+
+% \subsubsection{Non-Voter}
+% \textbf{Definition:} The individual institutional entity that does NOT exercise the right to vote in a given City Council deliberation.
+
+% \vspace{0.5em}
+% \noindent\textbf{Markable:} Corresponds to the full name of the individual institutional entity with voting rights, excluding professional or honorific titles such as ``Ms. Councilor'', ``Dr.'', ``Eng.'', ``Prof.'', etc.
+
+% \vspace{0.5em}
+% \noindent\textbf{Annotation note:} Include the text segment identifying the non-voting entity within the boundaries of the subject. When this is not possible and the information occurs outside the subject boundaries, a \texttt{positioning\_non-present} link should be established between the non-voting entity markable and the corresponding deliberation markable.
+
+
+% \subsubsection{Global Tally}
+% \textbf{Definition:} The unit representing the collective vote of all or part of the set of voters.
+
+% \vspace{0.5em}
+% \noindent\textbf{Markable:} Corresponds to the full prepositional phrase expressing the form of approval of the resolution, which may occur:
+% \begin{itemize}
+%     \item \textbf{Explicitly:} through ``unanimously'' (\textit{PT: por unanimidade}) or ``by majority'' (\textit{PT: por maioria}).
+%     \item \textbf{Implicitly:} through other expressions indicating the totality or majority of voters (e.g., ``by all those present'' (\textit{PT: por todos os presentes})), including cases of secret ballots in which the global tally is not explicitly stated in the text, but inferred from the voting results (e.g., ``7 votes in favour and 6 blank votes'').
+% \end{itemize}
+
+% \vspace{0.5em}
+% \noindent\textbf{Annotation case:} If the global tally is not explicitly provided for the subsubject, annotators must NOT annotate it. In such cases, after annotating the subsubject markable and writing its corresponding theme, annotators must:
+% \begin{enumerate}
+%     \item Establish an \texttt{object\_of\_vote\_link} between the voting evidence and the subsubject; and
+%     \item Establish a \texttt{related\_to\_link} between the subsubject and its higher-level subject.
+% \end{enumerate}
+
+
+% \subsection{Link Structures}
+
+% \subsubsection{\texttt{object\_of\_vote\_link}}
+% \textbf{Definition:} Relation identifying the content or subject of the vote. Links the voting evidence markable to the corresponding subject, indicating what is being decided/deliberated.
+
+% \vspace{0.5em}
+% \noindent\textbf{Directionality:} From the voting evidence to the subject/subsubject.
+
+% \vspace{0.5em}
+% \noindent\textbf{Annotation note:} Whenever the global tally and the voters are not explicitly mentioned within the subsubjects, these elements will be inferred from the annotation of the subject.
+
+
+% \subsubsection{\texttt{voting\_link}}
+% \textbf{Definition:} Relation representing the position of a voter regarding a specific vote. Links the voter to the voting evidence markable with one of the following values:
+% \begin{itemize}
+%     \item \texttt{in\_favour}
+%     \item \texttt{against}
+%     \item \texttt{blank}
+%     \item \texttt{abstention}
+%     \item \texttt{not\_present}
+% \end{itemize}
+
+% \noindent\textbf{Directionality:} From the voter to the voting evidence.
+
+% \vspace{0.5em}
+% \noindent\textbf{Annotation note:} In the case of a voting by secret ballot, annotators must establish the \texttt{voting\_method} link between \texttt{voting\_evidence} and \texttt{secret\_ballot} markables.
+
+
+% \subsubsection{\texttt{result\_link}}
+% \textbf{Definition:} Relation indicating the global outcome of the vote, as expressed by the form of approval (``unanimously'' or ``by majority''). Links the global tally to the voting evidence markable with one of the following values:
+% \begin{itemize}
+%     \item \texttt{unanimously}
+%     \item \texttt{by\_majority}
+% \end{itemize}
+
+% \noindent\textbf{Directionality:} From the global tally to the voting evidence.
+
+\section{Prompts}
+\label{app:appendix_prompts}
+
+For our generative baselines, the models were provided with detailed system instructions defining the taxonomy and annotation rules, followed by five few-shot examples. The prompt and examples used were in Portugues, while the examples below are translated for readability.
+
+\subsection{System Instructions and Taxonomy}
+Below is the system prompt used to define the task boundaries, the 12 defined entity types, and the extraction constraints.
+
+\begin{quote}
+\small
+\textbf{You are an expert information extraction system for Portuguese municipal meeting minutes (atas de câmara municipal).}
+
+\textbf{Task:} Extract all entity spans from the input text and return a JSON object with an ``entities'' array.
+
+Each entity must have exactly two fields:
+\begin{itemize}
+    \item \texttt{text}: the EXACT character sequence from the input (verbatim, do not paraphrase)
+    \item \texttt{type}: one of the 12 allowed entity types listed below
+\end{itemize}
+
+\textbf{Entity Type Taxonomy:}
+\begin{itemize}
+    \item \textit{Voter roles (named individuals or groups):}
+    \begin{itemize}
+        \item \texttt{VOTER-FAVOR} — participant who voted in favour (e.g., ``o Executivo Municipal'', ``os eleitos pelo PS'')
+        \item \texttt{VOTER-AGAINST} — participant who voted against (e.g., ``Vereador do BE'')
+        \item \texttt{VOTER-ABSTENTION} — participant who abstained (e.g., ``a eleita pelo Nós, Cidadãos'')
+        \item \texttt{VOTER-ABSENT} — participant who was absent and did not vote (e.g., ``a eleita pelo Nós, Cidadãos'')
+    \end{itemize}
+    
+    \item \textit{Voting event:}
+    \begin{itemize}
+        \item \texttt{VOTING} — verb or verbal phrase that expresses the voting act (e.g., ``deliberou'', ``aprovou'', ``Aprovada'')
+        \item \texttt{SUBJECT} — noun phrase describing what is being voted on; exclude section headings and action verbs
+        \item \texttt{COUNTING-UNANIMITY} — textual expression of a unanimous outcome (e.g., ``por unanimidade'', ``unanimidade'')
+        \item \texttt{COUNTING-MAJORITY} — textual expression of a majority outcome, including its breakdown when stated as a single span (e.g., ``por maioria'', ``com 1 voto contra e 3 abstenções'')
+    \end{itemize}
+    
+    \item \textit{Secret-ballot aggregate counts (numeric):}
+    \begin{itemize}
+        \item \texttt{COUNT-FAVOR} — aggregate count of votes in favour (e.g., ``6 votos a favor'')
+        \item \texttt{COUNT-BLANK} — aggregate count of blank votes (e.g., ``7 votos em branco'')
+    \end{itemize}
+    
+    \item \textit{Procedure:}
+    \begin{itemize}
+        \item \texttt{VOTING-METHOD} — expression naming the voting modality (e.g., ``escrutínio secreto'', ``voto secreto'')
+    \end{itemize}
+\end{itemize}
+
+\textbf{Annotation rules:}
+\begin{enumerate}
+    \item \textbf{EXACT SPAN:} Extract the verbatim character sequence. Do not add, remove, or alter any characters.
+    \item \textbf{SUBJECT extraction:} Extract the noun phrase for the matter being voted on; omit section headings and numeric labels. Strip leading action verbs (e.g., ``aprovar'', ``ratificar'') from the extracted span. When the same matter appears in multiple forms, prefer the more specific description.
+    \item \textbf{COUNTING vs COUNT-*:} Use \texttt{COUNTING-UNANIMITY} / \texttt{COUNTING-MAJORITY} for natural-language outcome expressions; use \texttt{COUNT-FAVOR} / \texttt{COUNT-BLANK} only for explicit aggregate numeric counts (secret ballot).
+    \item \textbf{VOTER tagging inside COUNTING-MAJORITY:} Named voters that appear within a majority-breakdown expression are tagged both as \texttt{VOTER-*} and as part of the \texttt{COUNTING-MAJORITY} span.
+\end{enumerate}
+\end{quote}
+
+
+\subsection{Few-Shot Demonstrations}
+To enable robust in-context learning, the models were provided with five extraction examples, covering diverse deliberation scenarios. The actual prompt used Portuguese inputs and Portuguese gold spans, while the examples below are translated for readability.
+
+\vspace{0.5em}
+\noindent\textbf{Example 1: Majority with named against and abstention voters}
+\begin{quote}
+\small
+\textbf{Input:} ``13. Recognition of IMI and IMT exemption for the buildings whose description appears in the table in Annex I.
+Approved, with 1 vote against from the Councilor for the BE and 3 abstentions from the Councilors for the PS and the CDU.''
+
+\textbf{Extracted Entities:}
+\begin{itemize}
+    \vspace{-0.5em}
+    \setlength\itemsep{0em}
+    \item \texttt{SUBJECT}: ``Recognition of IMI and IMT exemption for the buildings''
+    \item \texttt{VOTING}: ``Approved''
+    \item \texttt{COUNTING-MAJORITY}: ``1 vote against from the Councilor for the BE and 3 abstentions from the Councilors for the PS and the CDU''
+    \item \texttt{VOTER-AGAINST}: ``Councilor for the BE''
+    \item \texttt{VOTER-ABSTENTION}: ``Councilors for the PS'' \textit{and} ``the CDU''
+\end{itemize}
+\end{quote}
+
+\noindent\textbf{Example 2: Unanimity with an absent voter}
+\begin{quote}
+\small
+\textbf{Input:} ``4. APPROVAL OF MINUTES.
+The Chair presented minutes no.~02, dated 18.01.2023, to the meeting. Having considered and analysed the matter, the Municipal Executive resolved unanimously, without the participation of the councilor elected for the N\'os, Cidad\~aos as she was not present, to approve minutes no.~02, dated 18.01.2023.''
+
+\textbf{Extracted Entities:}
+\begin{itemize}
+    \vspace{-0.5em}
+    \setlength\itemsep{0em}
+    \item \texttt{VOTER-FAVOR}: ``the Municipal Executive''
+    \item \texttt{VOTING}: ``resolved''
+    \item \texttt{COUNTING-UNANIMITY}: ``unanimously''
+    \item \texttt{VOTER-ABSENT}: ``the councilor elected for the N\'os, Cidad\~aos''
+    \item \texttt{SUBJECT}: ``minutes no.~02, dated 18.01.2023''
+\end{itemize}
+\end{quote}
+
+\noindent\textbf{Example 3: Secret ballot with aggregate counts}
+\begin{quote}
+\small
+\textbf{Input:} ``14. Designation of the Chair of the Board of Directors of the Porto Digital Association. By secret ballot, approved, with 6 votes in favor and 7 blank votes.''
+
+\textbf{Extracted Entities:}
+\begin{itemize}
+    \vspace{-0.5em}
+    \setlength\itemsep{0em}
+    \item \texttt{SUBJECT}: ``Designation of the Chair of the Board of Directors of the Porto Digital Association''
+    \item \texttt{VOTING-METHOD}: ``secret ballot''
+    \item \texttt{VOTING}: ``approved''
+    \item \texttt{COUNT-FAVOR}: ``6 votes in favor''
+    \item \texttt{COUNT-BLANK}: ``7 blank votes''
+\end{itemize}
+\end{quote}
+
+\noindent\textbf{Example 4: Multi-vote segment with distinct voting events}
+\begin{quote}
+\small
+\textbf{Input:} ``Acceptance of the Donation of 74 `Debuxo' drawings. The Council resolved to accept the donation of 74 `Debuxo' drawings, made by Micael Matias. It further resolved to approve and execute the corresponding deed of donation.''
+
+\textbf{Extracted Entities:}
+\begin{itemize}
+    \vspace{-0.5em}
+    \setlength\itemsep{0em}
+    \item \textbf{Event 1:}
+    \begin{itemize}
+        \setlength\itemsep{0em}
+        \item \texttt{SUBJECT}: ``Acceptance of the Donation of 74 `Debuxo' drawings''
+        \item \texttt{VOTER-FAVOR}: ``The Council''
+        \item \texttt{VOTING}: ``resolved''
+    \end{itemize}
+    \item \textbf{Event 2:}
+    \begin{itemize}
+        \setlength\itemsep{0em}
+        \item \texttt{VOTING}: ``resolved''
+        \item \texttt{SUBJECT}: ``deed of donation''
+    \end{itemize}
+\end{itemize}
+\end{quote}
+
+\noindent\textbf{Example 5: Non-voting agenda item (empty extraction)}
+\begin{quote}
+\small
+\textbf{Input:} ``5.2. DEPARTMENT OF FINANCE AND ADMINISTRATIVE MODERNIZATION. No items scheduled under this point.''
+
+\textbf{Extracted Entities:} \textit{None (empty list returned)}
+\end{quote}
+
+
+\section{Dataset Statistics}
+\label{app:dataset}
+
+The CitiLink-Minutes dataset \citep{CitiLinkMinutes2026} provides the annotation layer used in this work. It comprises council meeting minutes from six Portuguese municipalities (Alandroal, Campo Maior, Covilhã, Fundão, Guimarães, and Porto) spanning multiple administrative years. From this corpus, 2{,}885 segments were annotated, totalling 10{,}694 annotated spans across 12 entity types. A subset of 2{,}516 segments (87.2\%) contains at least one voting event, and the remaining 369 are kept as negative examples. All sensitive information was manually anonymised by the dataset authors. The full dataset is publicly available online \footnote{\url{https://doi.org/10.25747/7KG6-1K22}}. 
+
+
+\subsection{Corpus Overview}
+\label{app:dataset:overview}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lrrr}
+\toprule
+ & \textbf{Train} & \textbf{Dev} & \textbf{Test} \\
+\midrule
+Segments              & 1{,}803 & 553 & 529 \\
+\quad w/ voting event & 1{,}574 & 481 & 461 \\
+\quad secret ballot   &      17 &   5 &   5 \\
+Total spans           & 6{,}753 & 2{,}059 & 1{,}882 \\
+\bottomrule
+\end{tabular}
+\caption{Corpus overview per split (before oversampling).}
+\label{tab:corpus-overview}
+\end{table}
+
+\subsection{Entity Type Distribution}
+\label{app:dataset:entities}
+
+Table~\ref{tab:entity-counts} reports entity counts before oversampling. The distribution is heavily skewed: Voting and Subject together account for approximately 51\% of all spans, while secret-ballot types Count-* and Voting-Method collectively represent under 1\%.
+
+\begin{table}[h]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}} l r r r r @{}}
+\toprule
+\textbf{Entity type} & \textbf{Train} & \textbf{Dev} & \textbf{Test} & \textbf{Total} \\
+\midrule
+\textsc{Voting}             & 1{,}749          & 524          & 489          & 2{,}762           \\
+\textsc{Subject}            & 1{,}730          & 523          & 486          & 2{,}739           \\
+\textsc{Voter-Favor}        & 1{,}085          & 336          & 319          & 1{,}740           \\
+\textsc{Counting-Unanimity} & 1{,}008          & 313          & 326          & 1{,}647           \\
+\textsc{Voter-Abstention}   & 747              & 221          & 135          & 1{,}103           \\
+\textsc{Counting-Majority}  & 162              & 57           & 59           & 278               \\
+\textsc{Voter-Against}      & 99               & 60           & 36           & 195               \\
+\textsc{Voter-Absent}       & 61               & 23           & 18           & 102               \\
+\textsc{Voting-Method}      & 39               & 1            & 5            & 45                \\
+\textsc{Count-Blank}        & 39               & 1            & 5            & 45                \\
+\textsc{Count-Favor}        & 32               & 0            & 4            & 36                \\
+\textsc{Count-Against}      & 2                & 0            & 0            & 2                 \\
+\midrule
+\textbf{Total}              & \textbf{6{,}753} & \textbf{2{,}059} & \textbf{1{,}882} & \textbf{10{,}694} \\
+\bottomrule
+\end{tabular*}
+\caption{Entity type counts per split (before oversampling). \textsc{Count-Against} is part of the annotation schema but has no instances in the test set and is therefore excluded from all macro-averaged metrics reported in the paper.}
+\label{tab:entity-counts}
+\end{table}
+
+
+\subsection{Per-Municipality Distribution}
+\label{app:dataset:municipalities}
+
+The corpus spans six Portuguese municipalities.
+Table~\ref{tab:municipality-stats} reports segment counts per split. M03 (Covilhã) is the largest contributor (24.9\% of all segments), while M04 (Fundão) is the smallest (8.1\%).
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llrrrr}
+\toprule
+\textbf{ID} & \textbf{Municipality} & \textbf{Train} & \textbf{Dev} & \textbf{Test} & \textbf{Total} \\
+\midrule
+M03 & Covilhã     & 473 & 144 & 103 & 720 \\
+M05 & Guimarães   & 351 & 103 & 102 & 556 \\
+M01 & Alandroal   & 315 &  96 &  93 & 504 \\
+M06 & Porto       & 272 &  93 & 107 & 472 \\
+M02 & Campo Maior & 245 &  79 &  74 & 398 \\
+M04 & Fundão      & 147 &  38 &  50 & 235 \\
+\midrule
+\textbf{Total} & & 1{,}803 & 553 & 529 & 2{,}885 \\
+\bottomrule
+\end{tabular}
+\caption{Segment counts per municipality and split. Splits were stratified to maintain approximately equal municipality representation in each fold.}
+\label{tab:municipality-stats}
+\end{table}
+
+\subsection{Segment and Span Length Statistics}
+\label{app:dataset:lengths}
+
+Segments vary substantially in length. Short procedural openings (5--20 words) coexist with extended deliberative passages of several thousand words within he same document. Table~\ref{tab:segment-length} summarises segment-level token statistics. The heavy right tail motivates the 512-token sliding-window strategy with 50-token overlap used by all transformer baselines.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+& \textbf{N} & \textbf{Mean} & \textbf{Median} & \textbf{Std} & \textbf{Range} \\
+\midrule
+Segments & 2{,}885 & 276 & 169 & 454 & 5--8{,}489 \\
+\bottomrule
+\end{tabular}
+\caption{Segment-length statistics, in words, across the full corpus.}
+\label{tab:segment-length}
+\end{table}
+
+Span lengths are similarly heterogeneous across entity types (Table~\ref{tab:span-length}). Subject spans are the lengthier among the extracted classes, whereas types such as \textsc{Voting} are typically a single token. 
+  
+  \begin{table}[h]
+  \centering
+  \footnotesize
+  \setlength{\tabcolsep}{3pt}
+  \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}} l rrrrr @{}}
+  \toprule
+  \textbf{Type} & \textbf{N} & \textbf{Mean} & \textbf{Med} & \textbf{Std} & \textbf{Range} \\
+  \midrule
+  \textsc{Voting}   & 2{,}762 &  1.0 &  1 & 0.0 & 1--1  \\
+  \textsc{Subject}  & 2{,}739 & 15.8 & 15 & 8.6 & 1--80 \\
+  \textsc{V-Fav}    & 1{,}740 &  2.6 &  2 & 0.9 & 1--11 \\
+  \textsc{C-Una}    & 1{,}647 &  2.0 &  2 & 0.3 & 1--5  \\
+  \textsc{V-Abst}   & 1{,}103 &  4.7 &  4 & 1.9 & 2--8  \\
+  \textsc{C-Maj}    &    278  &  2.1 &  2 & 1.2 & 1--20 \\
+  \textsc{V-Agn}    &    195  &  3.3 &  3 & 1.5 & 1--8  \\
+  \textsc{V-Abs}    &    102  &  3.1 &  3 & 1.3 & 1--8  \\
+  \textsc{V-Mth}    &     45  &  2.0 &  2 & 0.0 & 2--2  \\
+  \textsc{C-Bnk}    &     45  &  3.9 &  4 & 0.4 & 3--5  \\
+  \textsc{C-Fav}    &     36  &  4.0 &  4 & 0.0 & 4--4  \\
+  \textsc{C-Agn}    &      2  &  3.0 &  3 & 0.0 & 3--3  \\
+  \midrule
+  \textit{All}      & 10{,}694 &  5.7 &  2 & 7.5 & 1--80 \\
+  \bottomrule
+  \end{tabular*}
+  \caption{Span-length statistics (in words) per entity type.}
+  \label{tab:span-length}
+  \end{table}
+
+\FloatBarrier
+  
+\subsection{Training Oversampling}
+\label{app:dataset:preprocessing}
+
+To address class imbalance, the training split applies segment-level oversampling. Segments containing at least one span of type Count-Blank, Count-Favor, or Voting-Method are duplicated four times. This was applied identically across all encoder configurations. Development and test splits are never oversampled and bootstrap is computed on the un-oversampled test set
+
+\section{Model Architectures and Computational Budget}
+\label{app:computational_budget}
+
+Table~\ref{tab:model_details} summarises the full baseline lineup across two paradigms. The discriminative side spans a feature-based CRF, a BiLSTM-CRF, and three Transformer encoders (BERTimbau-Large, mDeBERTa-v3, XLM-RoBERTa), each with a
+linear and a CRF head. The generative paradigm comprises Gemini 2.5 Pro, GPT 5.5, and the open-weights AMALIA 8B, all run via langextract in zero- and few-shot settings.
+
+All transformer encoder models were trained and evaluated on NVIDIA A100-SXM4-40GB GPUs on the Deucalion EuroHPC supercomputer. The feature-based CRF runs on CPU.  Table~\ref{tab:runtimes} lists mean full-pipeline (train + predict + evaluate) times per run, measured on A100-40GB for the encoder models and on NVIDIA L40-48GB for the AMALIA inference pipeline. Encoder training across the standard benchmark (three seeds for the encoder-CRF models, single seed for the remaining configurations) and the six-municipality LOMO evaluation totals 47.3 GPU-hours. Local inference with the open-weights AMALIA 8B model adds a further 20.9 GPU-hours (1{,}058 documents, mean 71\,s/document), comparable to the entire encoder-training budget and a concrete example that generative extraction remains computationally costly even with open models. Gemini 2.5 Pro and GPT 5.5 were accessed via API and no GPU costs were measured.
+
+\begin{table}[ht!]
+\caption{Model architectures.}
+\label{tab:model_details}
+\centering
+\small
+\setlength{\tabcolsep}{3pt} % Tighter column spacing
+\begin{tabularx}{\columnwidth}{l >{\raggedright\arraybackslash}X}
+\toprule
+\textbf{Model} & \textbf{Architecture details} \\
+\midrule
+CRF & Linear-chain CRF + token/domain features \cite{Lafferty2001} \\
+BiLSTM-CRF & FastText + CharCNN + CRF layer \cite{huang2015bidirectionallstmcrf} \\
+BERTimbau-Large & Encoder + Linear/CRF head \cite{souza2020bertimbau} \\
+mDeBERTa-v3 & Encoder + Linear/CRF head \cite{2021debertav3} \\
+XLM-RoBERTa & Encoder + Linear/CRF head \cite{2019XLM-Roberta} \\
+\midrule
+Gemini 2.5 Pro & API + Langextract \cite{gemini25} \\
+GPT 5.5 \cite{openai_gpt55} & API + Langextract\\
+AMALIA 8B & Ran locally + Langextract \cite{simplicio-etal-2026-amalia} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[ht!]
+\centering
+\small
+\setlength{\tabcolsep}{6pt}
+\caption{Mean running times on A100-40GB. Encoder rows are full-pipeline time per run; AMALIA rows are per-document inference over the 529-document test set. Aggregate time is measured over all discriminative runs (56 runs).}
+\label{tab:runtimes}
+\begin{tabular}{@{}lr@{}}
+\toprule
+\textbf{Configuration} & \textbf{Time} \\
+\midrule
+CRF (feat.-based, CPU)           & 17 min \\
+BiLSTM-CRF ($\sim$2M)            & 52 min \\
+BERTimbau-Linear (334M)          & 41 min \\
+BERTimbau-CRF (334M)             & 99 min \\
+mDeBERTa-Linear (278M)           & 38 min \\
+mDeBERTa-CRF (278M)              & 50 min \\
+XLM-R-Linear (278M)              & 25 min \\
+XLM-R-CRF (278M)                 & 41 min \\
+\midrule
+AMALIA 8B, zero-shot (per doc)   & 52.9 s \\
+AMALIA 8B, few-shot (per doc)    & 89.2 s \\
+\midrule
+Encoder training (standard + LOMO) & 47.3 GPU-h \\
+AMALIA 8B inference (total)         & 20.9 GPU-h \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\FloatBarrier
+
+
+\section{Detailed Per-Entity-Type Results}
+\label{appendix:per-entity}
+
+Table~\ref{tab:per_entity_f1} reports entity-level F1 broken down by type for all models on the standard benchmark test set. \textsc{Subject} is consistently the hardest entity. Minority voter-role types (\textsc{Voter-Against}, \textsc{Voter-Absent}) and the three secret-ballot types (\textsc{Voting-Method}, \textsc{Count-Favor}, \textsc{Count-Blank}) show higher variance across models due to their low support.
+
+\begin{table*}[ht!]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{Per-entity-type macro F1 (\%) on the standard benchmark test set under exact match criteria. For the three encoder-CRF rows, values are the mean over three seeds (42, 13, 123). Support $n$ is the number of gold spans per type in the test set. Bold marks the best score per column within each paradigm. V-Fav/Agn/Abst/Abs = Voter-Favor/Against/Abstention/Absent; C-Una = Counting-Unanimity; C-Maj = Counting-Majority; V-Mth = Voting-Method; C-Fav/Bnk = Count-Favor/Blank.}
+\label{tab:per_entity_f1}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} l rrrrrrrrrrr @{}}
+\toprule
+& \multicolumn{11}{c}{\textbf{Entity-level F1 (\%)}} \\
+\cmidrule(lr){2-12}
+\textbf{Model}
+  & \makecell{\textsc{Voting}\\{\scriptsize $n$=489}}
+  & \makecell{\textsc{Subj}\\{\scriptsize $n$=486}}
+  & \makecell{\textsc{V-Fav}\\{\scriptsize $n$=318}}
+  & \makecell{\textsc{V-Agn}\\{\scriptsize $n$=36}}
+  & \makecell{\textsc{V-Abst}\\{\scriptsize $n$=135}}
+  & \makecell{\textsc{V-Abs}\\{\scriptsize $n$=18}}
+  & \makecell{\textsc{C-Una}\\{\scriptsize $n$=326}}
+  & \makecell{\textsc{C-Maj}\\{\scriptsize $n$=59}}
+  & \makecell{\textsc{V-Mth}\\{\scriptsize $n$=5}}
+  & \makecell{\textsc{C-Fav}\\{\scriptsize $n$=4}}
+  & \makecell{\textsc{C-Bnk}\\{\scriptsize $n$=5}} \\
+\midrule
+DeBERTa-CRF     & \textbf{99.3} & 74.5          & \textbf{98.2} & \textbf{99.5} & 97.8          & 84.9          & 99.1          & 98.3          & 93.3           & 83.5          & \textbf{77.6} \\
+DeBERTa-Lin.    & 99.1          & 74.2          & 97.4          & 91.1          & 98.5          & 73.2          & 99.4          & 93.5          & 100.0          & 88.9          & 72.7          \\
+XLM-R-CRF       & 99.0          & \textbf{77.4} & 96.6          & 97.7          & \textbf{98.4} & \textbf{90.8} & \textbf{99.5} & \textbf{98.9} & \textbf{100.0} & \textbf{96.3} & 71.1          \\
+XLM-R-Lin.      & 98.3          & 72.6          & 96.0          & 87.8          & 98.5          & 47.6          & 98.8          & 95.9          & 100.0          & 80.0          & 61.5          \\
+BERTimbau-CRF   & \textbf{99.3} & 74.8          & 98.1          & 94.7          & 98.1          & 77.3          & 99.0          & 97.0          & 90.9           & 90.9          & 75.2          \\
+BERTimbau-Lin.  & 98.5          & 54.6          & 83.3          & 54.5          & 91.4          & 28.1          & 98.8          & 97.5          & 100.0          & 72.7          & 72.7          \\
+BiLSTM-CRF      & 98.8          & 40.7          & 92.7          & 0.0           & 69.1          & 0.0           & 96.0          & 92.0          & 88.9           & 100.0         & 88.9          \\
+CRF             & 99.5          & 63.0          & 95.7          & 26.9          & 85.2          & 42.9          & 98.5          & 99.1          & 100.0          & 100.0         & 80.0          \\
+\midrule
+GPT (5s)        & 86.0          & \textbf{31.3} & 85.6          & 25.0          & 22.5          & 12.5          & 97.1          & 13.4          & \textbf{100.0} & \textbf{88.9} & \textbf{100.0} \\
+GPT (0s)        & 76.4          & 17.0          & 57.0          &  9.0          &  9.7          & 12.9          & 93.5          & 14.0          & \textbf{100.0} & \textbf{88.9} & \textbf{100.0} \\
+Amalia (5s)     & 27.0          & 17.0          & 30.5          & 21.8          & 23.1          &  5.2          & 80.3          & \textbf{25.6} &  57.1          & 40.0          &  50.0          \\
+Amalia (0s)     & 13.9          &  7.7          &  3.3          & \textbf{30.3} & 23.0          & 17.4          & 70.3          & 24.5          &   0.0          & 57.1          &  44.4          \\
+Gemini (5s)     & \textbf{87.0} & 18.7          & \textbf{90.2} & 27.3          & 45.1          & \textbf{25.0} & \textbf{97.7} & 14.9          &  80.0          & \textbf{88.9} & \textbf{100.0} \\
+Gemini (0s)     & 75.6          & 20.7          & 80.4          & \textbf{30.3} & \textbf{52.2} &  6.3          & 96.1          & 14.8          &  80.0          & \textbf{88.9} & \textbf{100.0} \\
+\bottomrule
+\end{tabular*}
+\end{table*}
+
+
+%Add per entity results; add a error analysis section; municipality generalization sectiom; extend the discussion to LLMs vs Encoder only models for the task
+% \section{Results and Discussion}
+% \label{sec:results}
+
+% \paragraph{\textbf{Span-Level Results.}} 
+% Table~\ref{tab:span_results} reports span-level performance on the test set. DeBERTa-CRF achieves the best F1 (93.0\%), followed by XLM-R-CRF (91.7\%) and BERTimbau-CRF (90.9\%). Adding CRF layers consistently improves over linear classifiers by 1.8--7.6 points, demonstrating the value of modeling label dependencies. Classical approaches lag significantly: feature-based CRF reaches 86.5\% F1 and BiLSTM-CRF with FastText embeddings only 79.0\%.
+
+% Per-entity performance varies with frequency and linguistic complexity. High-frequency categories show good scores with DeBERTa-CRF: Counting-Unanimity (97.2\%), Voting (96.3\%), and Voter-Favor (94.7\%). Low-frequency entities achieve high scores when they have distinctive linguistic markers: Voter-Against (96.2\%) and Voter-Absent (95.5\%) benefit from explicit phrases like "voted against" and "was absent". Subject extraction (84.3\%) remains most challenging due to diverse syntactic structures in deliberation descriptions.
+
+
+% \begin{table}[ht]
+% \centering
+% \caption{Span-level Performance of All Baselines (in \%)}
+% \label{tab:span_results}
+% \small
+% \begin{tabularx}{\columnwidth}{@{} >{\raggedright\arraybackslash}X ccc @{}}
+% \toprule
+% \textbf{Model} & \textbf{Prec.} & \textbf{Rec.} & \textbf{F1} \\
+% \midrule
+% DeBERTa-CRF      & \textbf{91.1} & 95.0          & \textbf{93.0} \\
+% XLM-R-CRF        & 88.9          & 94.7          & 91.7          \\
+% DeBERTa-Linear   & 87.1          & \textbf{95.6} & 91.2          \\
+% BERTimbau-CRF    & 88.4          & 93.5          & 90.9          \\
+% BERTimbau-Linear & 82.5          & 95.3          & 88.5          \\
+% CRF              & 88.3          & 84.7          & 86.5          \\
+% XLM-R-Linear     & 76.3          & 93.6          & 84.1          \\
+% BiLSTM-FastText  & 80.7          & 77.4          & 79.0          \\
+% \bottomrule
+% \end{tabularx}
+% \end{table}
+
+% % \paragraph{\textbf{Event-level Results.}} 
+% % Table~\ref{tab:event_results} shows event-level performance. All models achieve strong event detection (96.2--97.3\% F1), but complete event extraction is more challenging. DeBERTa-CRF leads with 88.3\% complete event F1, followed by XLM-R-CRF (86.5\%) and BERTimbau-CRF (85.6\%). 
+
+% % Performance varies by component: counting expressions achieves near-perfect scores (96.2--99.6\%), participant-vote pairs reach 86.0--98.1\%, while subject extraction is the hardest (70.1--92.2\%). Transformer models substantially outperform classical approaches. The 4.7-point gap between DeBERTa-CRF's span F1 (93.0\%) and complete event F1 (88.3\%) illustrates how span-level errors propagate to event construction. Gemini 2.5-Flash achieves competitive event detection (96.6\%) but struggles with complete events (32.4\%), primarily due to weak subject extraction (53.2\%) and participant-vote identification (69.7\%).
+
+% % \begin{table}[h]
+% % \centering
+% % \caption{Event-level Performance (F1 Scores in \%)}
+% % \label{tab:event_results}
+% % % Reduce font size for dense table
+% % \footnotesize 
+% % % Drastically reduce space between columns to fit 6 cols in one ACL column
+% % \setlength{\tabcolsep}{2.5pt} 
+
+% % \begin{tabularx}{\columnwidth}{@{} >{\raggedright\arraybackslash}X ccccc @{}}
+% % \toprule
+% % % Broken headers into two lines manually to save width
+% % \textbf{Model} & \textbf{\shortstack{Event\\Det.}} & \textbf{Subj} & \textbf{Count} & \textbf{\shortstack{Part.-\\Vote}} & \textbf{Comp.} \\
+% % \midrule
+% % DeBERTa-CRF & 97.1 & \textbf{92.2} & \textbf{99.6} & 97.8 & \textbf{88.3} \\
+% % XLM-R-CRF & 97.2 & 90.2 & \textbf{99.6} & \textbf{98.1} & 86.5 \\
+% % BERTimbau-CRF & 96.9 & 89.2 & 99.2 & 97.9 & 85.6 \\
+% % DeBERTa-Linear & 97.0 & 91.0 & 99.2 & 97.9 & 84.4 \\
+% % BERTimbau-Lin. & \textbf{97.3} & 89.7 & 98.5 & 96.8 & 81.7 \\
+% % XLM-R-Linear & \textbf{97.3} & 79.7 & 97.1 & 93.3 & 70.0 \\
+% % CRF & 97.1 & 78.2 & 99.4 & 90.8 & 69.8 \\
+% % BiLSTM-FastText & 96.2 & 70.1 & 96.2 & 86.0 & 58.4 \\
+% % Gemini 2.5-Flash & 96.6 & 53.2 & 96.2 & 69.7 & 32.4 \\
+% % \bottomrule
+% % \end{tabularx}
+% % \end{table}
+
+
+% \section{Conclusion and Future Work}
+% \label{sec:conclusion}
+
+% We introduced VotIE, a task for extracting structured voting information from municipal meeting minutes, along with a Portuguese benchmark dataset. Experiments show that transformer-based models, particularly DeBERTa-CRF, perform strongly on span identification (93.0\% F1).
+% Future work will focus on several directions. First, we plan to apply relation extraction and co-reference resolution methods to construct complete voting events by linking participants, their votes, and outcomes. Second, we aim to assess generalization across unseen municipalities with distinct writing styles. Third, we intend to explore cross-lingual transfer learning to support multilingual civic data analysis. Finally, we plan to extend the annotation schema to capture sub-votes within broader agenda topics, enabling more comprehensive representation of municipal deliberations.
+% \newline
+
+
+
+% Bibliography entries for the entire Anthology, followed by custom entries
+%\bibliography{anthology,custom}
+% Custom bibliography entries only
+\FloatBarrier
+\bibliography{custom}
+
+\end{document}

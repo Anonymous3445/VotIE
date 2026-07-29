@@ -106,13 +106,39 @@ class GptSpanExtractor(BaseSpanExtractor):
                 f"{len(result.entities)} valid entities ({processing_time:.1f}s)"
             )
 
+            # Snapshot pre-alignment output so the span-discard rate is recoverable
+            # from the saved predictions rather than only from stdout logs.
+            diagnostics = {
+                "n_raw_generated": n_raw,
+                "n_after_type_filter": len(result.entities),
+                "n_dropped_unknown_type": n_raw - len(result.entities),
+                "pre_alignment_entities": [
+                    {"text": e.text, "type": e.type} for e in result.entities
+                ],
+                "raw_generated": [
+                    {"text": x.extraction_text, "type": x.extraction_class}
+                    for x in (annotated_doc.extractions or [])
+                ],
+                "usage": self._extract_usage(annotated_doc),
+            }
+
             if align_spans:
                 result, alignment_stats = align_extraction_result(result, strict=True)
                 logger.info(
                     f"  Aligned {alignment_stats['aligned_spans']}/{alignment_stats['total_spans']} "
                     f"spans (fidelity={alignment_stats['alignment_rate']:.0%})"
                 )
+                diagnostics.update(
+                    {
+                        "n_before_alignment": alignment_stats["total_spans"],
+                        "n_aligned": alignment_stats["aligned_spans"],
+                        "n_dropped_alignment": alignment_stats["failed_spans"],
+                        "alignment_rate": alignment_stats["alignment_rate"],
+                        "failed_alignments": alignment_stats["failed_alignments"],
+                    }
+                )
 
+            result.diagnostics = diagnostics
             return result
 
         except Exception as e:
@@ -125,6 +151,33 @@ class GptSpanExtractor(BaseSpanExtractor):
                 processing_time=processing_time,
                 error=str(e),
             )
+
+    @staticmethod
+    def _extract_usage(annotated_doc):
+        """Best-effort token-usage capture for API cost accounting.
+
+        langextract does not expose a stable usage field across versions, so we
+        probe the known attribute names and return None when unavailable rather
+        than failing the extraction.
+        """
+        for attr in ("usage", "token_usage", "usage_metadata", "_usage"):
+            usage = getattr(annotated_doc, attr, None)
+            if usage is None:
+                continue
+            if isinstance(usage, dict):
+                return usage
+            return {
+                k: getattr(usage, k)
+                for k in (
+                    "prompt_tokens",
+                    "completion_tokens",
+                    "total_tokens",
+                    "input_tokens",
+                    "output_tokens",
+                )
+                if getattr(usage, k, None) is not None
+            }
+        return None
 
     def _convert_result(self, annotated_doc, document_id, text, processing_time):
         """Convert langextract AnnotatedDocument to SpanExtractionResult."""

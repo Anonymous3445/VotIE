@@ -1,0 +1,173 @@
+Review 1:
+
+Paper Summary:
+This paper introduces VotIE, a new information extraction task and benchmark for extracting voting-event
+arguments from municipal meeting minutes. The motivation is that municipal deliberative records encode voting
+decisions in heterogeneous narrative prose, unlike parliamentary proceedings where votes are often more
+standardized and structurally marked.
+The task is formulated as span-level event-argument extraction. Given a segment from municipal minutes, the
+system must identify textual spans corresponding to voting-related arguments, including the subject under
+deliberation, voting action, voter roles such as favour/against/abstention/absent, counting expressions such as
+unanimity or majority, explicit vote counts, and voting method. The benchmark is built on the CitiLink-Minutes
+corpus, covering Portuguese municipal records from six municipalities.
+The paper evaluates discriminative sequence labelling models and generative LLM-based extraction. The
+discriminative models include a feature-based CRF, BiLSTM-CRF, and Transformer encoders with linear or CRF
+heads, including BERTimbau, mDeBERTa, and XLM-R. The generative models include Gemini 2.5 Pro, GPT 5.5,
+and AMALIA 8B in zero-shot and five-shot settings. The main findings are that XLM-R-CRF performs best in the
+standard in-domain benchmark, reaching 93.2 exact-match macro F1, while DeBERTa-CRF generalizes best
+among encoders under leave-one-municipality-out evaluation. Gemini is less competitive in-domain under exact
+span matching, but is more robust in the cross-municipality setting. The authors release benchmark splits, trained
+models, evaluation code, and a demo.
+Summary Of Strengths:
+1. Municipal minutes are important for local democratic transparency, but they are difficult to process
+automatically because voting outcomes are embedded in variable administrative prose.
+2. Voting-event extraction from municipal records is a relevant and practical problem, especially for
+journalists, civic-tech organizations, and researchers studying local governance.
+3. The argument types in the schema capture key elements needed to reconstruct voting decisions:
+subject, voting act, voter roles, stance, counting expressions, numeric counts, and voting method.
+4. The paper gives a practical picture of when fine-tuned encoders remain preferable to LLMs for exact
+span extraction, especially under strict legal/administrative traceability requirements.
+5. Leave-one-municipality-out evaluation directly tests robustness to administrative writing-style variation,
+which is highly relevant for real deployment.
+Summary Of Weaknesses:
+1. The task is framed as event extraction, but the benchmark evaluates only flat span identification. The
+paper uses event-argument terminology, but does not evaluate argument-to-trigger linking, event
+grouping, or role attachment. This is understandable as a first step, but it limits the claim that the
+benchmark captures structured voting-event extraction. In multi-vote segments, correctly extracting all
+spans is not sufficient to know which voters, counts, and subjects belong to which voting event.
+2. The generative model comparison may underestimate LLM performance. The authors intentionally avoid
+complex prompting, but the conclusion that LLMs underperform fine-tuned encoders for this task may
+depend exactly on the chosen prompting, chunking, and exact realignment pipeline. Since generated
+spans that cannot be exactly aligned are discarded, LLMs may be penalized for small paraphrases or
+normalization errors even if they identify the correct semantic region.
+3. The exact-match evaluation may overemphasize boundary errors relative to downstream utility. Exact
+span boundaries matter for traceability, but in many civic applications, extracting the correct subject or
+voter identity approximately may still be useful. The relaxed-match results partly address this, but the
+paper’s main conclusions could better distinguish legal traceability from information access or search
+use cases.
+4. Cost comparisons between encoders and LLMs are useful but incomplete. The paper reports GPU
+hours for encoders and AMALIA, while Gemini and GPT are API-based and no GPU costs are
+measured. Since the conclusion emphasizes the practicality of lightweight encoders, it would be useful
+to report API cost estimates, latency, and throughput for Gemini/GPT as well.
+5. The benchmark is relatively small and geographically limited, with 2,885 segments from six Portuguese
+municipalities and very low support for some secret-ballot/count categories; however, given that this is a
+short paper introducing a first benchmark for a new task, I see this more as a natural limitation of the
+contribution than as a serious flaw, provided the authors are cautious in generalizing claims and
+interpreting macro-F1 for rare labels.
+Comments Suggestions And Typos:
+Please clarify the distinction between event-argument extraction and full event extraction. The task is valuable,
+but it currently evaluates flat span identification rather than event reconstruction.
+Please provide more small detail on the exact LLM prompting and realignment failure rate. How many generated
+spans were discarded because they could not be matched exactly to the input?
+Please include API cost or latency estimates for Gemini and GPT. The computational budget section reports
+AMALIA inference time and encoder GPU hours, but the strongest generative models are API-based.
+Some wording and formatting issues:
+● “with he same document” should be “within the same document.”
+● “the lengthier among the extracted classes” should be “the longest among the extracted classes.”
+● “high inference costs makes” should be “high inference costs make.”
+● “in Portugues” should be “in Portuguese.”
+● “multilingual sentence-BERT embeddings show a much smaller gap” could use a little more explanation.
+● The notation alternates between VOTER-AGST, VOTER-AGAINST, V-AGN; please ensure consistency
+or define abbreviations clearly.
+● “macro averaged” should be “macro-averaged.”
+● The paper says the schema has twelve argument types, but macro averages are over eleven because
+Count-Against has zero test instances; this should be made very explicit in the main results.
+Confidence: 4 = Quite sure. I tried to check the important points carefully. It's unlikely, though conceivable, that I
+missed something that should affect my ratings.
+Soundness: 3.5
+Excitement: 3.5
+Overall Assessment: 3 = Findings: I think this paper could be accepted to the Findings of the ACL.
+Ethical Concerns:
+There are no concerns with this submission
+Needs Ethics Review: No
+Reproducibility: 4 = They could mostly reproduce the results, but there may be some variation because of
+sample variance or minor variations in their interpretation of the protocol or method.
+Datasets: 4 = Useful: I would recommend the new datasets to other researchers or developers for their ongoing
+work.
+Software: 4 = Useful: I would recommend the new software to other researchers or developers for their ongoing
+work.
+
+
+----------------------------------------------------------------------
+
+Review 2:
+
+Paper Summary:
+This paper introduces VotIE (Voting Information Extraction), a novel task and benchmark designed to extract structured voting-event arguments from narrative municipal meeting minutes. Experimental results show that fine-tuned encoders, specifically XLM-R-CRF, achieve the strongest exact-match performance in standard in-domain evaluations, significantly outperforming generative approaches.
+Summary Of Strengths:
+The paper introduces VotIE, the first benchmark for structured extraction of voting events from heterogeneous narrative municipal minutes.
+Summary Of Weaknesses:
+The benchmark is limited to flat span identification and does not yet address deliberative event reconstruction, argument–trigger linking, or cross-segment coreference resolution.
+Comments Suggestions And Typos:
+Despite the zero-shot adaptability of generative models, their high computational costs currently constrain their practicality, making lightweight fine-tuned encoders the more viable option for large-scale deployments.
+The placement of the appendix appears to be inconsistent with the standard paper format. Typically, the References section should follow the Conclusion and Ethical Considerations, with the Appendix placed at the end of the manuscript.
+Confidence: 3 =  Pretty sure, but there's a chance I missed something. Although I have a good feel for this area in general, I did not carefully check the paper's details, e.g., the math or experimental design.
+Soundness: 2 = Poor: Some of the main claims are not sufficiently supported. There are major technical/methodological problems.
+Excitement: 2 = Potentially Interesting: this paper does not resonate with me, but it might with others in the *ACL community.
+Overall Assessment: 2 = Resubmit next cycle: I think this paper needs substantial revisions that can be completed by the next ARR cycle.
+Ethical Concerns:
+There are no concerns with this submission
+Needs Ethics Review: No
+Reproducibility: 3 = They could reproduce the results with some difficulty. The settings of parameters are underspecified or subjectively determined, and/or the training/evaluation data are not widely available.
+Datasets: 2 = Documentary: The new datasets will be useful to study or replicate the reported research, although for other purposes they may have limited interest or limited usability. (Still a positive rating)
+Software: 1 = No usable software released.
+
+----------------------------------------------------------------------
+
+REVIEW 3:
+
+Paper Summary:
+This paper introduce VotIE(Voting Information Extraction), a task for extracting voting-event arguments from municipal meeting minutes. The author define a schema of 5 categories of voting event arguments and build a benchmark with 120 documents from 6 municipalities based on the existing CitiLink-Minutes corpus. They evaluate both discriminative models and generative LLMs under in-domain and cross-municipality settings. The results show that fine-tuned XLM-R-CRF achieves the best in-domain performance, while Gemini shows better robustness in the cross-municipality setting.
+Summary Of Strengths:
+Comprehensive baseline comparison. The paper covers a good range of models across two paradigms: feature-based CRF, BiLSTM-CRF, three Transformer encoders (with both linear and CRF heads), and three generative LLMs. This gives a relatively complete picture of the current technical landscape for this task.
+Cross-municipality evaluation is a good design choice. The LOMO protocol directly tests generalization to unseen administrative writing styles, which is the core practical challenge for this domain.
+Thorough limitations section. The paper clearly discusses the gap between span identification and full event extraction, the coreference issue, dataset limitations, and language-specific concerns.
+Summary Of Weaknesses:
+The task frame is misleading. The paper repeatedly frames VotIE as "event-argument extraction" and connects it to Event Extraction literature. However, as the authors acknowledge in Section 8, the actual evaluation is flat span identification. There is no argument-to-trigger binding, no event grouping. The gap between the frame and the actual task is significant. While the authors justify this as a first benchmarking step, the paper should present honestly as what it actually evaluates: a sequence labeling task for voting-related entity extraction. The current frame overstates the contribution.
+Limited dataset contribution. The annotations come entirely from the CitiLink-Minutes corpus. This paper's contribution is defining the splits and evaluation protocol, not creating the annotations. This should be made clearer. Also, the dataset is quite small: only 120 documents, 2885 segments and 6 municipalities. Several entity types have very low support in the test set (Count-Favor: 4, Count-Blank: 5, Voting-Method: 5). The evaluation on these types is essentially meaningless. For example, in Table 11, many models score 100% on types with only 4-5 test instances.
+Writing quality needs improvement. Many sentences are unnecessarily long and complex, making the paper hard to follow. For example: "Figure 1 illustrates the coupling that motivates the schema: outcome gains procedural meaning only in relation to the accompanying Voter-Abstention and Voter-Against spans that define who falls outside the majority, requiring joint interpretation of procedural voting language rather than recognition of isolated lexical mentions." (lines 151-158) — this is very difficult to understand.
+Single-language limitation weakens generalization claims. The entire study is on Portuguese municipal minutes. However, it is claimed to be theoretically language-agnostic(Section 8, line 402).
+The appendices A-D are placed before the Reference section. This does not follow the required format.
+Comments Suggestions And Typos:
+"Reference" section should appear before the appendices. The ordering of the sections should be checked and fixed.
+The error analysis (Section 6, Table 3) is useful but brief. It would be more informative to show some concrete error examples.
+Section 3: The formal definition S = {(sj, ej, tj)} uses character offsets, but the BIO-based models operate on token-level. The mismatch between the formal definition and the actual implementation should be discussed more clearly.
+Several paragraphs or sections end without a full stop. For example, the end of the "Extraction Paradigms" paragraph (line 214), the end of the "Dataset limitations" paragraph (line 398), and the end of Section B.5 (line 653).
+Confidence: 3 =  Pretty sure, but there's a chance I missed something. Although I have a good feel for this area in general, I did not carefully check the paper's details, e.g., the math or experimental design.
+Soundness: 2 = Poor: Some of the main claims are not sufficiently supported. There are major technical/methodological problems.
+Excitement: 2 = Potentially Interesting: this paper does not resonate with me, but it might with others in the *ACL community.
+Overall Assessment: 2 = Resubmit next cycle: I think this paper needs substantial revisions that can be completed by the next ARR cycle.
+Limitations And Societal Impact:
+The authors discuss the limitations adequately.
+Ethical Concerns:
+There are no concerns with this submission
+Needs Ethics Review: No
+Reproducibility: 4 = They could mostly reproduce the results, but there may be some variation because of sample variance or minor variations in their interpretation of the protocol or method.
+Datasets: 3 = Potentially useful: Someone might find the new datasets useful for their work.
+Software: 3 = Potentially useful: Someone might find the new software useful for their work.
+
+REVIEW 4:
+
+Paper Summary:
+This paper introduces VotIE (Voting Information Extraction). It is a new task for extracting structured voting event arguments from municipal meeting minutes at the span level. The authors build a benchmark using the existing CitiLink-Minutes corpus. They conduct comprehensive experiments comparing 8 models. These include sequence labeling architectures and generative large language models. The study evaluates these models in both standard in-domain and Leave-One-Municipality-Out (LOMO) settings.
+
+Summary Of Strengths:
+Clear Task Value: The task definition is clear and highly practical. Municipal minutes are vital for public oversight but exist as unstructured narratives. VotIE successfully addresses the real-world challenge of processing these administrative texts.
+Insightful Evaluation Design: The cross-municipality LOMO evaluation is an excellent contribution. Many domain-specific extraction papers ignore out-of-domain generalization. The LOMO experiments highlight the generalization advantages of LLMs. This provides highly useful guidance for deploying extraction systems in the real world.
+Summary Of Weaknesses:
+Limited Technical Novelty: The study does not propose new extraction methods or introduce new data. It relies entirely on the previously published CitiLink-Minutes dataset (ECIR 2026) and applies standard baseline models.
+
+Comments Suggestions And Typos:
+Line 334: A grammar error: "costs makes"
+their high inference costs makes discriminative encoders the more practical choice...
+The reference section should be placed before appendix
+Confidence: 4 = Quite sure. I tried to check the important points carefully. It's unlikely, though conceivable, that I missed something that should affect my ratings.
+Soundness: 3 = Acceptable: This study provides sufficient support for its main claims. Some minor points may need extra support or details.
+Excitement: 2 = Potentially Interesting: this paper does not resonate with me, but it might with others in the *ACL community.
+Overall Assessment: 3 = Findings: I think this paper could be accepted to the Findings of the ACL.
+Ethical Concerns:
+There are no concerns with this submission
+Needs Ethics Review: No
+Reproducibility: 5 = They could easily reproduce the results.
+Datasets: 5 = Enabling: The newly released datasets should affect other people's choice of research or development projects to undertake.
+Software: 5 = Enabling: The newly released software should affect other people's choice of research or development projects to undertake.

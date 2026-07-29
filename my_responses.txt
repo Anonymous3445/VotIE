@@ -1,0 +1,79 @@
+Resposta Geral 
+
+We sincerely thank all reviewers for their careful reading of our manuscript and for the constructive and detailed feedback. We are encouraged that all reviewers recognize the practical relevance of the proposed task, the value of the benchmark, and the importance of evaluating cross-municipality generalization. We are particularly pleased that two reviewers already consider the paper suitable for ACL Findings.
+
+The main concern raised by the reviewers is not about the validity of the experiments, but rather about the framing of the contribution as "event extraction" while the current benchmark evaluates span-level event-argument extraction. We hold that VotIE is correctly grounded in event extraction: a municipal vote is an event, and the arguments we extract (subject, voter roles, outcome, counts, and method) are coupled event roles rather than isolated entities, which is what separates the task from conventional NER. We agree only on a narrower point: the paper should state explicitly that the benchmark evaluates the span-level identification of these arguments, not the assembly of complete events (trigger binding, role attachment, event grouping), which we present as future work. 
+
+In the camera-ready version, we will revise the manuscript accordingly by consistently referring to the task as span-level event-argument extraction, explicitly distinguishing it from complete event reconstruction, moderating the corresponding claims throughout the paper, and strengthening the discussion of the benchmark's scope and limitations.
+
+Below we respond to each reviewer individually.
+
+--
+Reviewer YpBJ (R1)
+We sincerely thank the reviewer for the positive assessment of our work and for recognizing the practical importance of the proposed benchmark and, in particular, the value of the Leave-One-Municipality-Out evaluation protocol.
+
+We appreciate your observation regarding the technical novelty. Our contribution is deliberately not a new extraction architecture. It is a new task, a benchmark with standardized in-domain and cross-municipality evaluation protocols, and a comprehensive empirical study for a previously unexplored information extraction task. We will revise the introduction and contribution statements to make this distinction even clearer.
+
+We also thank you for pointing out the grammatical issues and formatting inconsistencies. These will all be corrected in the final version, including the reference/appendix ordering.
+
+
+--
+Reviewer 3fsk (R2)
+We sincerely thank the reviewer for the detailed and thoughtful review, and for recommending the paper for ACL Findings.
+
+We appreciate your observation regarding the distinction between span-level event-argument extraction and complete event extraction. We fully agree that the current benchmark focuses on identifying event arguments rather than reconstructing complete event structures. Our intention was to position VotIE as the first benchmark addressing this foundational subproblem rather than claiming to solve the complete event extraction problem. Following your suggestion, we will revise the framing throughout the paper to consistently emphasize this distinction and explicitly present complete event reconstruction as future work.
+
+Regarding the generative models we intentionally adopted relatively simple prompting strategies because our objective was to compare extraction paradigms under a common and reproducible extraction protocol rather than optimize each LLM separately. Within that protocol the fine-tuned encoders outperform the generative models on exact match. This does not mean the LLMs are weak at the task. Under relaxed matching, the gap between the best encoder and the best LLM narrows from 32 points to 8, which shows the models locate the correct content but miss the exact, verbatim spans that municipal traceability requires. Prompt engineering, chunking, and alignment are mechanisms could further improve LLM performance, and the benchmark is designed precisely so that the community can measure progress along that axis. We will clarify this point explicitly in the discussion to avoid overgeneralizing our conclusions. 
+
+We also appreciate the suggestion to provide additional implementation details. We will include a more detailed description of the prompting protocol and report the proportion of generated spans that could not be aligned exactly to the source text. We agree that these details improve transparency and reproducibility.
+
+Regarding computational costs, our comparison primarily focused on computational requirements for locally executed models. We agree that API-based systems should also be characterized from a deployment perspective. We will therefore include API cost and latency estimates for the evaluated proprietary models, clarifying that the practical comparison involves different deployment scenarios.
+
+Finally, we thank the reviewer for the numerous editorial suggestions and wording corrections. We will incorporate all of them in the camera-ready version.
+
+--
+Reviewer iyoP (R3)
+Thank you very much for your thoughtful review and for recognizing the novelty of VotIE as the first benchmark for structured voting-event argument extraction from heterogeneous municipal meeting minutes.
+
+We appreciate your main observation regarding the scope of the benchmark. We fully agree that the current task focuses on span-level event-argument extraction rather than complete deliberative event reconstruction involving trigger-argument linking, event grouping, or cross-segment coreference resolution. This distinction is indeed important. Our intention was not to claim that VotIE already addresses the complete event extraction problem, but rather to introduce the first benchmark for this fundamental subtask, which we see as a necessary foundation for future work on complete deliberative event understanding. Following your suggestion, we will revise the manuscript throughout to consistently clarify this distinction, moderate the corresponding claims, and explicitly position complete event reconstruction as future work. Importantly, we believe that this clarification concerns the framing of the contribution rather than the validity of the proposed benchmark or the reported experimental findings, both of which remain unchanged.
+
+Beyond this framing issue, we would greatly appreciate some additional clarification regarding the soundness assessment. We may have misunderstood part of your concerns, since the written review does not identify methodological or experimental shortcomings in the benchmark construction, experimental protocol, or evaluation methodology, but instead focuses on the current scope of the task. If there are specific technical or methodological issues that we have overlooked, we would be very grateful if you could point them out, as we would be happy to address them in the camera-ready version.
+
+We would also like to clarify two aspects related to reproducibility and software availability. Since one of our main objectives is to facilitate future research on this task, we have publicly released all benchmark splits, annotations, trained models, experimental code, and an interactive demonstration through our anonymous GitHub repository. The repository contains the complete implementation of all reported experiments together with detailed instructions for reproducing the results. We hope this clarifies the intended reusability of the released resources. If the availability of these resources was not sufficiently highlighted in the manuscript, we will make this much more explicit in the camera-ready version. Furthermore, if there are particular aspects of the experimental setup that you found underspecified, we would sincerely appreciate your guidance so that we can improve the description and further strengthen the reproducibility of the work.
+
+Finally, thank you for pointing out the formatting issue regarding the placement of the References and Appendix. We will correct this in the camera-ready version.
+
+
+
+--
+Reviewer 4SQ9 (R4)
+
+Thank you very much for your careful and detailed review. We sincerely appreciate the positive assessment of the benchmark design, the comprehensive evaluation across discriminative and generative approaches, the Leave-One-Municipality-Out protocol, and the thorough discussion of the benchmark's limitations.
+
+We fully agree that the manuscript should more clearly distinguish span-level event-argument extraction from complete event extraction. Our intention was never to claim that VotIE reconstructs complete deliberative events through argument-to-trigger linking, event grouping, or cross-segment reasoning. Rather, our goal is to introduce the first benchmark for span-level voting-event argument extraction, which we consider a necessary foundation towards complete deliberative event understanding. We appreciate that our current framing may overemphasize this connection, and we will revise the manuscript throughout to consistently clarify the scope of the benchmark, moderate the corresponding claims, and explicitly position complete event reconstruction as future work.
+
+At the same time, we respectfully believe that describing VotIE as merely a "sequence labeling task for voting-related entity extraction" would underrepresent the problem addressed by the benchmark. Unlike conventional named entity recognition, VotIE requires extracting semantically defined voting-event arguments (e.g., voting action, procedural outcome, voter roles, counting expressions, voting method) that collectively describe a deliberative voting process. We will therefore revise the terminology to consistently refer to the task as span-level event-argument extraction, while clearly distinguishing it from complete event reconstruction.
+
+We also appreciate the opportunity to clarify the benchmark contribution. While the underlying annotations originate from the previously released CitiLink-Minutes corpus, we believe the contribution extends beyond defining benchmark splits. Specifically, this work introduces (i) the task formulation, (ii) the event-argument schema, (iii) the benchmark construction and evaluation protocol, (iv) standardized benchmark splits, (v) extensive baseline implementations across discriminative and generative paradigms, (vi) trained models, (vii) evaluation software, and (viii) a publicly available demonstration system. We will revise the introduction and contribution summary to make this distinction much clearer.
+
+Regarding the dataset size and the limited support for several argument types, we agree that macro-F1 scores for these labels should be interpreted with caution, and we will strengthen this discussion in the manuscript. Nevertheless, we believe reporting these results remains important to provide a complete characterization of the benchmark rather than selectively omitting low-frequency categories.
+
+We also agree that the current empirical evaluation is limited to Portuguese municipal meeting minutes. While the task formulation is intended to be conceptually applicable beyond Portuguese, we will revise the wording to avoid suggesting empirical language independence and instead explicitly present multilingual validation as future work.
+
+We also note, on the Soundness rating, that apart from the caution warranted for the low-support types, which we address above, the concerns in the review relate to framing, dataset scope, writing, and organization rather than to the validity of the in-domain and cross-municipality results or the statistical analysis. As the ARR guidelines tie the Soundness score to identified technical or methodological faults, we would welcome specific guidance on any result the reviewer considers insufficiently supported, so that we can address it directly.
+
+Finally, we thank you for the numerous editorial suggestions regarding writing clarity, notation consistency, formal definition, error analysis, punctuation, and manuscript organization. We will carefully address all of these points in the camera-ready version.
+
+Overall, our understanding is that your concerns primarily relate to the framing and positioning of the contribution rather than to the benchmark construction or the experimental methodology itself. We believe the proposed revisions will make the scope of the contribution considerably clearer while preserving the technical contribution and empirical findings presented in the paper. We hope these clarifications help address your concerns.
+
+
+
+Response by Reviewer iyoP
+Thank you for your thoughtful response. I now understand that VotIE focuses on span level event argument extraction rather than complete deliberative event reconstruction, and I appreciate your clarification of this scope.
+
+Response by reviewer 3fsk
+Thank you for the response. The clarification that VotIE focuses on span-level voting-argument extraction, rather than complete event reconstruction, addresses my main concern. Please ensure that this narrower scope is reflected consistently throughout the paper.
+Regarding the concerns raised by reviewers iyoP and 4SQ9 about the limited scope of the contribution, I would emphasize that this is a short paper. It presents a focused benchmark and a first component of a broader voting-event extraction pipeline, rather than a complete event-reconstruction system. In my view, this is an appropriate contribution for the short-paper format, provided the claims remain proportional to the current task and dataset.
+I therefore maintain my recommendation for Findings.
+
+
