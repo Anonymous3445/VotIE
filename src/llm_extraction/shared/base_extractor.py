@@ -5,8 +5,7 @@ Defines the interface that all span extractors (Gemini, LLaMA, etc.) must implem
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any, Optional
-import time
+from typing import Dict, List, Optional
 import logging
 
 from ..schemas import SpanExtractionResult, SpanEntity
@@ -31,7 +30,6 @@ class BaseSpanExtractor(ABC):
 
         self.model_id = model_id
         self.strategy = strategy
-        self.few_shot_examples: Optional[List[Dict[str, Any]]] = None
 
         logger.info(f"Initialized {self.__class__.__name__} with model={model_id}, strategy={strategy}")
 
@@ -66,16 +64,6 @@ class BaseSpanExtractor(ABC):
         """
         pass
 
-    def load_few_shot_examples(self, examples: List[Dict[str, Any]]) -> None:
-        """
-        Load few-shot examples for the extractor.
-
-        Args:
-            examples: List of example dictionaries with 'text' and 'entities'
-        """
-        self.few_shot_examples = examples
-        logger.info(f"Loaded {len(examples)} few-shot examples")
-
     def _create_result(
         self,
         document_id: str,
@@ -84,7 +72,6 @@ class BaseSpanExtractor(ABC):
         processing_time: float,
         api_time: Optional[float] = None,
         error: Optional[str] = None,
-        raw_response: Optional[str] = None
     ) -> SpanExtractionResult:
         """
         Create a SpanExtractionResult object.
@@ -96,7 +83,6 @@ class BaseSpanExtractor(ABC):
             processing_time: Total time taken for extraction
             api_time: Time taken for API/LLM call only
             error: Optional error message
-            raw_response: Optional raw LLM response
 
         Returns:
             SpanExtractionResult object
@@ -110,17 +96,7 @@ class BaseSpanExtractor(ABC):
             processing_time=processing_time,
             api_time=api_time,
             error=error,
-            raw_response=raw_response
         )
-
-    def _measure_time(self, func):
-        """Decorator to measure execution time."""
-        def wrapper(*args, **kwargs):
-            start_time = time.time()
-            result = func(*args, **kwargs)
-            elapsed = time.time() - start_time
-            return result, elapsed
-        return wrapper
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(model={self.model_id}, strategy={self.strategy})"

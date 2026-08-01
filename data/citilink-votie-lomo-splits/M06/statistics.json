@@ -1,0 +1,189 @@
+{
+  "target_municipality": "M06",
+  "municipality_name": "porto",
+  "train": {
+    "segments_in": 2051,
+    "segments_out": 2763,
+    "voting_segments": 1746,
+    "non_voting_segments_kept": 305,
+    "spans_total_after_filter": 12371,
+    "sub_subject_normalizations": 16,
+    "sub_subject_relabels": 176,
+    "minority_segments_orig": 5,
+    "oversample_copies": 20,
+    "multi_vote_segments_orig": 173,
+    "multi_vote_oversample_copies": 692,
+    "multi_vote_fraction": 0.0990836197021764,
+    "entity_counts_after": {
+      "VOTER-FAVOR": 1466,
+      "VOTING": 1934,
+      "COUNTING-UNANIMITY": 1157,
+      "SUBJECT": 1921,
+      "VOTER-ABSTENTION": 772,
+      "COUNTING-MAJORITY": 105,
+      "VOTER-ABSENT": 72,
+      "VOTER-AGAINST": 70,
+      "VOTING-METHOD": 5,
+      "COUNT-BLANK": 5
+    },
+    "per_municipality": {
+      "M01": {
+        "segments": 428,
+        "voting": 343,
+        "non_voting": 85,
+        "entities": 1463,
+        "multi_vote": 1
+      },
+      "M03": {
+        "segments": 612,
+        "voting": 510,
+        "non_voting": 102,
+        "entities": 2498,
+        "multi_vote": 143
+      },
+      "M04": {
+        "segments": 200,
+        "voting": 199,
+        "non_voting": 1,
+        "entities": 836,
+        "multi_vote": 0
+      },
+      "M05": {
+        "segments": 472,
+        "voting": 413,
+        "non_voting": 59,
+        "entities": 1464,
+        "multi_vote": 4
+      },
+      "M02": {
+        "segments": 339,
+        "voting": 281,
+        "non_voting": 58,
+        "entities": 1246,
+        "multi_vote": 25
+      }
+    },
+    "subject_length_histogram": {
+      "10-20": 900,
+      "20-40": 486,
+      "5-10": 388,
+      "40+": 27,
+      "0-5": 120
+    }
+  },
+  "dev": {
+    "segments_in": 362,
+    "segments_out": 362,
+    "voting_segments": 309,
+    "non_voting_segments_kept": 53,
+    "spans_total_after_filter": 1346,
+    "sub_subject_normalizations": 3,
+    "sub_subject_relabels": 37,
+    "minority_segments_orig": 3,
+    "oversample_copies": 0,
+    "multi_vote_segments_orig": 35,
+    "multi_vote_oversample_copies": 0,
+    "multi_vote_fraction": 0.11326860841423948,
+    "entity_counts_after": {
+      "VOTER-FAVOR": 248,
+      "VOTING": 349,
+      "COUNTING-UNANIMITY": 203,
+      "SUBJECT": 346,
+      "VOTER-ABSENT": 19,
+      "VOTER-ABSTENTION": 131,
+      "COUNTING-MAJORITY": 20,
+      "VOTER-AGAINST": 23,
+      "VOTING-METHOD": 4,
+      "COUNT-BLANK": 3
+    },
+    "per_municipality": {
+      "M05": {
+        "segments": 84,
+        "voting": 73,
+        "non_voting": 11,
+        "entities": 269,
+        "multi_vote": 2
+      },
+      "M01": {
+        "segments": 76,
+        "voting": 61,
+        "non_voting": 15,
+        "entities": 251,
+        "multi_vote": 0
+      },
+      "M03": {
+        "segments": 108,
+        "voting": 91,
+        "non_voting": 17,
+        "entities": 462,
+        "multi_vote": 29
+      },
+      "M02": {
+        "segments": 59,
+        "voting": 49,
+        "non_voting": 10,
+        "entities": 215,
+        "multi_vote": 4
+      },
+      "M04": {
+        "segments": 35,
+        "voting": 35,
+        "non_voting": 0,
+        "entities": 149,
+        "multi_vote": 0
+      }
+    },
+    "subject_length_histogram": {
+      "0-5": 25,
+      "10-20": 145,
+      "20-40": 84,
+      "5-10": 85,
+      "40+": 7
+    }
+  },
+  "test": {
+    "segments_in": 472,
+    "segments_out": 472,
+    "voting_segments": 461,
+    "non_voting_segments_kept": 11,
+    "spans_total_after_filter": 1841,
+    "sub_subject_normalizations": 0,
+    "sub_subject_relabels": 11,
+    "minority_segments_orig": 19,
+    "oversample_copies": 0,
+    "multi_vote_segments_orig": 3,
+    "multi_vote_oversample_copies": 0,
+    "multi_vote_fraction": 0.006507592190889371,
+    "entity_counts_after": {
+      "SUBJECT": 472,
+      "VOTING": 479,
+      "COUNTING-UNANIMITY": 287,
+      "VOTER-FAVOR": 26,
+      "COUNTING-MAJORITY": 153,
+      "VOTER-ABSTENTION": 200,
+      "VOTER-AGAINST": 102,
+      "VOTING-METHOD": 36,
+      "COUNT-FAVOR": 36,
+      "COUNT-BLANK": 37,
+      "COUNT-AGAINST": 2,
+      "VOTER-ABSENT": 11
+    },
+    "per_municipality": {
+      "M06": {
+        "segments": 472,
+        "voting": 461,
+        "non_voting": 11,
+        "entities": 1841,
+        "multi_vote": 3
+      }
+    },
+    "subject_length_histogram": {
+      "10-20": 237,
+      "5-10": 52,
+      "20-40": 169,
+      "0-5": 11,
+      "40+": 3
+    }
+  },
+  "validation_errors": 0
+}

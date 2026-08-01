@@ -18,6 +18,7 @@ from ..schemas import SpanEntity, ENTITY_TYPES
 from ..span_alignment import align_extraction_result
 from ..amalia.prompts import get_prompt_description
 from ..fixed_examples import get_fixed_examples
+from ..usage import attach_gemini_usage
 from .config import GeminiConfig
 
 
@@ -31,13 +32,13 @@ class GeminiSpanExtractor(BaseSpanExtractor):
         self,
         config: Optional[GeminiConfig] = None,
         strategy: str = "zero_shot",
-        num_examples: int = 4,
+        num_examples: int = 5,
     ):
         """
         Args:
             config: Gemini configuration
             strategy: "zero_shot" or "few_shot"
-            num_examples: Number of fixed few-shot examples to use (max 4)
+            num_examples: Number of fixed few-shot examples to use (max 5)
         """
         self.config = config or GeminiConfig()
 
@@ -57,6 +58,10 @@ class GeminiSpanExtractor(BaseSpanExtractor):
             temperature=self.config.temperature,
             response_mime_type="application/json",
         )
+
+        # langextract discards the provider response, so token usage has to be
+        # captured at the client. Reset per document, snapshot into diagnostics.
+        self._usage = attach_gemini_usage(self._lm)
 
         logger.info(
             f"Initialized GeminiSpanExtractor with {self.config}, "
@@ -85,6 +90,7 @@ class GeminiSpanExtractor(BaseSpanExtractor):
             SpanExtractionResult with extracted entities
         """
         start_time = time.time()
+        self._usage.reset()
 
         try:
             logger.info(f"Extracting from {document_id} ({len(text)} chars, strategy={self.strategy})")
@@ -116,6 +122,7 @@ class GeminiSpanExtractor(BaseSpanExtractor):
 
             # Snapshot pre-alignment output so the span-discard rate is recoverable
             # from the saved predictions rather than only from stdout logs.
+            usage = self._usage.snapshot()
             diagnostics = {
                 "n_raw_generated": n_raw,
                 "n_after_type_filter": len(result.entities),
@@ -130,8 +137,10 @@ class GeminiSpanExtractor(BaseSpanExtractor):
                     }
                     for x in (annotated_doc.extractions or [])
                 ],
-                "usage": self._extract_usage(annotated_doc),
+                "usage": usage,
             }
+            # Generation time alone; result.processing_time also covers alignment.
+            result.api_time = usage["api_seconds"]
 
             if align_spans:
                 result, alignment_stats = align_extraction_result(
@@ -157,40 +166,20 @@ class GeminiSpanExtractor(BaseSpanExtractor):
         except Exception as e:
             logger.error(f"Error extracting from {document_id}: {e}")
             processing_time = time.time() - start_time
-            return self._create_result(
+            result = self._create_result(
                 document_id=document_id,
                 text=text,
                 entities=[],
                 processing_time=processing_time,
                 error=str(e),
             )
-
-    @staticmethod
-    def _extract_usage(annotated_doc):
-        """Best-effort token-usage capture for API cost accounting.
-
-        langextract does not expose a stable usage field across versions, so we
-        probe the known attribute names and return None when unavailable rather
-        than failing the extraction.
-        """
-        for attr in ("usage", "token_usage", "usage_metadata", "_usage"):
-            usage = getattr(annotated_doc, attr, None)
-            if usage is None:
-                continue
-            if isinstance(usage, dict):
-                return usage
-            return {
-                k: getattr(usage, k)
-                for k in (
-                    "prompt_token_count",
-                    "candidates_token_count",
-                    "total_token_count",
-                    "input_tokens",
-                    "output_tokens",
-                )
-                if getattr(usage, k, None) is not None
+            # A failed document still burns tokens; record them so cost is not
+            # under-reported and the failure rate is auditable per document.
+            result.diagnostics = {
+                "document_failed": True,
+                "usage": self._usage.snapshot(),
             }
-        return None
+            return result
 
     def _convert_result(self, annotated_doc, document_id, text, processing_time):
         """Convert langextract AnnotatedDocument to SpanExtractionResult."""

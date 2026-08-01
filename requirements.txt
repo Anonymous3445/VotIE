@@ -24,11 +24,13 @@ pydantic>=2.0.0
 spacy>=3.4.0       # required for dataset generation scripts
 fasttext           # optional: required by bilstm_fasttext baseline only
 
-# LLM extraction (optional: required only for Gemini experiments)
+# LLM extraction (optional: required only for the generative baselines)
 google-generativeai
 google-genai>=0.1.0
 outlines>=0.0.40   # optional: structured output for LLM baselines
 langextract[openai]>=1.1.0  # AMALIA extraction via langextract
+tiktoken>=0.7      # token counting for GPT cost when the gateway hides usage
+python-dotenv      # .env loading in every extraction script
 
 # Optional: GPU support
 # Install separately with: pip install torch --index-url https://download.pytorch.org/whl/cu118

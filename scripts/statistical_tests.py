@@ -69,7 +69,11 @@ SEEDS: List[Tuple[str, str]] = [
 
 RESULTS_DIR = ROOT / "results"
 DISC_DIR = RESULTS_DIR / "discriminative_models"
-LOMO_RESULTS_DIR = RESULTS_DIR / "lomo"
+# Rebound by --lomo-dir. results/lomo holds the superseded batch-16 runs; the
+# camera-ready batch is results/lomo_cr. Mixing the two would compare models
+# trained under different hyperparameters, so the root is stated explicitly in
+# the output rather than assumed.
+LOMO_RESULTS_DIR = RESULTS_DIR / "lomo_cr"
 OUT_PATH = RESULTS_DIR / "statistical_tests.json"
 
 EPS = 1e-12
@@ -701,6 +705,8 @@ def print_lomo(summary: dict) -> None:
 # --------------------------------------------------------------------- #
 
 def main() -> None:
+    global LOMO_RESULTS_DIR
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--n-bootstrap", type=int, default=1000,
                         help="Number of bootstrap resamples (default: 1000).")
@@ -714,7 +720,15 @@ def main() -> None:
                         help="Skip in-domain analysis.")
     parser.add_argument("--out", type=Path, default=OUT_PATH,
                         help=f"Output JSON path (default: {OUT_PATH.relative_to(ROOT)}).")
+    parser.add_argument("--lomo-dir", type=Path, default=LOMO_RESULTS_DIR,
+                        help=f"LOMO predictions root (default: "
+                             f"{LOMO_RESULTS_DIR.relative_to(ROOT)}). Pass results/lomo "
+                             f"only to reproduce the superseded batch-16 numbers.")
     args = parser.parse_args()
+
+    LOMO_RESULTS_DIR = args.lomo_dir
+    if not args.in_domain_only and not LOMO_RESULTS_DIR.exists():
+        raise SystemExit(f"LOMO predictions root not found: {LOMO_RESULTS_DIR}")
 
     logging.basicConfig(level=logging.INFO,
                         format="%(levelname)s %(message)s")
@@ -727,6 +741,7 @@ def main() -> None:
             "models": MODELS,
             "seeds": [sid for sid, _ in SEEDS],
             "municipalities": MUNICIPALITIES,
+            "lomo_results_dir": str(LOMO_RESULTS_DIR),
             "p_value_definition": (
                 "Two-sided Berg-Kirkpatrick (2012): "
                 "P(|D_b - D_obs| >= |D_obs|) under the paired bootstrap; "
@@ -747,7 +762,11 @@ def main() -> None:
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(summary, indent=2))
-    print(f"\nWrote {args.out.relative_to(ROOT)}")
+    try:
+        written = args.out.relative_to(ROOT)
+    except ValueError:  # --out may point outside the repo
+        written = args.out
+    print(f"\nWrote {written}")
 
     if "in_domain" in summary:
         print_indomain(summary["in_domain"])

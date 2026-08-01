@@ -13,7 +13,10 @@ class GeminiConfig:
     def __init__(
         self,
         api_key: str = None,
-        model_id: str = "gemini-2.5-flash-preview-04-17",
+        # Must match the model actually reported in the paper. The previous
+        # default (gemini-2.5-flash-preview-04-17) was never used in any reported
+        # run — the CLI default overrode it — so a reproducer silently ran Flash.
+        model_id: str = "gemini-2.5-pro",
         temperature: float = 0.0,
         max_char_buffer: int = 20000,
     ):

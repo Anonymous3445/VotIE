@@ -19,6 +19,9 @@ def normalize_text(text: str) -> str:
     """
     Normalize text for matching (remove extra whitespace, normalize unicode).
 
+    Offsets into the result do NOT correspond to offsets into the input — use
+    :func:`collapse_whitespace_with_offsets` when the position is needed.
+
     Args:
         text: Input text
 
@@ -30,6 +33,52 @@ def normalize_text(text: str) -> str:
     # Collapse multiple spaces into one
     text = ' '.join(text.split())
     return text
+
+
+def collapse_whitespace_with_offsets(text: str) -> Tuple[str, List[int]]:
+    """Collapse whitespace runs to a single space, keeping a map back to `text`.
+
+    Returns ``(collapsed, offsets)`` where ``offsets[i]`` is the index in the
+    original ``text`` of ``collapsed[i]``. This is what makes whitespace-tolerant
+    matching usable: a match found in the collapsed string can be translated back
+    into real character positions, which a plain normalise-then-search cannot do.
+
+    Unicode normalisation is deliberately excluded — NFC can change string length,
+    which would break the mapping. Case and unicode differences are handled by
+    :func:`spans_equivalent` at comparison time instead.
+    """
+    out: List[str] = []
+    offsets: List[int] = []
+    i, n = 0, len(text)
+
+    while i < n:
+        if text[i].isspace():
+            run_start = i
+            while i < n and text[i].isspace():
+                i += 1
+            if out:  # never emit a leading space
+                out.append(' ')
+                offsets.append(run_start)
+        else:
+            out.append(text[i])
+            offsets.append(i)
+            i += 1
+
+    while out and out[-1] == ' ':  # never keep a trailing space
+        out.pop()
+        offsets.pop()
+
+    return ''.join(out), offsets
+
+
+def spans_equivalent(a: str, b: str) -> bool:
+    """True if two strings differ only in case, unicode form, or whitespace runs.
+
+    Used to decide whether a source slice is the same span the model emitted.
+    A model that renders a line break inside a long SUBJECT as a single space is
+    still pointing at the same span; it should be realigned, not discarded.
+    """
+    return normalize_text(a).casefold() == normalize_text(b).casefold()
 
 
 def find_all_occurrences(source_text: str, span_text: str) -> List[Tuple[int, int]]:
@@ -85,18 +134,20 @@ def find_span_in_text(
     if not span_text or not source_text:
         return None
 
-    # Normalize both texts for comparison
-    source_normalized = normalize_text(source_text)
-    span_normalized = normalize_text(span_text)
-
     # Try exact match first (unnormalized)
     occurrences = find_all_occurrences(source_text, span_text)
 
     if not occurrences:
-        # Try normalized match
-        occurrences_normalized = find_all_occurrences(source_normalized, span_normalized)
-        if occurrences_normalized:
-            occurrences = occurrences_normalized
+        # Whitespace-tolerant match. Offsets are found in the collapsed string and
+        # translated back through the offset map, so they remain valid positions in
+        # `source_text`. Searching the collapsed string without translating back
+        # yields positions that can never validate against the original.
+        collapsed_source, offsets = collapse_whitespace_with_offsets(source_text)
+        collapsed_span, _ = collapse_whitespace_with_offsets(span_text)
+        for c_start, c_end in find_all_occurrences(collapsed_source, collapsed_span):
+            if c_end > len(offsets):
+                continue
+            occurrences.append((offsets[c_start], offsets[c_end - 1] + 1))
 
     if not occurrences:
         # If suggested_start is provided, search in a window around it
@@ -246,15 +297,16 @@ def align_span(
     extracted = source_text[start:end]
 
     if extracted != span_entity.text:
-        if strict and extracted.lower() != span_entity.text.lower():
-            # Genuine mismatch — not just a case difference
+        if strict and not spans_equivalent(extracted, span_entity.text):
+            # Genuine mismatch — not a case, unicode or whitespace difference
             logger.warning(
                 f"Non-verbatim match for '{span_entity.text}': found '{extracted}'"
             )
             return None
-        # Case-insensitive match: normalise entity text to verbatim source text
+        # Same span, different rendering (case or internal whitespace):
+        # normalise the entity text to the verbatim source slice.
         logger.debug(
-            f"Case normalised: '{span_entity.text}' → '{extracted}'"
+            f"Normalised to source: '{span_entity.text}' → '{extracted}'"
         )
 
     return SpanEntity(
@@ -344,8 +396,11 @@ def align_extraction_result(
         model=result.model,
         strategy=result.strategy,
         processing_time=result.processing_time,
+        # Carried over explicitly: this rebuild used to drop them, which would
+        # silently discard the measured API time and the diagnostics block.
+        api_time=result.api_time,
         error=result.error,
-        raw_response=result.raw_response
+        diagnostics=result.diagnostics,
     )
 
     return aligned_result, stats

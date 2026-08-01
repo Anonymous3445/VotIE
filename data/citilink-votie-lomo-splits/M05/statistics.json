@@ -1,0 +1,190 @@
+{
+  "target_municipality": "M05",
+  "municipality_name": "guimaraes",
+  "train": {
+    "segments_in": 1979,
+    "segments_out": 2731,
+    "voting_segments": 1726,
+    "non_voting_segments_kept": 253,
+    "spans_total_after_filter": 12827,
+    "sub_subject_normalizations": 16,
+    "sub_subject_relabels": 172,
+    "minority_segments_orig": 18,
+    "oversample_copies": 72,
+    "multi_vote_segments_orig": 170,
+    "multi_vote_oversample_copies": 680,
+    "multi_vote_fraction": 0.0984936268829664,
+    "entity_counts_after": {
+      "VOTER-FAVOR": 1373,
+      "VOTING": 1913,
+      "COUNTING-UNANIMITY": 1008,
+      "SUBJECT": 1897,
+      "COUNTING-MAJORITY": 216,
+      "VOTER-ABSTENTION": 913,
+      "VOTER-AGAINST": 137,
+      "VOTER-ABSENT": 44,
+      "VOTING-METHOD": 23,
+      "COUNT-FAVOR": 22,
+      "COUNT-BLANK": 23,
+      "COUNT-AGAINST": 2
+    },
+    "per_municipality": {
+      "M01": {
+        "segments": 427,
+        "voting": 343,
+        "non_voting": 84,
+        "entities": 1463,
+        "multi_vote": 1
+      },
+      "M06": {
+        "segments": 401,
+        "voting": 393,
+        "non_voting": 8,
+        "entities": 1528,
+        "multi_vote": 1
+      },
+      "M03": {
+        "segments": 612,
+        "voting": 510,
+        "non_voting": 102,
+        "entities": 2498,
+        "multi_vote": 143
+      },
+      "M04": {
+        "segments": 200,
+        "voting": 199,
+        "non_voting": 1,
+        "entities": 836,
+        "multi_vote": 0
+      },
+      "M02": {
+        "segments": 339,
+        "voting": 281,
+        "non_voting": 58,
+        "entities": 1246,
+        "multi_vote": 25
+      }
+    },
+    "subject_length_histogram": {
+      "10-20": 865,
+      "20-40": 545,
+      "0-5": 104,
+      "5-10": 358,
+      "40+": 25
+    }
+  },
+  "dev": {
+    "segments_in": 350,
+    "segments_out": 350,
+    "voting_segments": 304,
+    "non_voting_segments_kept": 46,
+    "spans_total_after_filter": 1390,
+    "sub_subject_normalizations": 3,
+    "sub_subject_relabels": 43,
+    "minority_segments_orig": 3,
+    "oversample_copies": 0,
+    "multi_vote_segments_orig": 35,
+    "multi_vote_oversample_copies": 0,
+    "multi_vote_fraction": 0.11513157894736842,
+    "entity_counts_after": {
+      "VOTER-FAVOR": 235,
+      "VOTING": 354,
+      "COUNTING-UNANIMITY": 175,
+      "SUBJECT": 347,
+      "VOTER-ABSTENTION": 158,
+      "COUNTING-MAJORITY": 39,
+      "VOTER-AGAINST": 31,
+      "VOTER-ABSENT": 7,
+      "VOTING-METHOD": 15,
+      "COUNT-FAVOR": 14,
+      "COUNT-BLANK": 15
+    },
+    "per_municipality": {
+      "M02": {
+        "segments": 59,
+        "voting": 49,
+        "non_voting": 10,
+        "entities": 215,
+        "multi_vote": 4
+      },
+      "M06": {
+        "segments": 71,
+        "voting": 68,
+        "non_voting": 3,
+        "entities": 313,
+        "multi_vote": 2
+      },
+      "M01": {
+        "segments": 77,
+        "voting": 61,
+        "non_voting": 16,
+        "entities": 251,
+        "multi_vote": 0
+      },
+      "M03": {
+        "segments": 108,
+        "voting": 91,
+        "non_voting": 17,
+        "entities": 462,
+        "multi_vote": 29
+      },
+      "M04": {
+        "segments": 35,
+        "voting": 35,
+        "non_voting": 0,
+        "entities": 149,
+        "multi_vote": 0
+      }
+    },
+    "subject_length_histogram": {
+      "10-20": 142,
+      "20-40": 100,
+      "5-10": 75,
+      "0-5": 25,
+      "40+": 5
+    }
+  },
+  "test": {
+    "segments_in": 556,
+    "segments_out": 556,
+    "voting_segments": 486,
+    "non_voting_segments_kept": 70,
+    "spans_total_after_filter": 1733,
+    "sub_subject_normalizations": 0,
+    "sub_subject_relabels": 9,
+    "minority_segments_orig": 6,
+    "oversample_copies": 0,
+    "multi_vote_segments_orig": 6,
+    "multi_vote_oversample_copies": 0,
+    "multi_vote_fraction": 0.012345679012345678,
+    "entity_counts_after": {
+      "SUBJECT": 495,
+      "VOTING": 495,
+      "COUNTING-UNANIMITY": 464,
+      "COUNTING-MAJORITY": 23,
+      "VOTER-ABSENT": 51,
+      "VOTER-FAVOR": 132,
+      "VOTER-ABSTENTION": 32,
+      "VOTING-METHOD": 7,
+      "COUNT-BLANK": 7,
+      "VOTER-AGAINST": 27
+    },
+    "per_municipality": {
+      "M05": {
+        "segments": 556,
+        "voting": 486,
+        "non_voting": 70,
+        "entities": 1733,
+        "multi_vote": 6
+      }
+    },
+    "subject_length_histogram": {
+      "10-20": 275,
+      "20-40": 94,
+      "0-5": 27,
+      "5-10": 92,
+      "40+": 7
+    }
+  },
+  "validation_errors": 0
+}

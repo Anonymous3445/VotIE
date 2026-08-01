@@ -21,6 +21,7 @@ from ..schemas import SpanEntity, SpanExtractionResult, ENTITY_TYPES
 from ..span_alignment import align_extraction_result
 from .prompts import get_prompt_description
 from ..fixed_examples import get_fixed_examples
+from ..usage import attach_openai_usage
 from .config import AmaliaConfig, DEFAULT_CONFIG
 
 
@@ -88,6 +89,11 @@ class AmaliaSpanExtractor(BaseSpanExtractor):
             )
         except Exception as e:
             logger.warning(f"Could not set OpenAI client timeout: {e}")
+
+        # langextract discards the provider response, so token usage has to be
+        # captured at the client. AMALIA is self-hosted (no billing), but the
+        # counts are what make its throughput commensurable with the APIs.
+        self._usage = attach_openai_usage(self._lm)
 
         logger.info(
             f"Initialized AmaliaSpanExtractor with {self.config}, "
@@ -185,6 +191,7 @@ class AmaliaSpanExtractor(BaseSpanExtractor):
             SpanExtractionResult with extracted entities
         """
         start_time = time.time()
+        self._usage.reset()
 
         try:
             logger.info(f"Extracting from {document_id} ({len(text)} chars, strategy={self.strategy})")
@@ -203,6 +210,26 @@ class AmaliaSpanExtractor(BaseSpanExtractor):
                 f"{len(result.entities)} valid entities ({processing_time:.1f}s)"
             )
 
+            # Snapshot pre-alignment output so the span-discard rate is recoverable
+            # from the saved predictions rather than only from stdout logs.
+            usage = self._usage.snapshot()
+            diagnostics = {
+                "n_raw_generated": n_raw,
+                "n_after_type_filter": len(result.entities),
+                "n_dropped_unknown_type": n_raw - len(result.entities),
+                "pre_alignment_entities": [
+                    {"text": e.text, "type": e.type} for e in result.entities
+                ],
+                "raw_generated": [
+                    {"text": x.extraction_text, "type": x.extraction_class}
+                    for x in (annotated_doc.extractions or [])
+                ],
+                "usage": usage,
+                "truncation_recovered": False,
+            }
+            # Generation time alone; result.processing_time also covers alignment.
+            result.api_time = usage["api_seconds"]
+
             # Align spans if requested
             if align_spans:
                 result, alignment_stats = align_extraction_result(
@@ -212,7 +239,17 @@ class AmaliaSpanExtractor(BaseSpanExtractor):
                     f"  Aligned {alignment_stats['aligned_spans']}/{alignment_stats['total_spans']} spans "
                     f"(fidelity={alignment_stats['alignment_rate']:.0%})"
                 )
+                diagnostics.update(
+                    {
+                        "n_before_alignment": alignment_stats["total_spans"],
+                        "n_aligned": alignment_stats["aligned_spans"],
+                        "n_dropped_alignment": alignment_stats["failed_spans"],
+                        "alignment_rate": alignment_stats["alignment_rate"],
+                        "failed_alignments": alignment_stats["failed_alignments"],
+                    }
+                )
 
+            result.diagnostics = diagnostics
             return result
 
         except Exception as e:
@@ -235,22 +272,54 @@ class AmaliaSpanExtractor(BaseSpanExtractor):
                         processing_time=processing_time,
                         error=None,
                     )
+                    diagnostics = {
+                        "n_raw_generated": len(recovered),
+                        "n_after_type_filter": len(recovered),
+                        "n_dropped_unknown_type": 0,
+                        "pre_alignment_entities": [
+                            {"text": e.text, "type": e.type} for e in recovered
+                        ],
+                        "raw_generated": [
+                            {"text": e.text, "type": e.type} for e in recovered
+                        ],
+                        "usage": self._usage.snapshot(),
+                        # Output hit max_output_tokens: the count above is what
+                        # survived truncation, not what the model would have emitted.
+                        "truncation_recovered": True,
+                    }
                     if align_spans:
                         result, alignment_stats = align_extraction_result(result, strict=True)
                         logger.info(
                             f"  Aligned {alignment_stats['aligned_spans']}/{alignment_stats['total_spans']} spans "
                             f"(fidelity={alignment_stats['alignment_rate']:.0%})"
                         )
+                        diagnostics.update(
+                            {
+                                "n_before_alignment": alignment_stats["total_spans"],
+                                "n_aligned": alignment_stats["aligned_spans"],
+                                "n_dropped_alignment": alignment_stats["failed_spans"],
+                                "alignment_rate": alignment_stats["alignment_rate"],
+                                "failed_alignments": alignment_stats["failed_alignments"],
+                            }
+                        )
+                    result.diagnostics = diagnostics
                     return result
 
             logger.error(f"Error extracting from {document_id}: {e}")
-            return self._create_result(
+            result = self._create_result(
                 document_id=document_id,
                 text=text,
                 entities=[],
                 processing_time=processing_time,
                 error=err_msg,
             )
+            # A failed document still consumes generation time; record it so the
+            # document-level failure rate is auditable per document.
+            result.diagnostics = {
+                "document_failed": True,
+                "usage": self._usage.snapshot(),
+            }
+            return result
 
     def _recover_truncated_entities(self, exc: Exception) -> List[SpanEntity]:
         """Salvage entities from a truncated JSON string.

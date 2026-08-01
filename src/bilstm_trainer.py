@@ -320,9 +320,16 @@ class BiLSTMTrainer:
         """Prepare FastText embeddings for Portuguese."""
         logger.info("Preparing embeddings...")
 
-        # Initialize embedding handler
+        # Initialize embedding handler. embeddings.fasttext_path was previously
+        # declared in every config and read by nothing, so the handler only ever
+        # looked next to its own module file.
+        embeddings_config = (self.config or {}).get('embeddings', {}) or {}
         self.embedding_handler = FastTextEmbedding(
-            embedding_dim=self.embedding_dim
+            embedding_dim=self.embedding_dim,
+            fasttext_path=embeddings_config.get('fasttext_path'),
+            allow_random_fallback=bool(
+                embeddings_config.get('allow_random_fallback', False)
+            )
         )
 
         # Load pre-trained embeddings

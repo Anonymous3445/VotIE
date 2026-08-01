@@ -9,7 +9,7 @@ from typing import List, Dict, Any, Tuple
 from collections import defaultdict
 
 try:
-    from seqeval.metrics import classification_report, f1_score, precision_score, recall_score
+    from seqeval.metrics import classification_report
     from seqeval.scheme import IOB2
 except ImportError:
     raise ImportError(
@@ -67,6 +67,39 @@ def spans_to_bio_labels(text: str, entities: List[SpanEntity]) -> Tuple[List[str
     return tokens, labels
 
 
+def macro_over_entity_types(
+    per_type: Dict[str, Dict[str, float]]
+) -> Tuple[float, float, float]:
+    """Macro-average over the fixed schema type list, not over observed types.
+
+    The denominator is always ``len(ENTITY_TYPES)`` (11 — ``Count-Against`` is in
+    the schema but has zero support anywhere and is excluded from the list), so
+    exact and relaxed matching share one denominator, and LOMO folds stay
+    comparable even when a municipality never uses some type. Types with no gold
+    and no prediction in a given evaluation set contribute 0.
+
+    Args:
+        per_type: mapping of entity type to a dict with precision/recall/f1.
+
+    Returns:
+        (precision, recall, f1), each averaged over the 11 schema types.
+    """
+    n = len(ENTITY_TYPES)
+    totals = {"precision": 0.0, "recall": 0.0, "f1": 0.0}
+    for entity_type in ENTITY_TYPES:
+        metrics = per_type.get(entity_type) or {}
+        for key in totals:
+            totals[key] += metrics.get(key, 0.0)
+    return totals["precision"] / n, totals["recall"] / n, totals["f1"] / n
+
+
+def overlap_length(a: SpanEntity, b: SpanEntity) -> int:
+    """Number of characters shared by two spans (0 if disjoint or unaligned)."""
+    if any(v is None for v in (a.start, a.end, b.start, b.end)):
+        return 0
+    return max(0, min(a.end, b.end) - max(a.start, b.start))
+
+
 def relaxed_span_match(pred_entity: SpanEntity, gold_entity: SpanEntity) -> bool:
     """
     Check if predicted span matches gold span with relaxed criteria.
@@ -118,9 +151,6 @@ def evaluate_span_extraction(
     all_pred_labels = []
     all_true_labels = []
 
-    # Track per-entity type metrics
-    per_type_stats = defaultdict(lambda: {"tp": 0, "fp": 0, "fn": 0})
-
     # Process each prediction
     matched_count = 0
     for pred in predictions:
@@ -155,13 +185,11 @@ def evaluate_span_extraction(
 
     logger.info(f"Matched {matched_count}/{len(predictions)} predictions to ground truth")
 
-    # Compute seqeval metrics (exact boundary matching) using macro-averaging
+    # Exact boundary matching via seqeval. We take per-type scores from the
+    # report and average them ourselves rather than calling average='macro',
+    # because seqeval's macro divides by the types it observes — a denominator
+    # that changes between models and between LOMO folds.
     try:
-        entity_f1 = f1_score(all_true_labels, all_pred_labels, mode='strict', scheme=IOB2, average='macro')
-        entity_precision = precision_score(all_true_labels, all_pred_labels, mode='strict', scheme=IOB2, average='macro')
-        entity_recall = recall_score(all_true_labels, all_pred_labels, mode='strict', scheme=IOB2, average='macro')
-
-        # Get detailed report
         report = classification_report(
             all_true_labels,
             all_pred_labels,
@@ -170,13 +198,12 @@ def evaluate_span_extraction(
             output_dict=True,
             zero_division=0
         )
-
     except Exception as e:
         logger.error(f"Error computing seqeval metrics: {e}")
-        entity_f1 = 0.0
-        entity_precision = 0.0
-        entity_recall = 0.0
         report = {}
+
+    exact_per_type = extract_per_type_metrics(report)
+    entity_precision, entity_recall, entity_f1 = macro_over_entity_types(exact_per_type)
 
     # Compute relaxed matching metrics if requested
     relaxed_metrics = None
@@ -195,7 +222,8 @@ def evaluate_span_extraction(
             "recall": entity_recall,
             "f1": entity_f1
         },
-        "per_type_metrics": extract_per_type_metrics(report),
+        "per_type_metrics": exact_per_type,
+        "macro_denominator": len(ENTITY_TYPES),
         "total_predictions": len(predictions),
         "matched_to_ground_truth": matched_count
     }
@@ -247,13 +275,18 @@ def compute_relaxed_metrics(
         # Track which gold entities have been matched
         matched_gold = set()
 
-        # For each predicted entity, find best matching gold entity
+        # For each predicted entity, take the gold entity it overlaps most.
+        # Selecting the first overlap instead would make the score depend on the
+        # order gold spans happen to appear in.
         for pred_entity in pred.entities:
             best_match = None
+            best_overlap = 0
             for i, gold_entity in enumerate(gt_entities):
-                if i not in matched_gold and relaxed_span_match(pred_entity, gold_entity):
-                    best_match = i
-                    break
+                if i in matched_gold or not relaxed_span_match(pred_entity, gold_entity):
+                    continue
+                overlap = overlap_length(pred_entity, gold_entity)
+                if overlap > best_overlap:
+                    best_match, best_overlap = i, overlap
 
             if best_match is not None:
                 # True positive
@@ -283,18 +316,14 @@ def compute_relaxed_metrics(
             "support": tp + fn  # Total gold entities of this type
         }
 
-    # Compute macro-averaged metrics (average of per-type metrics)
-    if per_type_metrics:
-        precision = sum(m["precision"] for m in per_type_metrics.values()) / len(per_type_metrics)
-        recall = sum(m["recall"] for m in per_type_metrics.values()) / len(per_type_metrics)
-        f1 = sum(m["f1"] for m in per_type_metrics.values()) / len(per_type_metrics)
-    else:
-        precision = recall = f1 = 0.0
+    # Same fixed denominator as exact match, so the two are comparable.
+    precision, recall, f1 = macro_over_entity_types(per_type_metrics)
 
     return {
         "precision": precision,
         "recall": recall,
         "f1": f1,
+        "macro_denominator": len(ENTITY_TYPES),
         "per_type_metrics": per_type_metrics
     }
 

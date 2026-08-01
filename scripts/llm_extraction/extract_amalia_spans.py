@@ -29,11 +29,16 @@ import logging
 from pathlib import Path
 import sys
 
+from dotenv import load_dotenv
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+# Without this, AMALIA_BASE_URL in .env is ignored and the run silently targets
+# the hardcoded default — unlike every other extraction script.
+load_dotenv(Path(__file__).parent.parent.parent / ".env")
 
 from src.llm_extraction.amalia.extractor import AmaliaSpanExtractor
 from src.llm_extraction.amalia.config import AmaliaConfig
-from src.llm_extraction.shared.data_utils import load_jsonl, save_jsonl
+from src.llm_extraction.shared.data_utils import load_jsonl, result_to_record, save_jsonl
 
 
 # Configure logging before absl (used by langextract) can hijack it
@@ -45,7 +50,7 @@ logger.setLevel(logging.INFO)
 logger.addHandler(_handler)
 
 # Also ensure the extractor and alignment loggers are visible
-for _name in ['src.llm_extraction.amalia.extractor', 'src.llm_extraction.amalia.vllm_openai',
+for _name in ['src.llm_extraction.amalia.extractor',
               'src.llm_extraction.span_alignment', 'src.llm_extraction.shared.data_utils']:
     _log = logging.getLogger(_name)
     _log.setLevel(logging.INFO)
@@ -70,7 +75,7 @@ def main():
     parser.add_argument(
         "--model",
         type=str,
-        default="amalia-base",
+        default=None,  # auto-detected from /v1/models; records what actually served
         help="Model ID (auto-detected if not set)",
     )
     parser.add_argument(
@@ -175,6 +180,14 @@ def main():
             f"Resuming: {len(skip_ids)} already successful, "
             f"{n_errored} errored (will retry), {len(test_data)} pending"
         )
+        stale = sum(1 for r in prior_results.values() if not r.get("diagnostics"))
+        if stale:
+            logger.warning(
+                f"{stale}/{len(skip_ids)} resumed records carry no diagnostics "
+                f"(pre-instrumentation run). They will NOT be re-run, so span-discard "
+                f"figures would cover only part of the set. Write to a fresh "
+                f"--output-file if you need a fully instrumented run."
+            )
 
     # Extract spans
     results = []
@@ -186,25 +199,8 @@ def main():
             document_id=example["id"],
         )
 
-        # Convert to dict for JSON serialization
-        result_dict = {
-            "id": result.id,
-            "text": result.text,
-            "entities": [
-                {
-                    "text": e.text,
-                    "type": e.type,
-                    "start": e.start,
-                    "end": e.end,
-                }
-                for e in result.entities
-            ],
-            "model": result.model,
-            "strategy": result.strategy,
-            "processing_time": result.processing_time,
-            "api_time": result.api_time,
-            "error": result.error,
-        }
+        # Convert to dict for JSON serialization (carries the diagnostics block)
+        result_dict = result_to_record(result)
 
         results.append(result_dict)
 

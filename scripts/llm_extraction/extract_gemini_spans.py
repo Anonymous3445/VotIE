@@ -32,7 +32,7 @@ load_dotenv(Path(__file__).parent.parent.parent / ".env")
 
 from src.llm_extraction.gemini.extractor import GeminiSpanExtractor
 from src.llm_extraction.gemini.config import GeminiConfig
-from src.llm_extraction.shared.data_utils import load_jsonl, save_jsonl
+from src.llm_extraction.shared.data_utils import load_jsonl, result_to_record, save_jsonl
 
 
 # Configure logging before absl (used by langextract) can hijack it
@@ -148,6 +148,14 @@ def main():
             f"Resuming from checkpoint: {len(successful)} successful, "
             f"{len(errored)} errored (will retry)"
         )
+        stale = sum(1 for r in successful if not r.get("diagnostics"))
+        if stale:
+            logger.warning(
+                f"{stale}/{len(successful)} resumed records carry no diagnostics "
+                f"(pre-instrumentation run). They will NOT be re-run, so span-discard "
+                f"and cost figures would cover only part of the set. Write to a fresh "
+                f"--output-file if you need a fully instrumented run."
+            )
 
     pending = [ex for ex in test_data if ex["id"] not in processed_ids]
     logger.info(f"Remaining examples to process: {len(pending)}")
@@ -161,25 +169,8 @@ def main():
             document_id=example["id"],
         )
 
-        # Convert to dict for JSON serialization
-        result_dict = {
-            "id": result.id,
-            "text": result.text,
-            "entities": [
-                {
-                    "text": e.text,
-                    "type": e.type,
-                    "start": e.start,
-                    "end": e.end,
-                }
-                for e in result.entities
-            ],
-            "model": result.model,
-            "strategy": result.strategy,
-            "processing_time": result.processing_time,
-            "api_time": result.api_time,
-            "error": result.error,
-        }
+        # Convert to dict for JSON serialization (carries the diagnostics block)
+        result_dict = result_to_record(result)
 
         results.append(result_dict)
 

@@ -20,6 +20,7 @@ Portuguese voting documents.
 """
 
 import logging
+import sys
 import numpy as np
 import torch
 import torch.nn as nn
@@ -47,7 +48,9 @@ class FastTextEmbedding:
         self,
         embedding_dim: int = 300,
         max_vocab_size: int = 50000,
-        min_freq: int = 2
+        min_freq: int = 2,
+        fasttext_path: Optional[Union[str, Path]] = None,
+        allow_random_fallback: bool = False
     ):
         """
         Initialize embedding handler.
@@ -56,10 +59,17 @@ class FastTextEmbedding:
             embedding_dim: Embedding dimension
             max_vocab_size: Maximum vocabulary size
             min_freq: Minimum frequency for vocabulary inclusion
+            fasttext_path: Explicit path to cc.pt.300.bin. Overrides the search
+                below; this is what `embeddings.fasttext_path` in the YAML sets.
+            allow_random_fallback: Permit training with randomly initialised
+                embeddings when the binary cannot be found. Off by default —
+                see load_pretrained_embeddings for why.
         """
         self.embedding_dim = embedding_dim
         self.max_vocab_size = max_vocab_size
         self.min_freq = min_freq
+        self.fasttext_path = Path(fasttext_path) if fasttext_path else None
+        self.allow_random_fallback = allow_random_fallback
 
         # Special tokens
         self.PAD_TOKEN = "<PAD>"
@@ -107,7 +117,11 @@ class FastTextEmbedding:
                 if free_space < required_space:
                     logger.warning(f"⚠️  Low disk space detected: {free_space / 1024**3:.1f}GB available")
                     logger.warning("⚠️  Recommended: At least 20GB free space")
-                    
+
+                    # Batch jobs have no console; never block a queued run on a prompt.
+                    if not sys.stdin.isatty():
+                        logger.error("Low disk space and no console to confirm — aborting download")
+                        return False
                     response = input("Continue download anyway? (y/N): ")
                     if response.lower() != 'y':
                         logger.info("Download cancelled by user")
@@ -160,33 +174,69 @@ class FastTextEmbedding:
             logger.info("   4. Decompress the .gz file after downloading")
             return False
 
+    def _resolve_model_path(self) -> Optional[Path]:
+        """Find cc.pt.300.bin, preferring an explicitly configured location."""
+        candidates = []
+        if self.fasttext_path:
+            candidates.append(self.fasttext_path)
+            # A bare filename in the YAML means "the usual place", not the CWD.
+            if self.fasttext_path.name == str(self.fasttext_path):
+                candidates.append(Path(__file__).parent / self.fasttext_path)
+        candidates.append(Path(__file__).parent / 'cc.pt.300.bin')
+        candidates = list(dict.fromkeys(candidates))
+
+        for candidate in candidates:
+            if candidate.exists():
+                return candidate
+        logger.warning(
+            "FastText binary not found. Looked in: "
+            + ", ".join(str(c) for c in candidates)
+        )
+        return None
+
     def load_pretrained_embeddings(self) -> None:
-        """Load pre-trained FastText embeddings using fasttext library."""
-        try:
-            # Get the path to the bilstm_fasttext folder
-            bilstm_dir = Path(__file__).parent
-            
-            model_path = bilstm_dir / 'cc.pt.300.bin'
-            logger.info(f"Loading Portuguese FastText embeddings from {model_path}...")
+        """Load pre-trained FastText embeddings using the fasttext library.
 
-            # Check if file exists, if not try to download it
-            if not model_path.exists():
-                logger.warning(f"FastText model not found at {model_path}")
-                logger.info("Attempting to download Facebook's pre-trained embeddings...")
-                
-                if not self._download_fasttext_embeddings(model_path):
-                    raise FileNotFoundError("Could not download FastText model for Portuguese")
+        Raises rather than falling back to random vectors. This used to swallow
+        every failure and continue with `pretrained_model = None`, which trains
+        a model named "BiLSTM+FastText" that has never seen a FastText vector
+        and still reports a plausible F1 — on a batch node with no internet
+        (where the download branch cannot succeed) that is the *default* outcome,
+        and nothing downstream distinguishes it from a real run. Pass
+        allow_random_fallback=True to opt into it deliberately.
+        """
+        model_path = self._resolve_model_path()
 
-            # Load the FastText model
-            logger.info("🔄 Loading FastText model (this may take a moment)...")
-            self.pretrained_model = fasttext.load_model(str(model_path))
-            self.embedding_dim = self.pretrained_model.get_dimension()
-            logger.info(f"✅ Loaded FastText embeddings: dim={self.embedding_dim}")
+        if model_path is None:
+            logger.info("Attempting to download Facebook's pre-trained embeddings...")
+            target = Path(__file__).parent / 'cc.pt.300.bin'
+            if self._download_fasttext_embeddings(target) and target.exists():
+                model_path = target
 
-        except Exception as e:
-            logger.warning(f"Failed to load pre-trained FastText embeddings: {e}")
-            logger.info("Will use random embeddings")
+        if model_path is None:
+            message = (
+                "Could not obtain the Portuguese FastText binary (cc.pt.300.bin). "
+                "Set embeddings.fasttext_path in the config to its location, or "
+                "pre-download it on a node with network access."
+            )
+            if not self.allow_random_fallback:
+                raise FileNotFoundError(message)
+            logger.warning(f"{message} Continuing with RANDOM embeddings by request.")
             self.pretrained_model = None
+            return
+
+        logger.info(f"🔄 Loading FastText model from {model_path} (this may take a moment)...")
+        try:
+            self.pretrained_model = fasttext.load_model(str(model_path))
+        except Exception as e:
+            if not self.allow_random_fallback:
+                raise RuntimeError(f"Failed to load FastText model at {model_path}: {e}") from e
+            logger.warning(f"Failed to load {model_path}: {e}. Using RANDOM embeddings by request.")
+            self.pretrained_model = None
+            return
+
+        self.embedding_dim = self.pretrained_model.get_dimension()
+        logger.info(f"✅ Loaded FastText embeddings: dim={self.embedding_dim}")
 
     def build_vocabulary(self, sentences: List[List[str]]) -> None:
         """

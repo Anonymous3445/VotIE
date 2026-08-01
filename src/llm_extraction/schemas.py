@@ -91,7 +91,6 @@ class SpanExtractionResult(BaseModel):
     processing_time: float = Field(description="Total processing time in seconds (includes prompt building, API call, parsing, alignment)")
     api_time: Optional[float] = Field(default=None, description="API/generation time in seconds (just the LLM call)")
     error: Optional[str] = Field(default=None, description="Error message if extraction failed")
-    raw_response: Optional[str] = Field(default=None, description="Raw LLM response for debugging")
     diagnostics: Optional[Dict[str, Any]] = Field(
         default=None,
         description=(
@@ -119,8 +118,7 @@ class SpanExtractionResult(BaseModel):
                 "strategy": "few_shot",
                 "processing_time": 1.23,
                 "api_time": 0.87,
-                "error": None,
-                "raw_response": None
+                "error": None
             }
         }
 

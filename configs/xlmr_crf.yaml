@@ -16,7 +16,7 @@ data:
   # For cross-municipality experiments, use configs/municipality_experiments/xlmr_crf_M0X.yaml
 
 training:
-  batch_size: 16
+  batch_size: 8
   epochs: 10
   learning_rate: 5e-5
   warmup_proportion: 0.1

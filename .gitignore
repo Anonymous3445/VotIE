@@ -19,6 +19,7 @@ configs/incremental_v2/
 scripts/incremental_v2/
 data/incremental_experiments_v2/
 data/citilink_spans_v2/
-data/citilink-votie-lomo-splits/
+# data/citilink-votie-lomo-splits/ is deliberately TRACKED: it is a released
+# benchmark artifact, and every LOMO run reads it from the repo checkout.
 venv
 models

@@ -61,6 +61,37 @@ def save_jsonl(data: List[Dict[str, Any]], file_path: str) -> None:
     logger.info(f"Saved {len(data)} examples to {file_path}")
 
 
+def result_to_record(result, **extra: Any) -> Dict[str, Any]:
+    """Serialize a ``SpanExtractionResult`` for JSONL storage.
+
+    Every extraction script must go through this function. Hand-built record
+    dicts previously omitted ``diagnostics``, which silently discarded the
+    span-discard counts and token usage the extractors had already measured —
+    the saved spans are all post-alignment, so any fidelity recomputed from
+    them is 1.0 by construction and the run has to be repeated.
+
+    Args:
+        result: The extraction result to serialize.
+        **extra: Additional fields to merge in (e.g. ``test_municipality``).
+    """
+    record = {
+        "id": result.id,
+        "text": result.text,
+        "entities": [
+            {"text": e.text, "type": e.type, "start": e.start, "end": e.end}
+            for e in result.entities
+        ],
+        "model": result.model,
+        "strategy": result.strategy,
+        "processing_time": result.processing_time,
+        "api_time": getattr(result, "api_time", None),
+        "error": result.error,
+        "diagnostics": getattr(result, "diagnostics", None),
+    }
+    record.update(extra)
+    return record
+
+
 def convert_bio_to_spans(
     tokens: List[str],
     labels: List[str],

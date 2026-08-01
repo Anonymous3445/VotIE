@@ -92,12 +92,29 @@ def main():
     parser.add_argument('--predict-only', action='store_true', help='Skip training, start from prediction')
     parser.add_argument('--evaluate-only', action='store_true', help='Skip training and prediction, only evaluate')
     parser.add_argument('--force', action='store_true', help='Overwrite existing files')
-    
+    parser.add_argument('--seed', type=int, help='Override training.seed from the config')
+
     args = parser.parse_args()
-    
+
     # Load configuration
     config = load_config(args.config)
-    
+
+    # A --seed override is applied by materialising a patched copy of the config
+    # next to the run outputs. Training reads the seed from the YAML (train.py),
+    # so patching the file is the only way to change it without touching every
+    # train_* signature. The copy is kept, not deleted, so the exact config used
+    # for a run stays recoverable.
+    config_path = args.config
+    if args.seed is not None:
+        config['training'] = config.get('training', {})
+        config['training']['seed'] = args.seed
+        patched_dir = Path("configs") / "_generated"
+        patched_dir.mkdir(parents=True, exist_ok=True)
+        config_path = str(patched_dir / f"{Path(args.config).stem}_s{args.seed}.yaml")
+        with open(config_path, 'w') as f:
+            yaml.safe_dump(config, f, sort_keys=False)
+        print(f"🎲 Seed override: {args.seed} → {config_path}")
+
     # Determine baseline name
     if args.baseline:
         baseline_name = args.baseline
@@ -136,7 +153,7 @@ def main():
                 print("   Use --force to overwrite or --predict-only to skip training")
                 sys.exit(1)
             
-            model_dir = run_training(args.config, baseline_name, experiment_name)
+            model_dir = run_training(config_path, baseline_name, experiment_name)
         else:
             if not model_dir.exists():
                 print(f"❌ Model directory not found: {model_dir}")
@@ -186,7 +203,8 @@ def main():
         pipeline_metadata = {
             'experiment_name': experiment_name,
             'baseline_name': baseline_name,
-            'config_file': args.config,
+            'config_file': config_path,
+            'seed': config.get('training', {}).get('seed'),
             'pipeline_time': pipeline_time,
             'completed_at': datetime.now().isoformat(),
             'files': {

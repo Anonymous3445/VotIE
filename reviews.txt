@@ -171,3 +171,35 @@ Needs Ethics Review: No
 Reproducibility: 5 = They could easily reproduce the results.
 Datasets: 5 = Enabling: The newly released datasets should affect other people's choice of research or development projects to undertake.
 Software: 5 = Enabling: The newly released software should affect other people's choice of research or development projects to undertake.
+
+
+Meta-Review:
+
+Metareview:
+The submission defines a new IE task called Voting IE (VotIE). The new task is span-level identification of several pre-defined categories (or, entity types). The categories are voting-related:
+
+the vote subject (what was voted on)
+the voting result (approved or not)
+votes of individuals (e.g. the BE councilor voted against, where BE councilor is some municipal role)
+vote aggregation (e.g. by majority or unanimously)
+The annotations themselves come from an existing corpus (CitiLink-Minutes) which annotated meeting minutes over free form Portuguese text from six municipalities. The task is defined with a specific subset of all categories defined in the CitiLink-Minutes corpus, where the subset is selected to be voting related categories.
+
+The submission establishes benchmark results for the VotIE task with several span labeling discriminative models, and LLMs. This is done in two setups. In an in-domain setup, training and evaluation are on texts from one municipality. In the cross-domain (cross-municipality) setup, training is on all domains (all municipalities) but one, and test is on the left-out domain (leave-one-municipality-out, or LOMO).
+
+Results show that trained models are best for the in-domain setup, especially when requiring for exact span matches. When relaxing that requirement, and considering relaxed match as the metric, the gap between trained models and LLMs is significantly reduced (still in the in-domain setup realm). In the more practical LOMO setup, LLMs generally perform better, in almost all cases.
+
+Summary Of Reasons To Publish:
+Automatic identification of voting events in free form text is an important and worthy goal.
+The cross-municipality evaluation setup is practical and useful.
+A benchmarking experiment over Portuguese data (not common)
+Selected baselines are appropriate for the task. The list of baselines is comprehensive.
+Note on the suggested revisions listed below: for a short paper, a findings paper fits. The suggested revisions could be handled for the camera ready version.
+Summary Of Suggested Revisions:
+Clarity: the framing should be revised, specifically, describe the addressed task without any ambiguity, and its setup (span-level identification in texts). Also, describe how the defined task differs from the tasks and experiments explored in the CitiLink-Minutes paper. Is the task a subset of all categories (event types) defined in that corpus?
+Error analysis: adding a manual analysis over a sample would be useful.
+Focus should be more on the LOMO setup, as it is more practical (and, subjectively, more interesting). Consider adding the additional methods included in Table 1 to Table 2.
+Novelty is a bit limited, while the task is new, it is a reformulation over an existing corpus, and a benchmark of contemporary methods. While the results are novel (since the task is new) the general trend fits current knowledge: having training data in a domain allows small models to beat LLMs, yet LLMs generalize better to new domains.
+Please incorporate all reviewer comments and suggestions.
+Technical issue: The demo shows an error when opened.
+Overall Assessment: 3 = Findings: I think this paper could be accepted to the Findings of the ACL.
+Reported Issues: No

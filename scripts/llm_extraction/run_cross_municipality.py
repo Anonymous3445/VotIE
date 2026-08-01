@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """
-Run complete LOMO (Leave-One-Municipality-Out) cross-validation for Gemini
-via langextract (Gemini 2.5 Pro by default).
-
-Uses the same extractor/configuration as
-``scripts/llm_extraction/extract_gemini_spans.py`` so results are
-directly comparable to the standard langextract Gemini run.
+Run LOMO (Leave-One-Municipality-Out) cross-validation for a generative provider.
 
 For each municipality (M01-M06):
-- Tests on ALL examples from the held-out municipality (train + dev + test splits)
-- Uses fixed few-shot examples shared with the AMALIA extractor
+- Tests on every unique segment of the held-out municipality (train + dev + test
+  splits pooled and deduplicated, since the training split is oversampled).
+- Uses demonstrations selected per fold from the five *training* municipalities
+  only. The curated set in fixed_examples.py is unusable here: four of its five
+  examples are gold documents from Porto and Covilha, which are themselves
+  evaluated in their own folds.
 
 Usage:
-    python scripts/llm_extraction/run_cross_municipality.py [--municipalities M01 M02 ...]
+    python scripts/llm_extraction/run_cross_municipality.py --provider gemini
+    python scripts/llm_extraction/run_cross_municipality.py --provider gpt --strategy zero_shot
 """
 
 import argparse
@@ -21,7 +21,7 @@ import logging
 import sys
 from pathlib import Path
 from datetime import datetime
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 from dotenv import load_dotenv
 
@@ -30,12 +30,43 @@ load_dotenv(Path(__file__).parent.parent.parent / ".env")
 
 import langextract as lx
 
-from src.llm_extraction.shared.data_utils import load_jsonl
-from src.llm_extraction.gemini.extractor import GeminiSpanExtractor
-from src.llm_extraction.gemini.config import GeminiConfig
+from src.llm_extraction.shared.data_utils import load_jsonl, result_to_record
 from src.llm_extraction.shared.evaluation import evaluate_span_extraction
 from src.llm_extraction.schemas import SpanEntity, SpanExtractionResult
-from src.llm_extraction.fixed_examples import get_fixed_examples
+from src.llm_extraction.lomo_examples import (
+    Selection,
+    assert_no_leakage,
+    select_lomo_examples,
+)
+
+
+def build_extractor(provider: str, model: str, temperature: float, max_char_buffer: int,
+                    strategy: str, num_examples: int):
+    """Construct the extractor for one provider.
+
+    Imported lazily so a run with one provider does not require the others'
+    SDKs or API keys to be present.
+    """
+    if provider == "gemini":
+        from src.llm_extraction.gemini.extractor import GeminiSpanExtractor
+        from src.llm_extraction.gemini.config import GeminiConfig
+        config = GeminiConfig(model_id=model, temperature=temperature,
+                              max_char_buffer=max_char_buffer)
+        return GeminiSpanExtractor(config=config, strategy=strategy,
+                                   num_examples=num_examples)
+    if provider == "gpt":
+        from src.llm_extraction.gpt.extractor import GptSpanExtractor
+        from src.llm_extraction.gpt.config import GptConfig
+        config = GptConfig(max_char_buffer=max_char_buffer)
+        return GptSpanExtractor(config=config, strategy=strategy,
+                                num_examples=num_examples)
+    if provider == "amalia":
+        from src.llm_extraction.amalia.extractor import AmaliaSpanExtractor
+        from src.llm_extraction.amalia.config import AmaliaConfig
+        config = AmaliaConfig(temperature=temperature, max_char_buffer=max_char_buffer)
+        return AmaliaSpanExtractor(config=config, strategy=strategy,
+                                   num_examples=num_examples)
+    raise ValueError(f"Unknown provider: {provider}")
 
 
 
@@ -61,8 +92,11 @@ logger.addHandler(_handler)
 
 for _name in [
     'src.llm_extraction.gemini.extractor',
+    'src.llm_extraction.gpt.extractor',
+    'src.llm_extraction.amalia.extractor',
     'src.llm_extraction.span_alignment',
     'src.llm_extraction.shared.data_utils',
+    'src.llm_extraction.lomo_examples',
 ]:
     _log = logging.getLogger(_name)
     _log.setLevel(logging.INFO)
@@ -70,14 +104,50 @@ for _name in [
 
 
 def filter_by_municipality(data: List[dict], municipality_code: str) -> List[dict]:
-    """Filter data for specific municipality (accepts M01..M06 codes or real names)."""
+    """Filter data for specific municipality (accepts M01..M06 codes or real names).
+
+    Prefers the explicit ``municipality`` field and falls back to the id prefix.
+    """
     prefix = MUNICIPALITY_MAP.get(municipality_code, municipality_code)
-    return [ex for ex in data if ex.get('id', '').startswith(prefix + '_')]
+    return [
+        ex for ex in data
+        if ex.get('municipality') == municipality_code
+        or (ex.get('municipality') is None and ex.get('id', '').startswith(prefix + '_'))
+    ]
 
 
-def build_lomo_examples(num_examples: int = 5) -> List[lx.data.ExampleData]:
-    """Return the shared fixed few-shot examples used across all extractors."""
-    return get_fixed_examples(num_examples)
+def deduplicate(data: List[dict]) -> List[dict]:
+    """Drop repeated segment ids, keeping first occurrence.
+
+    The training split is oversampled — 2,463 rows over 1,803 unique ids, with
+    multi-vote and minority-type segments duplicated 5x or 9x (Appendix B.5).
+    A LOMO fold pools train+dev+test of the held-out municipality, so without
+    this the duplicates would be scored repeatedly (over-weighting exactly the
+    hard cases) and re-sent to the API, inflating both the metric and the bill.
+    Deduplicating reproduces the documented fold sizes: 504/398/720/235/556/472.
+    """
+    seen = set()
+    unique = []
+    for example in data:
+        if example['id'] in seen:
+            continue
+        seen.add(example['id'])
+        unique.append(example)
+    return unique
+
+
+def build_lomo_examples(
+    held_out: str, num_examples: int = 5
+) -> Tuple[List[lx.data.ExampleData], List[dict]]:
+    """Select few-shot demonstrations that exclude the held-out municipality.
+
+    The curated set in `fixed_examples.py` must NOT be used here: four of its
+    five examples are gold documents from Porto (M06) and Covilha (M03), and a
+    LOMO fold evaluates every split of the held-out municipality — so for those
+    folds the prompt would carry test documents together with their answers.
+    """
+    examples, provenance = select_lomo_examples(held_out, num_examples=num_examples)
+    return examples, [p._asdict() for p in provenance]
 
 
 def run_single_experiment(
@@ -87,15 +157,17 @@ def run_single_experiment(
     dev_file: str,
     test_file: str,
     output_dir: Path,
-    extractor: GeminiSpanExtractor,
+    extractor,
     model_id: str,
     strategy: str,
+    provider: str,
 ) -> Dict:
     """
     Run single LOMO experiment: test on the held-out municipality.
 
     Strategy:
-    - Few-shot examples are the fixed langextract examples (shared with AMALIA).
+    - Few-shot examples are selected per fold from the five training
+      municipalities only (see build_lomo_examples).
     - Test set: ALL examples from held-out municipality (train + dev + test splits).
     """
     logger.info("=" * 80)
@@ -106,17 +178,22 @@ def run_single_experiment(
         + ', '.join(f"{c}={MUNICIPALITY_MAP.get(c, c)}" for c in train_municipalities)
     )
 
-    # Use the same fixed few-shot examples as the standard benchmark runs
-    if strategy == "few_shot":
-        lx_examples = build_lomo_examples(num_examples=5)
-        logger.info(f"Loaded {len(lx_examples)} fixed few-shot examples")
-    else:
-        # langextract requires >=1 example as scaffold
-        lx_examples = build_lomo_examples(num_examples=1)
-        logger.info("Zero-shot mode: using 1 scaffold example")
+    # Select demonstrations for this fold. langextract requires >=1 example
+    # unconditionally, so zero-shot is really one scaffold — and that scaffold
+    # has to respect the fold boundary too.
+    n_examples = 5 if strategy == "few_shot" else 1
+    lx_examples, example_provenance = build_lomo_examples(test_municipality, n_examples)
+
+    # Hard stop rather than a silent bad run: this is the check whose absence
+    # let leaked prompts reach the previously published LOMO results.
+    assert_no_leakage(test_municipality, [Selection(**p) for p in example_provenance])
 
     extractor.lx_examples = lx_examples
-    logger.info(f"Loaded {len(lx_examples)} few-shot examples into extractor")
+    logger.info(f"Selected {len(lx_examples)} demonstrations, none from {test_municipality}:")
+    for p in example_provenance:
+        logger.info(
+            f"    {p['phenomenon']:<24} {p['tier']:<8} {p['municipality']}  {p['id']}"
+        )
 
     logger.info(f"Loading ALL examples from {test_municipality} (train + dev + test splits)...")
     all_train_data = load_jsonl(train_file)
@@ -126,18 +203,22 @@ def run_single_experiment(
     train_examples = filter_by_municipality(all_train_data, test_municipality)
     dev_examples = filter_by_municipality(all_dev_data, test_municipality)
     test_examples = filter_by_municipality(all_test_data, test_municipality)
-    test_data = train_examples + dev_examples + test_examples
+    test_data = deduplicate(train_examples + dev_examples + test_examples)
 
-    logger.info(f"  Train split: {len(train_examples)} examples")
-    logger.info(f"  Dev split:   {len(dev_examples)} examples")
-    logger.info(f"  Test split:  {len(test_examples)} examples")
-    logger.info(f"  TOTAL:       {len(test_data)} examples")
+    logger.info(f"  Train split: {len(train_examples)} rows")
+    logger.info(f"  Dev split:   {len(dev_examples)} rows")
+    logger.info(f"  Test split:  {len(test_examples)} rows")
+    logger.info(
+        f"  TOTAL:       {len(test_data)} unique segments "
+        f"({len(train_examples) + len(dev_examples) + len(test_examples) - len(test_data)} "
+        f"oversampling duplicates dropped)"
+    )
 
     if len(test_data) == 0:
         logger.error(f"No examples found for {test_municipality}")
         return None
 
-    predictions_file = output_dir / f'gemini_few_{test_municipality}.jsonl'
+    predictions_file = output_dir / f'{provider}_{strategy}_{test_municipality}.jsonl'
     existing_predictions: Dict[str, dict] = {}
 
     if predictions_file.exists():
@@ -189,26 +270,11 @@ def run_single_experiment(
             document_id=example['id'],
         )
 
-        pred_dict = {
-            'id': result.id,
-            'text': result.text,
-            'entities': [
-                {
-                    'text': e.text,
-                    'type': e.type,
-                    'start': e.start,
-                    'end': e.end,
-                }
-                for e in result.entities
-            ],
-            'model': result.model,
-            'strategy': result.strategy,
-            'processing_time': result.processing_time,
-            'api_time': getattr(result, 'api_time', None),
-            'error': result.error,
-            'test_municipality': test_municipality,
-            'train_municipalities': train_municipalities,
-        }
+        pred_dict = result_to_record(
+            result,
+            test_municipality=test_municipality,
+            train_municipalities=train_municipalities,
+        )
 
         if result.error:
             errors += 1
@@ -251,20 +317,25 @@ def run_single_experiment(
         predictions=pred_results,
         ground_truth=test_data,
         compute_fidelity=True,
-        relaxed_threshold=0.0,
+        relaxed_matching=True,
     )
 
     evaluation_results['metadata'] = {
         'test_municipality': test_municipality,
         'train_municipalities': train_municipalities,
+        'provider': provider,
         'model_id': model_id,
         'strategy': strategy,
         'num_test_examples': len(test_data),
         'num_errors': errors,
+        # Provenance of every demonstration, so the fold's prompt is auditable
+        # and the absence of held-out material is checkable after the fact.
+        'few_shot_examples': example_provenance,
+        'predictions_file': str(predictions_file),
         'timestamp': datetime.now().isoformat(),
     }
 
-    eval_file = output_dir / f'gemini_few_{test_municipality}_evaluation.json'
+    eval_file = output_dir / f'{provider}_{strategy}_{test_municipality}_evaluation.json'
     logger.info(f"Saving evaluation to {eval_file}")
 
     def convert_numpy_types(obj):
@@ -304,6 +375,7 @@ def generate_summary_table(
     model_id: str,
     strategy: str,
     num_examples: int,
+    provider: str,
 ):
     """Generate comparative table of LOMO results across all municipalities."""
     logger.info("\n" + "=" * 80)
@@ -313,12 +385,13 @@ def generate_summary_table(
     municipalities = sorted(results.keys())
 
     lines = []
-    lines.append("# Langextract Gemini LOMO Cross-Validation Results\n\n")
+    lines.append(f"# LOMO Cross-Validation Results — {provider} ({model_id})\n\n")
     lines.append("## Leave-One-Municipality-Out Generalization\n\n")
     lines.append(
         "Each row shows results when testing on the held-out municipality. "
-        "Few-shot examples are dynamically selected from the other 5 municipalities "
-        "(1 per training municipality), guaranteeing zero leakage from the held-out muni.\n\n"
+        "Few-shot demonstrations are selected per fold from the five training "
+        "municipalities only; none originates in the held-out municipality. "
+        "Provenance for every demonstration is recorded in the per-fold evaluation JSON.\n\n"
     )
 
     lines.append("### Entity-Level Span Extraction Results\n\n")
@@ -388,13 +461,14 @@ def generate_summary_table(
 
     lines.append("\n### Experimental Setup\n\n")
     lines.append(f"- **Model**: {model_id}\n")
-    lines.append("- **Pipeline**: langextract (`GeminiSpanExtractor`)\n")
+    lines.append(f"- **Pipeline**: langextract ({provider})\n")
     lines.append(f"- **Strategy**: {strategy} (1 example per training municipality, 5 total)\n")
-    lines.append("- **Example Selection**: Dynamic per-LOMO-fold from training municipalities only (no held-out leakage)\n")
+    lines.append("- **Example Selection**: Per-fold, one demonstration per phenomenon, "
+                 "drawn only from the five training municipalities (see src/llm_extraction/lomo_examples.py)\n")
     lines.append("- **Evaluation**: Character-level span matching (exact match)\n")
     lines.append("- **Data Source**: `data/citilink-votie/{train,dev,test}.jsonl`\n\n")
 
-    summary_file = output_dir / 'gemini_lomo_summary.md'
+    summary_file = output_dir / f'{provider}_lomo_summary.md'
     logger.info(f"Saving summary to {summary_file}")
     with open(summary_file, 'w', encoding='utf-8') as f:
         f.write(''.join(lines))
@@ -419,7 +493,7 @@ def generate_summary_table(
         },
     }
 
-    summary_json_file = output_dir / 'gemini_lomo_summary.json'
+    summary_json_file = output_dir / f'{provider}_lomo_summary.json'
     with open(summary_json_file, 'w', encoding='utf-8') as f:
         json.dump(summary_json, f, indent=2, ensure_ascii=False)
 
@@ -436,7 +510,14 @@ def generate_summary_table(
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Run complete LOMO cross-validation for Gemini via langextract'
+        description='Run complete LOMO cross-validation for one generative provider'
+    )
+    parser.add_argument(
+        '--provider',
+        type=str,
+        choices=['gemini', 'gpt', 'amalia'],
+        default='gemini',
+        help='Generative provider to evaluate',
     )
     parser.add_argument(
         '--municipalities',
@@ -454,14 +535,16 @@ def main():
     parser.add_argument(
         '--model',
         type=str,
-        default='gemini-2.5-pro',
-        help='Gemini model ID',
+        default=None,
+        help='Model ID (default: the provider default — gemini-2.5-pro, gpt-5.5, '
+             'or AMALIA auto-detected from /v1/models)',
     )
     parser.add_argument(
         '--num-examples',
         type=int,
         default=5,
-        help='(reserved; LOMO always picks 1 example per training municipality = 5 total)',
+        help='Demonstrations per fold, one per phenomenon, selected from the five '
+             'training municipalities (see src/llm_extraction/lomo_examples.py)',
     )
     parser.add_argument(
         '--max-char-buffer',
@@ -492,8 +575,8 @@ def main():
     )
     parser.add_argument(
         '--output-dir',
-        default='results/llm_extraction/gemini/lomo',
-        help='Output directory',
+        default=None,
+        help='Output directory (default: results/lomo_cr/llm/<provider>)',
     )
     parser.add_argument(
         '--skip-existing',
@@ -503,16 +586,23 @@ def main():
 
     args = parser.parse_args()
 
+    PROVIDER_DEFAULT_MODEL = {'gemini': 'gemini-2.5-pro', 'gpt': 'gpt-5.5', 'amalia': None}
+    if args.model is None:
+        args.model = PROVIDER_DEFAULT_MODEL[args.provider]
+    if args.output_dir is None:
+        args.output_dir = f'results/lomo_cr/llm/{args.provider}'
+
     logger.info("=" * 80)
-    logger.info("LANGEXTRACT GEMINI LOMO CROSS-VALIDATION")
+    logger.info(f"LOMO CROSS-VALIDATION — {args.provider.upper()}")
     logger.info("=" * 80)
-    logger.info(f"Model: {args.model}")
-    logger.info(f"Strategy: {args.strategy} ({args.num_examples} fixed examples)")
+    logger.info(f"Model: {args.model or '(auto-detected from the server)'}")
+    logger.info(f"Strategy: {args.strategy} ({args.num_examples} per-fold demonstrations)")
     logger.info(f"Municipalities: {', '.join(args.municipalities)}")
     logger.info(f"Train file: {args.train_file}")
     logger.info(f"Dev file: {args.dev_file}")
     logger.info(f"Test file: {args.test_file}")
-    logger.info("Evaluation strategy: ALL splits (train+dev+test) from held-out municipality")
+    logger.info("Evaluation strategy: ALL splits (train+dev+test) from held-out municipality, deduplicated")
+    logger.info("Few-shot: selected per fold from the five training municipalities only")
     logger.info(f"Output directory: {args.output_dir}")
     logger.info(f"Skip existing: {args.skip_existing}")
     logger.info("=" * 80 + "\n")
@@ -520,24 +610,26 @@ def main():
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Build the extractor ONCE — fixed few-shot examples are municipality-agnostic
-    config = GeminiConfig(
-        model_id=args.model,
+    # One extractor for all folds; its lx_examples are replaced per fold, since
+    # the demonstrations are municipality-dependent.
+    extractor = build_extractor(
+        provider=args.provider,
+        model=args.model,
         temperature=args.temperature,
         max_char_buffer=args.max_char_buffer,
-    )
-    extractor = GeminiSpanExtractor(
-        config=config,
         strategy=args.strategy,
         num_examples=args.num_examples,
     )
+    resolved_model = getattr(extractor, 'model_id', args.model)
+    if resolved_model != args.model:
+        logger.info(f"Server resolved model id: {resolved_model}")
 
     all_municipalities = ['M01', 'M02', 'M03', 'M04', 'M05', 'M06']
 
     results = {}
 
     for test_muni in args.municipalities:
-        eval_file = output_dir / f'gemini_few_{test_muni}_evaluation.json'
+        eval_file = output_dir / f'{args.provider}_{args.strategy}_{test_muni}_evaluation.json'
         if args.skip_existing and eval_file.exists():
             logger.info(f"Skipping {test_muni} (evaluation file already exists)")
             try:
@@ -560,21 +652,23 @@ def main():
                 test_file=args.test_file,
                 output_dir=output_dir,
                 extractor=extractor,
-                model_id=args.model,
+                model_id=resolved_model,
                 strategy=args.strategy,
+                provider=args.provider,
             )
             results[test_muni] = result
         except Exception as e:
             logger.error(f"Failed to run experiment for {test_muni}: {e}")
             results[test_muni] = None
 
-    generate_summary_table(results, output_dir, args.model, args.strategy, args.num_examples)
+    generate_summary_table(results, output_dir, resolved_model, args.strategy,
+                           args.num_examples, args.provider)
 
     logger.info("\n" + "=" * 80)
     logger.info("ALL EXPERIMENTS COMPLETE")
     logger.info("=" * 80)
     logger.info(f"Results saved to: {output_dir}")
-    logger.info(f"Summary: {output_dir / 'gemini_lomo_summary.md'}")
+    logger.info(f"Summary: {output_dir / (args.provider + '_lomo_summary.md')}")
     logger.info("=" * 80)
 
 

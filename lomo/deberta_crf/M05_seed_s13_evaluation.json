@@ -1,0 +1,155 @@
+{
+  "metadata": {
+    "predictions_file": "predictions/deberta_crf_lomo_M05_seeds_s13.jsonl",
+    "timestamp": "2026-05-23T06:22:47.968095",
+    "num_examples": 556
+  },
+  "entity_level_metrics": {
+    "entity_precision": 0.557466053691028,
+    "entity_recall": 0.6054666346309552,
+    "entity_f1": 0.5484141930037251,
+    "entity_accuracy": 0.9658749892823458,
+    "per_type_metrics": {
+      "COUNT-BLANK": {
+        "precision": 1.0,
+        "recall": 0.5,
+        "f1_score": 0.6666666666666666,
+        "support": 6
+      },
+      "COUNT-FAVOR": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "COUNTING-MAJORITY": {
+        "precision": 0.65625,
+        "recall": 0.9545454545454546,
+        "f1_score": 0.7777777777777778,
+        "support": 22
+      },
+      "COUNTING-UNANIMITY": {
+        "precision": 0.9442148760330579,
+        "recall": 0.9849137931034483,
+        "f1_score": 0.9641350210970464,
+        "support": 464
+      },
+      "SUBJECT": {
+        "precision": 0.10669077757685352,
+        "recall": 0.1191919191919192,
+        "f1_score": 0.11259541984732825,
+        "support": 495
+      },
+      "VOTER-ABSENT": {
+        "precision": 0.9411764705882353,
+        "recall": 0.9411764705882353,
+        "f1_score": 0.9411764705882353,
+        "support": 51
+      },
+      "VOTER-ABSTENTION": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 32
+      },
+      "VOTER-AGAINST": {
+        "precision": 0.23478260869565218,
+        "recall": 1.0,
+        "f1_score": 0.38028169014084506,
+        "support": 27
+      },
+      "VOTER-FAVOR": {
+        "precision": 0.2727272727272727,
+        "recall": 0.16030534351145037,
+        "f1_score": 0.2019230769230769,
+        "support": 131
+      },
+      "VOTING": {
+        "precision": 0.9762845849802372,
+        "recall": 1.0,
+        "f1_score": 0.988,
+        "support": 494
+      },
+      "VOTING-METHOD": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 6
+      }
+    }
+  },
+  "relaxed_boundary_metrics": {
+    "precision": 0.6746448585464215,
+    "recall": 0.6293750255133281,
+    "f1": 0.6072424402506418,
+    "per_type_metrics": {
+      "SUBJECT": {
+        "precision": 0.7015384615384616,
+        "recall": 0.46060606060606063,
+        "f1_score": 0.5560975609756098,
+        "support": 495
+      },
+      "VOTER-FAVOR": {
+        "precision": 0.7692307692307693,
+        "recall": 0.22900763358778625,
+        "f1_score": 0.3529411764705882,
+        "support": 131
+      },
+      "VOTING": {
+        "precision": 0.9801587301587301,
+        "recall": 1.0,
+        "f1_score": 0.9899799599198396,
+        "support": 494
+      },
+      "COUNTING-UNANIMITY": {
+        "precision": 0.9626556016597511,
+        "recall": 1.0,
+        "f1_score": 0.9809725158562368,
+        "support": 464
+      },
+      "COUNTING-MAJORITY": {
+        "precision": 0.7727272727272727,
+        "recall": 0.7727272727272727,
+        "f1_score": 0.7727272727272727,
+        "support": 22
+      },
+      "VOTER-ABSENT": {
+        "precision": 1.0,
+        "recall": 0.9607843137254902,
+        "f1_score": 0.98,
+        "support": 51
+      },
+      "VOTER-AGAINST": {
+        "precision": 0.23478260869565218,
+        "recall": 1.0,
+        "f1_score": 0.38028169014084506,
+        "support": 27
+      },
+      "VOTER-ABSTENTION": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 32
+      },
+      "COUNT-FAVOR": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 0
+      },
+      "COUNT-BLANK": {
+        "precision": 1.0,
+        "recall": 0.5,
+        "f1_score": 0.6666666666666666,
+        "support": 6
+      },
+      "VOTING-METHOD": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "support": 6
+      }
+    },
+    "delta_f1": 0.05882824724691671
+  }
+}

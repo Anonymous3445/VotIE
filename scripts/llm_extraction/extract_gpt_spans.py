@@ -31,7 +31,7 @@ load_dotenv(Path(__file__).parent.parent.parent / ".env")
 
 from src.llm_extraction.gpt.extractor import GptSpanExtractor
 from src.llm_extraction.gpt.config import GptConfig
-from src.llm_extraction.shared.data_utils import load_jsonl, save_jsonl
+from src.llm_extraction.shared.data_utils import load_jsonl, result_to_record, save_jsonl
 
 
 _handler = logging.StreamHandler()
@@ -78,9 +78,27 @@ def main():
         help="Output path (auto-generated if not set)",
     )
     parser.add_argument("--limit", type=int, default=None)
-    parser.add_argument("--num-examples", type=int, default=4)
+    parser.add_argument("--num-examples", type=int, default=5,
+                        help="Fixed few-shot demonstrations (5 = the set reported in the paper)")
     parser.add_argument("--max-char-buffer", type=int, default=20000)
     parser.add_argument("--timeout", type=int, default=120)
+    parser.add_argument(
+        "--request-interval",
+        type=float,
+        default=0.0,
+        help="Minimum seconds between requests. The gateway rate-limits with an "
+             "HTTP-200 'Rate limit reached (429)' event; pacing avoids it.",
+    )
+    parser.add_argument("--rate-limit-delay", type=int, default=30,
+                        help="Initial backoff after a 429, doubled each retry (cap 600s)")
+    parser.add_argument("--rate-limit-retries", type=int, default=6)
+    parser.add_argument(
+        "--temperature",
+        type=float,
+        default=None,
+        help="Send a temperature to the gateway. Off by default: the endpoint's "
+             "handling of extra fields is untested. Probe with --limit 2 first.",
+    )
 
     args = parser.parse_args()
 
@@ -93,6 +111,10 @@ def main():
         api_key=args.api_key,
         max_char_buffer=args.max_char_buffer,
         timeout=args.timeout,
+        temperature=args.temperature,
+        request_interval=args.request_interval,
+        rate_limit_delay=args.rate_limit_delay,
+        rate_limit_retries=args.rate_limit_retries,
     )
 
     extractor = GptSpanExtractor(
@@ -108,28 +130,40 @@ def main():
         test_data = test_data[: args.limit]
         logger.info(f"Limited to {args.limit} examples")
 
+    # Resume from an existing output, as the Gemini and AMALIA scripts do.
+    # Without this a multi-hour paid run lost everything to a dropped connection:
+    # results were only written after the final document.
     results = []
-    for i, example in enumerate(test_data, 1):
-        logger.info(f"Processing {i}/{len(test_data)}: {example['id']}")
+    processed_ids = set()
+    if Path(args.output_file).exists():
+        existing = load_jsonl(args.output_file)
+        results = [r for r in existing if r.get("error") is None]
+        processed_ids = {r["id"] for r in results}
+        logger.info(
+            f"Resuming from checkpoint: {len(results)} successful, "
+            f"{len(existing) - len(results)} errored (will retry)"
+        )
+        stale = sum(1 for r in results if not r.get("diagnostics"))
+        if stale:
+            logger.warning(
+                f"{stale}/{len(results)} resumed records carry no diagnostics "
+                f"(pre-instrumentation run). They will NOT be re-run, so cost and "
+                f"span-discard figures would cover only part of the set. Write to a "
+                f"fresh --output-file if you need a fully instrumented run."
+            )
+
+    pending = [ex for ex in test_data if ex["id"] not in processed_ids]
+    logger.info(f"Remaining examples to process: {len(pending)}")
+
+    for i, example in enumerate(pending, 1):
+        logger.info(f"Processing {i}/{len(pending)}: {example['id']}")
 
         result = extractor.extract(
             text=example["text"],
             document_id=example["id"],
         )
 
-        result_dict = {
-            "id": result.id,
-            "text": result.text,
-            "entities": [
-                {"text": e.text, "type": e.type, "start": e.start, "end": e.end}
-                for e in result.entities
-            ],
-            "model": result.model,
-            "strategy": result.strategy,
-            "processing_time": result.processing_time,
-            "api_time": result.api_time,
-            "error": result.error,
-        }
+        result_dict = result_to_record(result)
 
         results.append(result_dict)
 
@@ -137,7 +171,13 @@ def main():
         logger.info(f"  -> {len(result.entities)} entities [{status}]")
 
         if i % 10 == 0:
-            logger.info(f"Processed {i}/{len(test_data)} examples")
+            logger.info(f"Processed {i}/{len(pending)} examples")
+
+        # Flush periodically so an interruption costs at most 25 documents
+        # rather than the whole run.
+        if i % 25 == 0:
+            save_jsonl(results, args.output_file)
+            logger.info(f"Checkpoint saved ({len(results)} total) -> {args.output_file}")
 
     logger.info(f"Saving results to {args.output_file}")
     save_jsonl(results, args.output_file)
