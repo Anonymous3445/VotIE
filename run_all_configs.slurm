@@ -54,6 +54,9 @@ export HF_HUB_OFFLINE=1
 export HF_HOME="${HF_CACHE_DIR}"
 export HF_HUB_CACHE="${HF_CACHE_DIR}/hub"
 export TRANSFORMERS_CACHE="${HF_CACHE_DIR}/hub"
+# FastText vectors for bilstm_fasttext, cached alongside the encoders by
+# download_all_models.py. See src/embeddings_cache.py for the search order.
+export VOTIE_FASTTEXT_PATH="${HF_CACHE_DIR}/fasttext/cc.pt.300.bin"
 
 # Resolve imports from the venv, not a stray ~/.local copy: on Deucalion the
 # EasyBuild module python can land pip installs in ~/.local and silently shadow
@@ -67,7 +70,7 @@ mkdir -p logs
 
 # Build the list of configs to run.
 # We deliberately do NOT recurse into configs/municipality_experiments — those
-# are handled by run_lomo_deberta.slurm.
+# are handled by run_lomo_camera_ready.slurm.
 CONFIGS=()
 if [[ -n "${CONFIG_FILTER}" ]]; then
     for name in ${CONFIG_FILTER}; do

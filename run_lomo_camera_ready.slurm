@@ -83,13 +83,18 @@ cd "${REPO_DIR}" || exit 1
 ml OpenMPI/5.0.3-GCC-13.3.0 CUDA/12.4.0 NCCL/2.20.5-GCCcore-13.3.0-CUDA-12.4.0
 source "${VENV_DIR}/bin/activate"
 
-# Models must be pre-cached on the login node; block downloads from the node.
+# Weights must be pre-cached on the login node; block downloads from the node.
+#   python download_all_models.py --cache-dir "${HF_CACHE_DIR}"
 export TRANSFORMERS_OFFLINE=1
 export HF_DATASETS_OFFLINE=1
 export HF_HUB_OFFLINE=1
 export HF_HOME="${HF_CACHE_DIR}"
 export HF_HUB_CACHE="${HF_CACHE_DIR}/hub"
 export TRANSFORMERS_CACHE="${HF_CACHE_DIR}/hub"
+# FastText vectors for the 6 bilstm_fasttext tasks, cached alongside the
+# encoders by the same script. src/embeddings_cache.py would also find them via
+# HF_HOME; setting it explicitly keeps that working if HF_HOME ever moves.
+export VOTIE_FASTTEXT_PATH="${HF_CACHE_DIR}/fasttext/cc.pt.300.bin"
 export PYTHONNOUSERSITE=1
 export PYTHONPATH="${REPO_DIR}:${PYTHONPATH}"
 
@@ -176,6 +181,16 @@ if [[ ! -f "${CONFIG}" ]]; then
     echo "[FAIL] config not found: ${CONFIG}"
     echo "       Regenerate the LOMO configs first:"
     echo "         python scripts/make_lomo_configs.py --overwrite"
+    exit 1
+fi
+
+# The BiLSTM is the only model with a weight file outside the HF cache. Check it
+# up front: the loader raises rather than silently using random vectors, but
+# failing here costs a second instead of a queue slot plus model construction.
+if [[ "${MODEL}" == "bilstm_fasttext" && ! -f "${VOTIE_FASTTEXT_PATH}" ]]; then
+    echo "[FAIL] FastText vectors not found: ${VOTIE_FASTTEXT_PATH}"
+    echo "       Fetch them on the login node (no internet from compute nodes):"
+    echo "         python download_all_models.py --only-fasttext --cache-dir \"${HF_CACHE_DIR}\""
     exit 1
 fi
 

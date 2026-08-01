@@ -35,6 +35,14 @@ import re
 import fasttext
 import fasttext.util
 
+from ..embeddings_cache import (
+    FASTTEXT_FILENAME,
+    FASTTEXT_PATH_ENV,
+    fasttext_candidates,
+    fasttext_path,
+    resolve_fasttext,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -175,22 +183,17 @@ class FastTextEmbedding:
             return False
 
     def _resolve_model_path(self) -> Optional[Path]:
-        """Find cc.pt.300.bin, preferring an explicitly configured location."""
-        candidates = []
-        if self.fasttext_path:
-            candidates.append(self.fasttext_path)
-            # A bare filename in the YAML means "the usual place", not the CWD.
-            if self.fasttext_path.name == str(self.fasttext_path):
-                candidates.append(Path(__file__).parent / self.fasttext_path)
-        candidates.append(Path(__file__).parent / 'cc.pt.300.bin')
-        candidates = list(dict.fromkeys(candidates))
+        """Find cc.pt.300.bin, preferring an explicitly configured location.
 
-        for candidate in candidates:
-            if candidate.exists():
-                return candidate
+        The search order lives in src/embeddings_cache.py, shared with
+        download_all_models.py so the writer and the reader cannot disagree.
+        """
+        found = resolve_fasttext(self.fasttext_path)
+        if found is not None:
+            return found
         logger.warning(
             "FastText binary not found. Looked in: "
-            + ", ".join(str(c) for c in candidates)
+            + ", ".join(str(c) for c in fasttext_candidates(self.fasttext_path))
         )
         return None
 
@@ -209,15 +212,19 @@ class FastTextEmbedding:
 
         if model_path is None:
             logger.info("Attempting to download Facebook's pre-trained embeddings...")
-            target = Path(__file__).parent / 'cc.pt.300.bin'
+            target = fasttext_path()
+            target.parent.mkdir(parents=True, exist_ok=True)
             if self._download_fasttext_embeddings(target) and target.exists():
                 model_path = target
 
         if model_path is None:
             message = (
-                "Could not obtain the Portuguese FastText binary (cc.pt.300.bin). "
-                "Set embeddings.fasttext_path in the config to its location, or "
-                "pre-download it on a node with network access."
+                f"Could not obtain the Portuguese FastText binary ({FASTTEXT_FILENAME}). "
+                f"Compute nodes have no route to the internet, so fetch it on a login "
+                f"node first:\n"
+                f"    python download_all_models.py --only-fasttext\n"
+                f"then export {FASTTEXT_PATH_ENV} (or HF_HOME) in the job, or set "
+                f"embeddings.fasttext_path in the config."
             )
             if not self.allow_random_fallback:
                 raise FileNotFoundError(message)
